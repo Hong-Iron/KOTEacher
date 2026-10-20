@@ -22,6 +22,51 @@ MENTION = re.compile(
     r"(?<![A-Za-z])pp?\.\s?\d|\d+\s?회\s?(?:강의|슬라이드|자료|차|p\.)|\d+\s?주차|이 강의|자료에(?:는)? 없|자료에서")
 
 
+# 이 앱만을 위한 내용: 다른 과목(공학수학 등)과 잇는 문서·절·문장은 뺀다
+DROP_DOCS = re.compile(r"^(3[6-9]|4[0-2])[._]|^9[1-5][._]")      # 수학과 잇기 7개, 레벨별 목록 5개
+DROP_SECTIONS = {"과목별 관점", "먼저 알아야 할 것", "8단원 · 수학과 잇기", "다른 과목과의 연결", "프로그래머스 문제 목록"}
+LINK = re.compile(r"!?\[\[([^\]|\\]+)\\?(?:\|[^\]]+)?\]\]")
+
+
+def external(target):
+    """이 앱에 없는 문서를 가리키는 링크인가."""
+    if not target.startswith("알고리즘/"):
+        return True
+    name = target.rsplit("/", 1)[-1]
+    return bool(DROP_DOCS.match(name))
+
+
+def has_external(line):
+    return any(external(m.group(1)) for m in LINK.finditer(line))
+
+
+def app_only(text):
+    out, skip = [], False
+    for line in text.split("\n"):
+        if line.startswith("## "):
+            skip = line[3:].strip() in DROP_SECTIONS
+        if skip or not has_external(line):
+            if not skip:
+                out.append(line)
+            continue
+        body = line.lstrip("> ").lstrip()
+        if body.startswith(("- ", "* ", "|")) or re.match(r"\d+\. ", body):
+            continue  # 목록 항목, 표 줄은 통째로 뺀다
+        # 문장: 다른 과목을 가리키는 문장만 뺀다
+        prefix = line[:len(line) - len(line.lstrip("> "))]
+        sents = re.split(r"(?<=[.?!])\s+", line[len(prefix):])
+        keep = [x for x in sents if not has_external(x)]
+        if keep:
+            out.append(prefix + " ".join(keep))
+    text = "\n".join(out)
+    # 지운 문서를 가리키는 흐름 그림 줄(n36~n42)도 뺀다
+    text = re.sub(r"^\s*n(3[6-9]|4[0-2])\[.*\n", "", text, flags=re.M)
+    text = re.sub(r"^\s*n\d+ --> n(3[6-9]|4[0-2])\s*\n", "", text, flags=re.M)
+    # 내용이 모두 빠진 절은 제목도 뺀다
+    text = re.sub(r"^(##+ [^\n]+)\n\s*(?=^##+ |\Z)", "", text, flags=re.M)
+    return text
+
+
 def clean_md(text):
     out, skip_warn, skip_memo = [], False, False
     for line in text.split("\n"):
@@ -53,8 +98,10 @@ def main():
     for sub in ("3.개념집", "4.연습문제"):
         (DST / sub).mkdir(parents=True)
         for f in sorted((SRC / sub).iterdir()):
+            if DROP_DOCS.match(f.name):
+                continue
             if f.suffix == ".md":
-                (DST / sub / f.name).write_text(clean_md(f.read_text(encoding="utf-8")), encoding="utf-8")
+                (DST / sub / f.name).write_text(app_only(clean_md(f.read_text(encoding="utf-8"))), encoding="utf-8")
                 n["md"] += 1
             elif f.suffix in (".py", ".svg"):
                 shutil.copy2(f, DST / sub / f.name)
@@ -76,11 +123,14 @@ def main():
             drop = False
         lines.append(line)
     road = "\n".join(lines)
-    (DST / "0.로드맵.md").write_text(clean_md(road), encoding="utf-8")
+    (DST / "0.로드맵.md").write_text(app_only(clean_md(road)), encoding="utf-8")
     print(f"content/: 문서 {n['md']}, 코드 {n['py']}, 그림 {n['svg']}, 로드맵 1")
     left = [(p.relative_to(DST), l.strip()[:80]) for p in DST.rglob("*.md")
             for l in p.read_text(encoding="utf-8").splitlines() if re.match(r"^\s*\[\^", l) and MENTION.search(l)]
     print("남은 수업 자료 언급:", len(left))
+    ext = [(p.relative_to(DST), l.strip()[:90]) for p in DST.rglob("*.md")
+           for l in p.read_text(encoding="utf-8").splitlines() if has_external(l)]
+    print("남은 다른 과목 링크:", len(ext), ext[:3])
 
 
 if __name__ == "__main__":

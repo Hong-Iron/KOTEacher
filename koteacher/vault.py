@@ -166,10 +166,14 @@ def concepts():
 
 
 def concept_doc(name):
-    f = config.CONCEPTS / f"{name}.md"
+    practice = name.startswith("@연습/")  # 예제 사다리 같은 연습 문서
+    f = (config.PRACTICE / f"{name[4:]}.md") if practice else config.CONCEPTS / f"{name}.md"
     meta, body = _front(f.read_text(encoding="utf-8"))
     body = re.sub(r"^# .*\n", "", body.lstrip(), count=1)  # 제목은 탭과 머리글에 따로 보인다
     info = next((c for c in concepts() if c["name"] == name), {})
+    if practice:
+        info = {"name": name, "num": f.name[:2], "title": meta.get("title", f.stem.split(".", 1)[1]),
+                "aliases": "", "summary": "", "problems": []}
     return {**info, "html": to_html(body)}
 
 

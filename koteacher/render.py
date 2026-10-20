@@ -82,6 +82,8 @@ def _links(doc, text):
             return doc.keep(f'<a class="doclink" data-doc="{html.escape(stem)}">{label}</a>')
         if "4.연습문제" in target and stem in doc.problem_ids:
             return doc.keep(f'<a class="doclink prob" data-problem="{doc.problem_ids[stem]}">{label}</a>')
+        if "4.연습문제" in target and (config.PRACTICE / f"{stem}.md").exists():  # 예제 사다리 같은 연습 문서
+            return doc.keep(f'<a class="doclink" data-doc="@연습/{html.escape(stem)}">{label}</a>')
         if p.suffix in (".py", ".svg"):
             return doc.keep(f'<span class="codefile" title="{html.escape(p.name)}">{label}</span>')
         return doc.keep(f'<span class="xlink" title="{html.escape(target)}">{label}</span>')
