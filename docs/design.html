@@ -155,6 +155,7 @@ textarea.fake{width:100%;font:inherit;font-size:12.8px;border:1px solid var(--li
   <a href="#screens">화면</a>
   <a href="#coach">실시간 코치</a>
   <a href="#pipeline">코치 파이프라인</a>
+  <a href="#mistakes">오답 기록</a>
   <a href="#arch">아키텍처</a>
   <a href="#data">데이터</a>
   <a href="#model">gemma4 운용</a>
@@ -493,6 +494,42 @@ flowchart LR
 </ul>
 </section>
 
+<section id="mistakes">
+<h2>오답 기록</h2>
+<p>틀렸다가 고친 순간을 하나씩 자동으로 남긴다. 테스트가 빨간색에서 초록색으로 바뀌면, 그 사이에 바뀐 코드가 곧 "무엇을 틀렸고 어떻게 고쳤나"다. 나는 한 줄 메모만 보태면 된다.</p>
+
+<h3>언제 남기나</h3>
+<ul>
+  <li><b>고친 실수:</b> 실패하던 검사(예시, 반례, 시간 초과, 오류)가 다음 실행에서 통과하면 남긴다. 두 실행 사이의 코드 차이가 고친 내용이다.</li>
+  <li><b>못 고친 실수:</b> 풀이를 보거나 포기하고 나가면, 마지막까지 실패하던 검사를 "못 고침"으로 남긴다.</li>
+  <li><b>오타 걸러내기:</b> 문법 오류, 이름 오타, 30초 안에 고친 실패는 남기지 않는다. 기록이 쌓일수록 쓸모 있는 것만 남아야 한다.</li>
+</ul>
+
+<h3>한 건에 담는 것</h3>
+<div class="table-scroll"><table>
+<tr><th>칸</th><th>예 (보석 쇼핑)</th><th>어디서 오나</th></tr>
+<tr><td>문제, 개념</td><td>pg67258 · 투 포인터</td><td>문제 팩</td></tr>
+<tr><td>분류</td><td>비교·경계</td><td>진단 단계 (지문 · 수리 · AI)</td></tr>
+<tr><td>실수 이름</td><td>길이가 같을 때도 답을 바꿈</td><td>알려진 실수면 그 이름, 아니면 AI가 붙이고 내가 고칠 수 있다</td></tr>
+<tr><td>증거</td><td>반례 ["C","C"] → 기대 [1, 1], 내 답 [2, 2]</td><td>검사 단계</td></tr>
+<tr><td>고치기 전·후</td><td><code>&lt;=</code> → <code>&lt;</code> (11번 줄)</td><td>두 스냅숏의 차이</td></tr>
+<tr><td>걸린 시간, 힌트</td><td>4분 12초 · 힌트 0개</td><td>시도 기록</td></tr>
+<tr><td>내 메모</td><td>"같을 땐 먼저 찾은 게 시작이 빠르다"</td><td>나 (선택)</td></tr>
+</table></div>
+
+<h3>나중에 어디에 쓰나</h3>
+<div class="table-scroll"><table>
+<tr><th>쓰임</th><th>어떻게</th></tr>
+<tr><td>코치가 나를 안다</td><td>자주 틀리는 분류 3개를 프롬프트에 한 줄로 넣는다 (100토큰 안). "이 사람은 경계 비교를 자주 틀린다"를 알면 같은 신호에서 더 빨리 짚는다</td></tr>
+<tr><td>내 실수가 지문이 된다</td><td>내가 틀린 코드는 그 문제의 새 실수 변이체로 들어간다. 다시 풀 때 같은 실수를 하면 AI 없이 바로 알아본다</td></tr>
+<tr><td>오답 카드</td><td>내 틀린 코드와 반례로 추적 카드를 만든다. "이 코드에 ["C","C"]를 넣으면 무엇이 나오나?" 간격을 두고 복습에 섞는다</td></tr>
+<tr><td>실행 전 점검</td><td>적극 모드에서, 내가 자주 틀린 자리(최단 갱신 비교, 범위 끝, 빈 입력)를 실행 전에 한 줄로 짚는다</td></tr>
+<tr><td>다음 문제 고르기</td><td>자주 틀린 분류와 개념이 들어간 문제를 다시 풀기와 모의 코테에 먼저 넣는다</td></tr>
+<tr><td>오답 노트 화면</td><td>분류별, 개념별로 모아 본다. 시험 전날 "내가 틀린 것만" 훑어보는 용도</td></tr>
+<tr><td>볼트로 내보내기 (선택)</td><td>한 달에 한 번 <code>알고리즘/2.필기노트/</code>에 오답 노트 문서로 내보낸다. 내가 만든 기록이라 필기노트 자리가 맞다</td></tr>
+</table></div>
+</section>
+
 <section id="arch">
 <h2>아키텍처</h2>
 <p>내 컴퓨터 안에서만 도는 세 덩어리다. 브라우저 화면, 파이썬 서버, Ollama. 볼트는 서버가 읽기만 한다.</p>
@@ -574,6 +611,7 @@ EXAMPLES = [((["DIA", <span class="st2">"RUBY"</span>, ...],), [<span class="nu"
 <tr><td>attempts</td><td>problem_id, mode(연습·다시 풀기·모의), started, ended, result, hints_opened, solution_viewed</td><td>실력 막대, 다시 풀기 일정</td></tr>
 <tr><td>snapshots</td><td>attempt_id, t, code, test_summary</td><td>실행할 때마다 코드를 남긴다. 돌아보기에서 내가 어떻게 고쳐 왔는지 다시 본다</td></tr>
 <tr><td>coach_msgs</td><td>attempt_id, t, signal, hint_level, message, confidence, rating</td><td>코치 품질 측정</td></tr>
+<tr><td>mistakes</td><td>attempt_id, problem_id, concepts, category, name, signal, evidence, line, code_before, code_after, detected_by(지문·수리·AI), fixed, time_to_fix, hints_at_detection, note</td><td>오답 기록. 코치 개인화, 내 실수 지문, 오답 카드, 다음 문제 고르기</td></tr>
 <tr><td>resolve_schedule</td><td>problem_id, phase, next_due</td><td>다시 풀기 간격. 복습 카드와 같은 간격 규칙을 쓴다</td></tr>
 </table></div>
 <p>개념 카드 기록은 지금처럼 <code>_시스템/review-log.csv</code>에 한 줄씩 더한다. 그래서 Obsidian 학습 트레이너 플러그인과 코테 코치 중 어디서 풀어도 같은 기록이 된다.</p>

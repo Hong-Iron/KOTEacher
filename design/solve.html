@@ -144,6 +144,24 @@ code{font:inherit}
 .log .tm{color:var(--faint);font-variant-numeric:tabular-nums;font-size:11.5px;padding-top:2px}
 .log .src{font-size:11px;font-weight:600;margin-right:6px}
 .log .src.ai{color:var(--coach)} .log .src.sys{color:var(--muted)}
+.done{margin:4px 20px 8px 52px;max-width:560px;font-family:var(--f-ui);font-size:13.5px;line-height:1.6;white-space:normal;
+  background:var(--ok-bg);border:1px solid color-mix(in srgb, var(--ok) 35%, transparent);border-radius:10px;padding:10px 12px}
+.done .who{font-size:11.5px;color:var(--ok);font-weight:600;margin-bottom:4px}
+.diff{font-family:var(--f-mono);font-variant-ligatures:none;font-size:12px;margin:6px 0;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--panel)}
+.diff div{padding:1px 8px;white-space:pre;overflow-x:auto}
+.diff .del{background:var(--bad-bg);color:var(--bad)}
+.diff .add{background:var(--ok-bg);color:var(--ok)}
+.memo{display:flex;gap:6px;margin-top:8px}
+.memo input{flex:1;min-width:0;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:7px;padding:5px 8px;background:var(--panel);color:var(--ink)}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.8px}
+.mrow:last-child{border-bottom:0}
+.mrow .nm{font-weight:600}
+.mrow .sub{grid-column:1/-1;color:var(--muted);font-size:12px}
+.mrow .sub code{font-family:var(--f-mono);font-variant-ligatures:none;font-size:11.5px}
+.mrow .when{font-size:11.5px;color:var(--faint);white-space:nowrap}
+.cat{font-size:11px;border-radius:4px;padding:0 6px;margin-left:6px;background:var(--sunk);color:var(--muted);font-weight:500}
+.sect{font-size:11px;letter-spacing:.06em;color:var(--faint);margin:8px 0 2px;font-weight:600}
+.demo{border:1px dashed var(--faint);background:none;border-radius:6px;padding:1px 8px;font-size:11.5px;color:var(--muted);cursor:pointer}
 .statusbar{display:flex;gap:14px;align-items:center;padding:0 10px;font-size:11.5px;color:var(--faint);margin-left:auto}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:5px}
 
@@ -231,8 +249,9 @@ code{font:inherit}
       <div class="tabs" role="tablist">
         <button role="tab" aria-selected="true" data-tab="tests">테스트 <span class="cnt bad">2 / 4</span></button>
         <button role="tab" aria-selected="false" data-tab="log">코치 기록 <span class="cnt coach" id="logCnt">2</span></button>
+        <button role="tab" aria-selected="false" data-tab="mistakes">오답 기록 <span class="cnt" id="misCnt">0</span></button>
         <button role="tab" aria-selected="false" data-tab="out">출력</button>
-        <div class="statusbar"><span><span class="dot"></span>gemma4 12B 준비됨</span><span>문맥 16K</span><button class="iconbtn" id="dockToggle" style="padding:1px 8px">접기</button></div>
+        <div class="statusbar"><button class="demo" id="demoFix" title="시안 확인용">시안: 11번 줄 고치기</button><span><span class="dot"></span>gemma4 12B 준비됨</span><span>문맥 16K</span><button class="iconbtn" id="dockToggle" style="padding:1px 8px">접기</button></div>
       </div>
       <div class="pbody" data-panel="tests">
         <div class="trow"><span class="s ok">✓</span><span>예시 1</span><span class="io2">["DIA","RUBY",…] → <b>[3, 7]</b></span><span class="t">0.4ms</span></div>
@@ -246,6 +265,15 @@ code{font:inherit}
           <li><span class="tm">18:40</span><span><span class="src sys">테스트</span>예시 2/4 통과. 무작위 비교에서 가장 작은 반례 ["C","C"]를 찾았다.</span></li>
           <li><span class="tm">18:41</span><span><span class="src ai">코치</span>보석이 [C, C]뿐이면 [1, 1]과 [2, 2]는 둘 다 길이 1이에요. 길이가 같을 때 문제는 어느 쪽을 고르라고 했나요?</span></li>
         </ul>
+      </div>
+      <div class="pbody" data-panel="mistakes" hidden>
+        <div class="sect">이 문제</div>
+        <div id="misHere"><p class="note" style="margin:4px 0">실패하던 검사를 고치면 여기에 남는다.</p></div>
+        <div class="sect">최근 다른 문제 (예시)</div>
+        <div class="mrow"><span><span class="nm">이분 탐색 범위를 mid로 줄여 끝나지 않음</span><span class="cat">비교·경계</span></span><span class="when">10월 12일 · 징검다리 건너기</span>
+          <span class="sub"><code>hi = mid</code> → <code>hi = mid - 1</code> · 시간 초과 · 힌트 1개 · "답이 mid일 수도 있는지부터 따진다"</span></div>
+        <div class="mrow"><span><span class="nm">방문 표시를 꺼낼 때 해서 같은 칸을 여러 번 넣음</span><span class="cat">자료구조</span></span><span class="when">10월 9일 · 게임 맵 최단거리</span>
+          <span class="sub">큐에 넣을 때 방문 표시 · 시간 초과 · 힌트 0개</span></div>
       </div>
       <div class="pbody" data-panel="out" hidden><pre style="margin:0;font:12px var(--f-mono);color:var(--muted)">print 출력이 여기에 나온다.</pre></div>
     </div>
@@ -342,6 +370,34 @@ $$(".tabs [role=tab]").forEach(t => t.onclick = () => {
 $("#dockToggle").onclick = () => { const s = $("#dock").classList.toggle("small"); $("#dockToggle").textContent = s ? "펼치기" : "접기"; };
 $("#toggleProb").onclick = e => { const c = $("#main").classList.toggle("collapsed"); e.currentTarget.setAttribute("aria-pressed", !c); };
 $("#run").onclick = () => { $$(".trow").forEach((r, i) => { r.style.opacity = .35; setTimeout(() => r.style.opacity = 1, 120 + i * 60); }); };
+
+// 시안: 11번 줄을 고치고 다시 실행했을 때. 빨간 검사가 초록으로 바뀌면 오답 기록이 하나 생긴다.
+$("#demoFix").onclick = e => {
+  const code = flag.querySelector("code");
+  if (!code.innerHTML.includes("&lt;=")) return;
+  code.innerHTML = code.innerHTML.replace("&lt;=", "&lt;");
+  flag.classList.remove("flag"); flag.classList.add("cur");
+  e.currentTarget.textContent = "시안: 고침";
+  $$(".trow").forEach(r => { const s = r.querySelector(".s"); s.className = "s ok"; s.textContent = "✓"; });
+  $$(".trow")[1].querySelector(".io2").innerHTML = '["AA","AB","AC","AA","AC"] → <b>[1, 3]</b>';
+  $$(".trow")[2].querySelector(".io2").innerHTML = '["XYZ","XYZ","XYZ"] → <b>[1, 1]</b>';
+  $$(".trow")[4].querySelector(".io2").innerHTML = '무작위 1,200개 기준 풀이와 일치 · 큰 입력 10만 개 0.09s';
+  const tc = $('[data-tab="tests"] .cnt'); tc.className = "cnt"; tc.textContent = "5 / 5"; tc.style.color = "var(--ok)";
+  slot.innerHTML = `<div class="done" role="status">
+    <div class="who">모두 통과 · 오답 기록에 남겼어요</div>
+    <div><b>길이가 같을 때도 답을 바꿈</b> <span class="cat">비교·경계</span> <span class="note">· 실수 지문으로 확인 · 4분 12초 · 힌트 ${hintsOpened}개</span></div>
+    <div class="diff"><div class="del">- if len(count) == kinds and right - left &lt;= best[1] - best[0]:</div><div class="add">+ if len(count) == kinds and right - left &lt; best[1] - best[0]:</div></div>
+    <form class="memo" id="memoForm"><input id="memoInput" placeholder="왜 틀렸는지 한 줄 (선택)" aria-label="오답 메모"><button class="chip">남기기</button></form>
+  </div>`;
+  const row = document.createElement("div"); row.className = "mrow";
+  row.innerHTML = `<span><span class="nm">길이가 같을 때도 답을 바꿈</span><span class="cat">비교·경계</span></span><span class="when">방금 · 보석 쇼핑</span>
+    <span class="sub"><code>&lt;=</code> → <code>&lt;</code> (11번 줄) · 반례 ["C","C"] · 4분 12초 · 힌트 ${hintsOpened}개<span id="memoOut"></span></span>`;
+  $("#misHere").innerHTML = ""; $("#misHere").append(row);
+  $("#misCnt").textContent = "1"; $("#misCnt").className = "cnt coach";
+  addLog("기록", "오답 기록: 길이가 같을 때도 답을 바꿈 (비교·경계)");
+  $("#memoForm").onsubmit = ev => { ev.preventDefault(); const v = $("#memoInput").value.trim(); if (!v) { $("#memoInput").focus(); return; }
+    $("#memoOut").textContent = ` · "${v}"`; ev.target.outerHTML = `<p class="note" style="margin:6px 0 0">메모를 남겼어요: "${v.replace(/</g, "&lt;")}"</p>`; };
+};
 
 const themes = ["system", "light", "dark"], names = {system: "시스템", light: "라이트", dark: "다크"}; let ti = 0;
 $("#theme").onclick = () => { ti = (ti + 1) % 3; const t = themes[ti];
