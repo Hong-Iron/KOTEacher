@@ -8,6 +8,7 @@
 #   KOTEACHER_DIR=설치 폴더 (기본 ~/KOTEacher)
 #   KOTEACHER_MODEL=gemma4:e4b-it-qat  (모델을 직접 고를 때)
 #   KOTEACHER_SKIP_MODEL=1  (모델 받기를 건너뛸 때)
+#   KOTEACHER_SKIP_APP=1    (앱 아이콘 만들기를 건너뛸 때)
 set -euo pipefail
 
 REPO="https://github.com/Hong-Iron/KOTEacher.git"
@@ -86,7 +87,9 @@ fi
 
 # ---------------------------------------------------------------- 7. 앱 아이콘
 say "앱 아이콘 만들기"
-if [ "$OS" = "Darwin" ]; then
+if [ "${KOTEACHER_SKIP_APP:-}" = "1" ]; then
+  ok "건너뛰었습니다"
+elif [ "$OS" = "Darwin" ]; then
   .venv/bin/python tools/make_app.py >/dev/null && ok "~/Applications/KOTEacher.app (Launchpad, Spotlight에서 KOTEacher로 찾을 수 있습니다)"
 else
   mkdir -p "$HOME/.local/share/applications"
