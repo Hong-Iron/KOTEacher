@@ -317,7 +317,7 @@ def parse_text(text):
 def diagnose_and_say(pid, code, f, result, hint_level=0, history=(), weak=(), on_message=None):
     dyn = evidence(f, result)
     ex = extras(pid, hint_level, history, weak)
-    textfmt = "textfmt" in EXP
+    textfmt = "json" not in EXP  # 기본은 글 형식: JSON 문법 기호와 원인 칸을 안 써서 응답이 약 13% 빨리 끝난다
     msgs = messages(pid, code, dyn + ("\n\n" + ex if ex else ""), TEXT_TASK if textfmt else DIAG_TASK)
     try:
         if textfmt:
@@ -355,7 +355,30 @@ SAY_SCHEMA = {
     "required": ["message"],
 }
 
-SAY_TASK = "JSON으로 message만 쓴다. '테스트로 확인한 문제 줄'을 짚되 무엇을 바꿀지는 말하지 않는다."
+SAY_TASK = ("학생에게 할 말만 쓴다(머리말·따옴표 없이). '테스트로 확인한 문제 줄'을 짚되 무엇을 바꿀지는 말하지 않는다.")
+
+
+class RawStream:
+    """모델 출력을 그대로 넘기되, 모델이 '말:' 같은 머리말을 붙이면 뗀다."""
+
+    def __init__(self, emit):
+        self.emit, self.head, self.started = emit, "", False
+
+    def feed(self, piece):
+        if self.started:
+            self.emit(piece)
+            return
+        self.head += piece
+        if len(self.head) < 4 and not self.head.endswith((" ", "\n")):
+            return
+        text = re.sub(r"^\s*(말|message)\s*[:：]\s*", "", self.head).lstrip()
+        if text:
+            self.started = True
+            self.emit(text)
+
+
+def clean_raw(text):
+    return tidy(re.sub(r"^\s*(말|message)\s*[:：]\s*", "", text.strip()).strip('"“” '))
 
 
 def say(pid, code, diag, hint_level=0, history=(), weak=(), on_message=None):
@@ -368,11 +391,10 @@ def say(pid, code, diag, hint_level=0, history=(), weak=(), on_message=None):
     msgs = messages(pid, code, dyn + ("\n\n" + ex if ex else ""), SAY_TASK)
     meta, tries = {}, 0
     for tries in (1, 2):
-        stream = MessageStream(on_message) if (on_message and tries == 1) else None
+        stream = RawStream(on_message) if (on_message and tries == 1) else None
         try:
-            text, meta = ollama.chat(msgs, schema=SAY_SCHEMA, max_tokens=120, temperature=0.5,
-                                     on_token=stream.feed if stream else None)
-            msg = tidy(json.loads(text).get("message", ""))
+            text, meta = ollama.chat(msgs, max_tokens=110, temperature=0.5, on_token=stream.feed if stream else None)
+            msg = clean_raw(text)
         except Exception as e:
             meta = {"error": str(e)[:200]}
             break

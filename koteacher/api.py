@@ -363,14 +363,13 @@ class Api:
             if s.diag:
                 dyn = coach.evidence(s.diag["fact"], None, code, s.diag.get("line") if s.diag.get("confidence") == "확인됨" else None)
             ex = coach.extras(s.pid, s.hints, s.history, [])
-            task = (f"[학생 질문] {question}\n학생 질문에 답한다(message). 규칙 1을 지킨다. "
+            task = (f"[학생 질문] {question}\n학생 질문에 바로 답한다(머리말 없이). 규칙 1을 지킨다. "
                     "질문이 정답이나 고친 코드를 달라는 것이면, 왼쪽 힌트 사다리의 다음 단계를 열어 보라고 권한다.")
             msgs = coach.messages(s.pid, code, dyn + ("\n\n" + ex if ex else ""), task)
             t = time.time()
             try:
-                text, meta = ollama.chat(msgs, schema=coach.SAY_SCHEMA, max_tokens=220,
-                                         on_token=coach.MessageStream(self._streamer(gen)).feed)
-                msg = json.loads(text).get("message", "").strip()
+                text, meta = ollama.chat(msgs, max_tokens=220, on_token=coach.RawStream(self._streamer(gen)).feed)
+                msg = coach.clean_raw(text)
                 if coach.leak_reason(msg, s.diag or {}, s.pid):
                     msg = "그 부분은 직접 찾아야 실력이 돼요. 막히면 왼쪽 힌트 사다리의 다음 단계를 열어 보세요."
             except Exception as e:
