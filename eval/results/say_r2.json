@@ -1,0 +1,309 @@
+[
+ {
+  "pid": "pg42891",
+  "fix": "인덱스 +1",
+  "line": 14,
+  "message": "반례에서 14번 줄의 k % m 값을 계산해 보세요. 그 결과가 리스트의 몇 번째 인덱스를 가리키는지 확인해 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 21.77,
+  "first": 14.73,
+  "len": 67,
+  "hangul": 0.86,
+  "question": true,
+  "lines_said": [
+   14
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67256",
+  "fix": "4 → 3",
+  "line": 11,
+  "message": "반례에서 5를 입력했을 때 11번 줄의 조건에 걸리는지 확인해 보시겠어요? 해당 줄의 조건이 문제의 설명과 일치하는지 다시 한번 살펴보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 26.2,
+  "first": 15.78,
+  "len": 78,
+  "hangul": 0.92,
+  "question": true,
+  "lines_said": [
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "fix": "인덱스 -1",
+  "line": 18,
+  "message": "예시 5의 Rotate 연산을 수행할 때 18번 줄에서 어떤 값이 popleft() 되나요? 15번 줄부터 17번 줄까지의 변화를 따라가 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 24.28,
+  "first": 15.26,
+  "len": 83,
+  "hangul": 0.63,
+  "question": true,
+  "lines_said": [
+   18,
+   15,
+   17
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67259",
+  "fix": "인덱스 -1",
+  "line": 21,
+  "message": "21번 줄에서 nc가 N-1일 때 nc + 1의 값이 어떻게 되는지 확인해 보시겠어요? 해당 인덱스가 board의 범위를 벗어나지는 않는지 살펴보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 23.22,
+  "first": 14.63,
+  "len": 84,
+  "hangul": 0.72,
+  "question": true,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 i와 j가 가리키는 인덱스 값이 실제 배열의 위치와 어떻게 매칭되는지 확인해 보시겠어요? 특히 j가 0일 때의 상황을 따라가 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 23.1,
+  "first": 14.25,
+  "len": 82,
+  "hangul": 0.87,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92341",
+  "fix": "min → max",
+  "line": 22,
+  "message": "예시 3에서 total[car]의 값과 base_t를 비교했을 때 22번 줄의 연산 결과가 어떻게 나오는지 확인해 보시겠어요? 그 결과가 실제 초과 시간과 일치하는지 살펴보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 25.83,
+  "first": 15.1,
+  "len": 99,
+  "hangul": 0.73,
+  "question": true,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg81303",
+  "fix": "== → !=",
+  "line": 22,
+  "message": "22번 줄에서 q가 n인 경우를 확인해 보세요. 만약 q가 n이라면 23번 줄에서 어떤 인덱스에 접근하게 되나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 23.17,
+  "first": 16.0,
+  "len": 63,
+  "hangul": 0.79,
+  "question": true,
+  "lines_said": [
+   22,
+   23
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17678",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 riders 리스트가 비어있을 때 어떤 일이 발생하는지 확인해 보시겠어요? 반례에서 idx의 상태와 riders의 길이를 함께 살펴보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 19.72,
+  "first": 12.15,
+  "len": 85,
+  "hangul": 0.72,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17676",
+  "fix": "1 → 0",
+  "line": 23,
+  "message": "23번 줄에서 cnt를 1로 시작할 때, 24번 줄의 반복문이 자기 자신을 포함하고 있는지 확인해 보세요. 반례에서 로그가 하나뿐인데 결과가 2가 나오는 이유를 찾아보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 24.76,
+  "first": 14.0,
+  "len": 98,
+  "hangul": 0.84,
+  "question": true,
+  "lines_said": [
+   23,
+   24
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "fix": "2 → 1",
+  "line": 8,
+  "message": "8번 줄에서 j의 초기값을 결정할 때, 'AA'가 사전(dic)에 있는지 확인하기 위해 어떤 범위까지 검사해야 할지 생각해보세요. 9번 줄의 조건과 비교하며 j가 가리키는 위치를 다시 확인해보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 21.39,
+  "first": 10.43,
+  "len": 112,
+  "hangul": 0.82,
+  "question": true,
+  "lines_said": [
+   8,
+   9
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "fix": "인덱스 -1",
+  "line": 21,
+  "message": "21번 줄에서 j에 1을 더한 값이 인덱스로 사용될 때 어떤 값이 되는지 확인해 보시겠어요? 현재 리스트의 크기와 비교해 보시면 좋을 것 같아요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 21.72,
+  "first": 13.87,
+  "len": 81,
+  "hangul": 0.9,
+  "question": true,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "fix": "+ ↔ -",
+  "line": 8,
+  "message": "입력 'A'일 때 8번 줄을 거쳐 9번 줄로 들어간 후, j의 값과 msg[i:j+1]의 결과가 어떻게 되는지 확인해 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 19.49,
+  "first": 10.38,
+  "len": 72,
+  "hangul": 0.67,
+  "question": true,
+  "lines_said": [
+   8,
+   9
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg468371",
+  "fix": "0 → 1",
+  "line": 10,
+  "message": "예시 1의 t=12일 때, 10번 줄의 조건식에서 각 신호등의 현재 상태가 어떻게 계산되는지 확인해 보시겠어요? 특히 첫 번째 신호등의 결과값이 노란불 범위에 포함되는지 계산해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 19.89,
+  "first": 9.41,
+  "len": 103,
+  "hangul": 0.87,
+  "question": true,
+  "lines_said": [
+   10
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg49190",
+  "fix": "1 → 0",
+  "line": 10,
+  "message": "입력이 [0]일 때 10번 줄의 초기값과 11번 줄의 반복문 실행 결과를 확인해 보세요. 한 번의 이동만으로 방이 생기는 상황인지 다시 생각해보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 20.09,
+  "first": 11.27,
+  "len": 85,
+  "hangul": 0.86,
+  "question": true,
+  "lines_said": [
+   10,
+   11
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg60063",
+  "fix": "0 → 1",
+  "line": 19,
+  "message": "로봇이 세로로 서 있을 때 90도 회전하는 상황을 19번 줄에서 생각해보세요. 세로 상태에서 좌우로 회전할 때 d의 값이 어떻게 변해야 할지 확인해보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 29.92,
+  "first": 18.4,
+  "len": 88,
+  "hangul": 0.9,
+  "question": true,
+  "lines_said": [
+   19
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]
