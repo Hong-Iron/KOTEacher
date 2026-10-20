@@ -7,7 +7,20 @@ from . import config, packs
 from .api import Api
 
 
+def _mac_app_name():
+    """메뉴 막대와 Dock에 'Python' 대신 앱 이름이 보이게 한다."""
+    try:
+        from Foundation import NSBundle
+        b = NSBundle.mainBundle()
+        info = b.localizedInfoDictionary() or b.infoDictionary()
+        if info is not None:
+            info["CFBundleName"] = "코테가이드"
+    except Exception:
+        pass
+
+
 def main():
+    _mac_app_name()
     config.ensure_dirs()
     if not any(config.PACKS.glob("*.json")):
         print("문제 팩을 처음 만든다…", file=sys.stderr)
