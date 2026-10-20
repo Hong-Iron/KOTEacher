@@ -126,7 +126,11 @@ function onEdit() {
   clearTimeout(S.idleTimer); clearTimeout(S.saveTimer);
   // 고치기 시작하면 줄 표시는 흐리게 남겨 두고 말풍선은 그대로 둔다
   S.saveTimer = setTimeout(() => API.save_code(S.editor.getValue()), 1500);
-  if (S.mode !== "quiet") S.idleTimer = setTimeout(() => runCheck("idle"), 3500);
+  if (S.mode !== "quiet") {
+    clearTimeout(S.warmTimer);
+    S.warmTimer = setTimeout(() => API.prewarm(S.editor.getValue()), 1200);  // 코치가 읽을 앞부분을 미리 읽혀 둔다
+    S.idleTimer = setTimeout(() => runCheck("idle"), 3500);
+  }
 }
 
 /* ---------------- 말풍선 ---------------- */

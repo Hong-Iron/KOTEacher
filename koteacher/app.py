@@ -45,7 +45,8 @@ def main():
     threading.Thread(target=preload, daemon=True).start()
     index = config.ROOT / "ui" / "index.html"
     win = webview.create_window("KOTEacher", url=index.as_uri(), js_api=api, width=1440, height=920,
-                                min_size=(900, 600), background_color="#111419")
+                                min_size=(900, 600), background_color="#111419",
+                                text_select=True)  # pywebview는 기본으로 글자 선택을 막는다 (문서에서 골라 묻기에 필요)
     api.window = win
 
     def on_closed():

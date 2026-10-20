@@ -301,3 +301,8 @@ mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);co
 .searchbar span{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .searchbar:hover{border-color:var(--accent);color:var(--muted)}
 .searchbar kbd{margin-left:0}
+
+/* 검색창은 창 너비의 정확한 가운데에 둔다 (양옆 내용 폭과 상관없이) */
+.top{position:relative}
+.top .searchbar{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+@media (max-width: 1180px){ .top .searchbar{position:static;transform:none;width:clamp(180px,22vw,300px)} }

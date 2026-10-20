@@ -113,8 +113,8 @@ def numbered(code):
     return "\n".join(f"{i:>3}| {l}" for i, l in enumerate(code.splitlines(), 1))
 
 
-# 프롬프트를 읽는 속도가 초당 120~170토큰이다. gemma4는 슬라이딩 윈도 층이 있어서 앞부분만 같은 프롬프트는
-# 재사용되지 않는다(완전히 같을 때만 재사용). 그래서 프롬프트를 짧게 쓰는 것이 가장 큰 속도 개선이다.
+# 프롬프트를 처음 읽는 속도는 초당 약 100토큰(M3 16GB)이라 프롬프트를 짧게 쓴다. 앞부분이 같은 프롬프트는
+# Ollama가 계산을 재사용하므로(10초 → 1초 안팎), 모든 호출이 같은 규칙·문제·코드로 시작하게 하고 바뀌는 것은 뒤에 둔다.
 SYSTEM = (
     "너는 코딩 테스트 연습 코치다. 부드러운 존댓말.\n"
     "1. 정답 코드나 바꿀 연산자·값을 학생에게 말하지 않는다.\n"
@@ -128,9 +128,16 @@ def context(pid, code):
     return f"[문제]\n{vault.plain(p['statement_md'])[:420]}\n\n[학생 코드]\n{numbered(code)}"
 
 
+ACK = "문제와 코드를 읽었습니다."
+
+
 def messages(pid, code, dynamic, task):
+    # 문제·코드는 첫 사용자 말, 증거·할 일은 둘째 사용자 말로 나눈다. 그래야 warm()이 읽힌 프롬프트가
+    # 실제 프롬프트의 앞부분과 정확히 겹쳐, Ollama가 그 계산을 재사용한다 (gemma4는 기준점에서만 이어 쓸 수 있다)
     return [{"role": "system", "content": SYSTEM},
-            {"role": "user", "content": f"{context(pid, code)}\n\n{dynamic}\n\n[할 일]\n{task}"}]
+            {"role": "user", "content": context(pid, code)},
+            {"role": "assistant", "content": ACK},
+            {"role": "user", "content": f"{dynamic}\n\n[할 일]\n{task}"}]
 
 
 def evidence(f, result=None, code=None, line=None):
@@ -317,6 +324,15 @@ def say(pid, code, diag, hint_level=0, history=(), weak=(), on_message=None):
         msgs = msgs + [{"role": "assistant", "content": text},
                        {"role": "user", "content": f"규칙 위반({reason}). 고치는 법을 빼고 질문으로 다시 써라."}]
     return {"kind": "nudge", "message": template(diag), "source": "template", "meta": meta, "tries": tries}
+
+
+def warm(pid, code):
+    """문제를 열 때 공통 앞부분(규칙·문제·코드)을 미리 읽혀 둔다. 첫 코치 응답이 빨라진다."""
+    try:
+        # messages()의 앞 두 말까지만 읽힌다. 코치의 답 자리에서 끝나므로 실제 호출이 여기서 이어 쓴다
+        ollama.chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": context(pid, code)}], max_tokens=1)
+    except Exception:
+        pass
 
 
 def tidy(msg):

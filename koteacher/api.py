@@ -54,7 +54,8 @@ class Api:
         ladder = vault.hint_ladder(pid)
         code = code_override or self.store.last_code(pid) or template_code(pk["params"])
         self.s.code = code
-
+        if ollama.status()["model"]:  # 공통 앞부분(규칙·문제·코드)을 미리 읽혀 두어 첫 코치 응답을 빠르게
+            threading.Thread(target=coach.warm, args=(pid, code), daemon=True).start()
         return {
             "id": pid, "title": p["title"], "level": p["level"], "source": p["source"], "url": p["url"],
             "concepts": p["concepts"], "concept_files": p["concept_files"], "statement": vault.to_html(p["statement_md"]),
@@ -294,6 +295,24 @@ class Api:
         self._push("say", {"gen": gen, "id": mid, "message": u["message"], "kind": u["kind"], "source": u["source"],
                            "line": diag.get("line"), "diag": self._diag_public(diag),
                            "first_token_s": (u.get("meta") or {}).get("first_token_s")})
+
+    def prewarm(self, code):
+        """타이핑이 잠깐 멈추면 지금 코드로 공통 앞부분을 미리 읽혀 둔다. 이어서 도는 검사의 코치 응답이 빨라진다."""
+        s = self.s
+        if not s or self.mode == "quiet" or getattr(self, "_warming", False) or getattr(s, "warmed", None) == code:
+            return False
+        if not ollama.status().get("loaded"):
+            return False
+
+        def work():
+            self._warming = True
+            try:
+                coach.warm(s.pid, code)
+                s.warmed = code
+            finally:
+                self._warming = False
+        threading.Thread(target=work, daemon=True).start()
+        return True
 
     def explain(self):
         """접힌 칩을 눌렀을 때: 규칙과 상관없이 지금 진단을 말한다."""
