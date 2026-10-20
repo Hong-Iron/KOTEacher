@@ -5,8 +5,8 @@
   --coach:#9a5f06; --coach-bg:#fbf0d9; --coach-line:#ebcf93; --coach-dot:#d99a1e;
   --ok:#2e7d4a; --ok-bg:#e2f2e7; --bad:#b93a27; --bad-bg:#fbe6e2;
   --ed-bg:#fbfbfd;
-  --f-ui:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
-  --f-mono:"SF Mono",Menlo,"D2Coding",ui-monospace,monospace;
+  --f-ui:-apple-system,"Apple SD Gothic Neo","Malgun Gothic","맑은 고딕","Noto Sans KR",system-ui,sans-serif;
+  --f-mono:"SF Mono",Menlo,Consolas,"D2Coding",ui-monospace,monospace;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){ :root{

@@ -1,0 +1,38 @@
+# 윈도용 KOTEacher(설치 프로그램, 압축본)를 만든다. 태그(v*)를 올리면 릴리스에 붙인다.
+name: build-windows
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 패키지
+        run: python -m pip install -r requirements.txt pyinstaller
+      - name: Inno Setup 확인
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+      - name: 빌드
+        env:
+          PYTHONUTF8: "1"
+        run: python tools/build_win.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KOTEacher-windows
+          path: |
+            dist/*.exe
+            dist/*.zip
+      - name: 릴리스에 붙이기
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" dist/*-Setup.exe dist/*-windows-x64.zip --clobber

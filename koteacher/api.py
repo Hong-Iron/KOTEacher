@@ -115,7 +115,7 @@ class Api:
         f = self._content_file(rel)
         t = time.time()
         try:
-            proc = subprocess.run(config.child_cmd("run", str(f)), capture_output=True, text=True, timeout=60, cwd=str(f.parent))
+            proc = subprocess.run(config.child_cmd("run", str(f)), capture_output=True, timeout=60, cwd=str(f.parent), **config.child_kw())
             out = (proc.stdout + ("\n" + proc.stderr if proc.stderr.strip() else ""))[-6000:]
             ok = proc.returncode == 0
         except subprocess.TimeoutExpired:

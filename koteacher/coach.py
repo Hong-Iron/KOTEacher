@@ -3,6 +3,7 @@
 ①은 runner.check가 한다. 여기서는 ②~⑤를 맡는다.
 """
 import ast
+import os
 import json
 import re
 import time
@@ -132,6 +133,9 @@ ACK = "문제와 코드를 읽었습니다."
 
 
 def messages(pid, code, dynamic, task):
+    if os.environ.get("KOTEACHER_SPLIT") == "0":  # 평가용: 예전 한 덩어리 구조
+        return [{"role": "system", "content": SYSTEM},
+                {"role": "user", "content": f"{context(pid, code)}\n\n{dynamic}\n\n[할 일]\n{task}"}]
     # 문제·코드는 첫 사용자 말, 증거·할 일은 둘째 사용자 말로 나눈다. 그래야 warm()이 읽힌 프롬프트가
     # 실제 프롬프트의 앞부분과 정확히 겹쳐, Ollama가 그 계산을 재사용한다 (gemma4는 기준점에서만 이어 쓸 수 있다)
     return [{"role": "system", "content": SYSTEM},

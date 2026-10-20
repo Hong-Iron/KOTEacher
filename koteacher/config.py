@@ -61,3 +61,14 @@ def _migrate():
         shutil.move(str(old), str(DATA))
         if (DATA / "kotte.db").exists():
             (DATA / "kotte.db").rename(DB)
+
+
+def child_kw():
+    """subprocess.run에 함께 넘길 인자. 윈도에서는 검은 콘솔 창을 띄우지 않고, 입출력을 UTF-8로 맞춘다."""
+    kw = {"encoding": "utf-8", "errors": "replace"}
+    env = dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONUTF8="1")
+    kw["env"] = env
+    if os.name == "nt":
+        import subprocess
+        kw["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    return kw

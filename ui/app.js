@@ -106,7 +106,7 @@ async function makeEditor(code) {
   if (!S.editor) {
     S.editor = monaco.editor.create($("#editor"), {
       value: code, language: "python", theme: dark.matches ? "kg-dark" : "kg-light",
-      fontFamily: "SF Mono, Menlo, D2Coding, monospace", fontSize: 14, lineHeight: 24, fontLigatures: false,
+      fontFamily: "SF Mono, Menlo, Consolas, D2Coding, monospace", fontSize: 14, lineHeight: 24, fontLigatures: false,
       minimap: {enabled: false}, glyphMargin: true, scrollBeyondLastLine: false, automaticLayout: true,
       tabSize: 4, insertSpaces: true, renderLineHighlight: "line", padding: {top: 10, bottom: 40},
       quickSuggestions: false, suggestOnTriggerCharacters: false, wordBasedSuggestions: "off", parameterHints: {enabled: false},
@@ -1044,6 +1044,12 @@ document.addEventListener("click", async e => {
 });
 
 /* ---------------- 시작 ---------------- */
+// 맥이 아니면 단축키 표시를 Ctrl로 바꾼다 (동작은 Monaco·키 처리기가 이미 Ctrl을 받는다)
+if (!/Mac|iPhone|iPad/.test(navigator.platform)) {
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n; (n = walker.nextNode());) if (n.nodeValue.includes("⌘")) n.nodeValue = n.nodeValue.replace(/⌘⇧/g, "Ctrl+Shift+").replace(/⌘/g, "Ctrl+").replace(/Ctrl\+↵/g, "Ctrl+Enter");
+  $$("[title]").forEach(el => { el.title = el.title.replace(/⌘⇧/g, "Ctrl+Shift+").replace(/⌘/g, "Ctrl+"); });
+}
 function start() {
   boot().then(() => { API.log(`boot ok · 문제 ${S.problems.length}개`); openSetup(false); }).catch(e => API.log("boot 실패 " + e));
   loadMonaco().then(() => API.log("monaco ok")).catch(e => API.log("monaco 실패 " + e));
