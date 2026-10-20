@@ -81,6 +81,13 @@ def main():
     if r.get("load_error"):
         sys.exit("학생 코드의 import가 실패했다: " + r["load_error"])
 
+    # 묶인 앱이 개념 코드(검증 코드)를 돌릴 수 있는지 확인
+    vf = next((ROOT / "content/3.개념집").glob("*_verify.py"))
+    out = subprocess.run([str(exe), "--run", str(vf)], capture_output=True, text=True, timeout=120, cwd=vf.parent)
+    print("묶인 앱 개념 코드 점검:", vf.name, out.stdout.strip()[-40:] or out.stderr[-300:])
+    if "ALL CHECKS PASSED" not in out.stdout:
+        sys.exit("묶인 앱에서 개념 코드 실행 실패")
+
     arch = platform.machine()
     dmg = DIST / f"KOTEacher-{VERSION}-{arch}.dmg"
     dmgsrc = ROOT / "build/dmg"

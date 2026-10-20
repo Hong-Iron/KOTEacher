@@ -101,3 +101,14 @@ mark.qa-mark{background:color-mix(in srgb, var(--coach-dot) 32%, transparent);co
 .roadmap a[data-status="tried"]::after{background:var(--bad)}
 .roadmap ul li{margin:3px 0}
 .roadmap pre.mermaid{margin-top:12px}
+
+/* 개념 코드 */
+.doc a.codefile{color:var(--accent);font-family:var(--f-mono);font-size:11.5px;border-bottom:0;cursor:pointer}
+.roadmap a.codefile{color:var(--accent)}
+.codeview .acts,#lDoc .acts{display:flex;gap:8px;margin:8px 0}
+.doc pre.colored{font-size:12.5px;line-height:1.6;font-variant-ligatures:none}
+.doc pre.colored code{font-family:var(--f-mono)}
+.runout{font:12px/1.5 var(--f-mono);white-space:pre-wrap;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:10px 0;background:var(--sunk);color:var(--muted)}
+.runout.ok{border-color:color-mix(in srgb, var(--ok) 45%, transparent);color:var(--ok)}
+.runout.bad{border-color:color-mix(in srgb, var(--bad) 45%, transparent);color:var(--bad)}
+.dtab.code .k{font-family:var(--f-mono)}

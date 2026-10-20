@@ -93,6 +93,36 @@ class Api:
             s["fact"] = f
         return d
 
+    def _content_file(self, rel):
+        from . import config
+        f = (config.CONTENT / rel).resolve()
+        if config.CONTENT.resolve() not in f.parents or f.suffix not in (".py", ".svg"):
+            raise ValueError("열 수 없는 파일입니다")
+        return f
+
+    def code_file(self, rel):
+        f = self._content_file(rel)
+        text = f.read_text(encoding="utf-8")
+        role = f.stem.rsplit("_", 1)[-1]
+        return {"path": rel, "name": f.name, "kind": f.suffix[1:], "role": role, "text": text,
+                "needs": [m for m in ("matplotlib", "numpy") if f"import {m}" in text or f"from {m}" in text]}
+
+    def run_code(self, rel):
+        """개념 코드를 별도 프로세스에서 돌린다 (검증·구현·실험 코드는 표준 라이브러리만 쓴다)."""
+        import subprocess
+        from . import config
+        f = self._content_file(rel)
+        t = time.time()
+        try:
+            proc = subprocess.run(config.child_cmd("run", str(f)), capture_output=True, text=True, timeout=60, cwd=str(f.parent))
+            out = (proc.stdout + ("\n" + proc.stderr if proc.stderr.strip() else ""))[-6000:]
+            ok = proc.returncode == 0
+        except subprocess.TimeoutExpired:
+            out, ok = "60초 안에 끝나지 않아 멈췄습니다.", False
+        if not ok and ("No module named 'matplotlib'" in out or "No module named 'numpy'" in out):
+            out += "\n\n이 코드는 그림을 그리는 데 matplotlib·numpy가 필요합니다. 그림은 이미 문서 안에 들어 있습니다."
+        return {"ok": ok, "out": out.strip() or "(출력 없음)", "sec": round(time.time() - t, 2)}
+
     def roadmap(self):
         st = self.store.problem_status()
         return {"html": vault.roadmap(), "status": st, "concepts": len(vault.concepts()), "problems": len(vault.problems()),

@@ -49,6 +49,8 @@ def child_cmd(script, *args):
     묶인 앱에는 python 실행 파일이 없으므로 앱 자신을 '--harness' 같은 인자로 다시 띄운다."""
     if FROZEN:
         return [sys.executable, f"--{script}", *args]
+    if script == "run":  # 개념 코드 실행
+        return [sys.executable, "-I", *args]
     return [sys.executable, "-I", str(ROOT / "koteacher" / f"{script}.py"), *args]
 
 

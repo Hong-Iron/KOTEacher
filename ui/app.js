@@ -527,6 +527,7 @@ function renderTabs() {
     const b = h("div", "dtab");
     b.setAttribute("role", "tab"); b.setAttribute("aria-selected", t.key === S.active); b.tabIndex = 0;
     b.innerHTML = t.key === "problem" ? `<span class="t">문제</span>` : `<span class="k">${esc(t.num)}</span><span class="t">${esc(t.title)}</span><button class="x" aria-label="${esc(t.title)} 닫기">×</button>`;
+    if (t.key.startsWith("code:")) b.classList.add("code");
     b.onclick = e => { if (e.target.classList.contains("x")) closeTab(t.key); else activateTab(t.key); };
     b.onauxclick = e => { if (e.button === 1 && t.key !== "problem") closeTab(t.key); };
     bar.append(b);
@@ -564,10 +565,11 @@ renderTabs();
 
 // 문서 속 링크: 개념은 탭으로, 문제는 그 문제를 연다
 document.addEventListener("click", e => {
-  const a = e.target.closest("[data-doc], [data-problem]");
+  const a = e.target.closest("[data-doc], [data-problem], [data-code]");
   if (!a || a.closest(".crow")) return;
   e.preventDefault();
-  if (a.dataset.problem) openProblem(a.dataset.problem);
+  if (a.dataset.code) openCode(a.dataset.code);
+  else if (a.dataset.problem) openProblem(a.dataset.problem);
   else if (!$("#learn").hidden || !$("#home").hidden) openConcept(a.dataset.doc);
   else openDoc(a.dataset.doc);
 });
@@ -986,6 +988,55 @@ $("#histPanel").addEventListener("click", async e => {
   const model = S.editor.getModel();
   S.editor.executeEdits("history", [{range: model.getFullModelRange(), text: code}]);  // ⌘Z로 되돌릴 수 있게
   addLog("sys", "기록", "지난 코드를 불러왔습니다. ⌘Z로 되돌릴 수 있습니다.");
+});
+
+
+/* ---------------- 개념 코드 보기 ---------------- */
+const ROLE = {verify: "검증", impl: "구현", bench: "실험", plot: "그림 만들기", fig1: "그림", fig2: "그림", fig3: "그림"};
+async function openCode(rel) {
+  // 풀기 화면이면 문서 창의 탭으로, 홈·학습 화면이면 학습 화면에 펼친다
+  const d = await API.code_file(rel);
+  const html = await codePanelHtml(d);
+  if (!$("#solve").hidden) {
+    const key = "code:" + rel;
+    if (!S.tabs.find(t => t.key === key)) {
+      S.tabs.push({key, title: d.name.replace(/^\d+_/, ""), num: ROLE[d.role] || d.kind});
+      const panel = h("div", "dpanel doc codeview"); panel.dataset.tab = key; panel.hidden = true; panel.innerHTML = html;
+      $("#dbody").append(panel);
+    }
+    setPanes(true, S.rightOn ?? true); activateTab(key);
+    return;
+  }
+  // 홈·학습 화면: 학습 화면에 코드만 펼친다
+  $("#lTitle").textContent = d.name; $("#lAlias").textContent = ROLE[d.role] || d.kind; $("#lAlias").hidden = false;
+  $("#lDoc").innerHTML = html; $("#lDoc").dataset.doc = ""; $("#lProblems").innerHTML = `<p class="note">개념 문서의 '개념 코드'에서 열었습니다.</p>`;
+  show("learn");
+}
+async function codePanelHtml(d) {
+  if (d.kind === "svg") return `<h1>${esc(d.name)}</h1><figure class="fig">${d.text.replace(/^<\?xml[^>]*>\s*/, "")}</figure>`;
+  await loadMonaco();
+  const colored = await monaco.editor.colorize(d.text, "python", {tabSize: 4});
+  const needs = d.needs.length ? `<p class="note">이 코드는 ${d.needs.join(", ")}가 있어야 실행됩니다. 그림은 이미 개념 문서 안에 들어 있습니다.</p>` : "";
+  return `<h1>${esc(d.name)}</h1>
+    <p class="note">${{verify: "개념 문서의 주장이 맞는지 확인하는 코드입니다.", impl: "개념을 직접 구현하고 스스로 시험하는 코드입니다.", bench: "입력 크기에 따라 걸리는 시간을 재는 실험 코드입니다.", plot: "문서의 그림을 만드는 코드입니다."}[d.role] || ""}</p>
+    ${needs}<div class="acts"><button class="run" data-runcode="${esc(d.path)}">실행해 보기</button><button class="btn" data-copycode>코드 복사</button></div>
+    <pre class="code colored"><code>${colored}</code></pre><pre class="runout" hidden></pre>`;
+}
+document.addEventListener("click", async e => {
+  const run = e.target.closest("[data-runcode]");
+  if (run) {
+    const box = run.closest(".codeview, #lDoc").querySelector(".runout");
+    box.hidden = false; box.className = "runout"; box.innerHTML = waiting("실행하고 있습니다");
+    const r = await API.run_code(run.dataset.runcode);
+    box.classList.add(r.ok ? "ok" : "bad"); box.textContent = `${r.ok ? "✓" : "✗"} ${r.sec}초\n${r.out}`;
+    return;
+  }
+  const cp = e.target.closest("[data-copycode]");
+  if (cp) {
+    const code = cp.closest(".codeview, #lDoc").querySelector("pre.colored").innerText;
+    try { await navigator.clipboard.writeText(code); cp.textContent = "복사했습니다"; } catch (_) { cp.textContent = "복사하지 못했습니다"; }
+    setTimeout(() => cp.textContent = "코드 복사", 1500);
+  }
 });
 
 /* ---------------- 시작 ---------------- */

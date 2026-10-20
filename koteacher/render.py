@@ -85,6 +85,9 @@ def _links(doc, text):
         if "4.연습문제" in target and (config.PRACTICE / f"{stem}.md").exists():  # 예제 사다리 같은 연습 문서
             return doc.keep(f'<a class="doclink" data-doc="@연습/{html.escape(stem)}">{label}</a>')
         if p.suffix in (".py", ".svg"):
+            rel = f"{p.parent.name}/{p.name}"
+            if (config.CONTENT / rel).exists():
+                return doc.keep(f'<a class="doclink codefile" data-code="{html.escape(rel)}" title="{html.escape(p.name)}">{label}</a>')
             return doc.keep(f'<span class="codefile" title="{html.escape(p.name)}">{label}</span>')
         return doc.keep(f'<span class="xlink" title="{html.escape(target)}">{label}</span>')
     return WIKI.sub(one, text)

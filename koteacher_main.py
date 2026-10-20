@@ -12,6 +12,11 @@ if __name__ == "__main__":
         from koteacher import harness
         sys.setrecursionlimit(10 ** 6)
         harness.main()
+    elif len(sys.argv) > 1 and sys.argv[1] == "--run":
+        import runpy
+        path = sys.argv[2]
+        sys.argv = [path]
+        runpy.run_path(path, run_name="__main__")
     elif len(sys.argv) > 1 and sys.argv[1] == "--capture":
         from koteacher import capture
         capture.main(sys.argv[2])
