@@ -19,6 +19,14 @@
 
 애플 실리콘(M1 이후) 맥용입니다. 인텔 맥은 아래 한 줄 설치를 써 주세요.
 
+### Windows (가장 쉬운 방법)
+
+1. [Releases](https://github.com/Hong-Iron/KOTEacher/releases)에서 `KOTEacher-*-Setup.exe`를 받아 실행합니다. 관리자 권한 없이 내 계정에 설치되고 시작 메뉴에 KOTEacher가 생깁니다. 설치 없이 쓰려면 `KOTEacher-*-windows-x64.zip`을 풀고 `KOTEacher.exe`를 실행합니다.
+2. "Windows의 PC 보호" 창이 뜨면 **추가 정보 → 실행**을 누릅니다(서명하지 않은 프로그램이라 뜹니다).
+3. 앱이 코치 준비를 안내합니다. [Ollama](https://ollama.com/download)를 설치하고, 앱 안의 **모델 받기**를 누르면 됩니다.
+
+Windows 10/11 64비트용입니다. 화면은 Windows에 들어 있는 WebView2로 그립니다.
+
 ### 한 줄 설치 (맥, Linux)
 
 ```bash
@@ -27,13 +35,13 @@ curl -fsSL https://raw.githubusercontent.com/Hong-Iron/KOTEacher/main/install.sh
 
 파이썬 확인 → 앱 내려받기(`~/KOTEacher`) → 패키지 설치 → 문제 팩 만들기 → Ollama 설치 → 메모리에 맞는 모델 받기 → 앱 아이콘 만들기를 차례로 합니다. 다시 실행하면 업데이트됩니다.
 
-### 한 줄 설치 (Windows, PowerShell)
+### 한 줄 설치 (Windows, PowerShell, 소스로 설치)
 
 ```powershell
 irm https://raw.githubusercontent.com/Hong-Iron/KOTEacher/main/install.ps1 | iex
 ```
 
-winget으로 파이썬, git, Ollama를 설치하고 시작 메뉴에 KOTEacher를 넣습니다. 아직 Windows 실기기에서 시험하지 못했습니다. 막히면 이슈로 알려 주세요.
+winget으로 파이썬, git, Ollama를 설치하고 시작 메뉴에 KOTEacher를 넣습니다. 아직 Windows 실기기에서 시험하지 못했습니다. 막히면 위의 설치 프로그램을 쓰거나 이슈로 알려 주세요.
 
 ### 직접 설치
 
@@ -97,6 +105,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 | `eval/` | 코치 평가: 모범 풀이에 버그를 심은 시험지(1군데 258개, 2군데 81개) |
 | `tools/sync_content.py` | 볼트 → `content/` (수업 자료 언급과 원본 오류 상자는 뺍니다) |
 | `tools/build_mac.py` | 맥 앱과 dmg 만들기 (PyInstaller) |
+| `tools/build_win.py`, `tools/KOTEacher.iss` | 윈도 실행 파일과 설치 프로그램 (PyInstaller, Inno Setup). GitHub Actions `build-windows`가 돌립니다 |
 | `docs/design.html` | 처음 설계서 |
 
 코치 평가 결과(맥북 에어 M3 16GB, gemma4 12B): 한 군데 버그는 AI 없이 94%를 고쳐 버그 줄을 약 96% 맞혔고, 두 군데 버그의 AI 진단은 버그 줄을 77% 맞혔습니다. 답 유출은 0건이었습니다.

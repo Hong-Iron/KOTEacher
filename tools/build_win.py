@@ -75,7 +75,7 @@ def main():
 
     zip_base = DIST / f"KOTEacher-{VERSION}-windows-x64"
     shutil.make_archive(str(zip_base), "zip", DIST, "KOTEacher")
-    print("압축본:", zip_base.with_suffix(".zip"), flush=True)
+    print("압축본:", f"{zip_base}.zip", flush=True)
 
     iscc = next((p for p in ISCC_PATHS if Path(p).exists()), shutil.which("iscc"))
     if not iscc:
