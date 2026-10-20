@@ -165,8 +165,13 @@ a{color:var(--accent)}
 .ask{display:flex;gap:6px;margin-top:8px}
 .ask input{flex:1;min-width:0;font-size:13px;border:1px solid var(--coach-line);border-radius:7px;padding:5px 8px;background:var(--panel)}
 .thinking,.refining{color:var(--muted);font-size:12.5px}
-.refining::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.2s steps(4,end) infinite}
-.thinking::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.2s steps(4,end) infinite}
+.bounce{display:inline-flex;gap:3px;margin-left:7px;vertical-align:middle;height:12px;align-items:flex-end}
+.bounce i{width:5px;height:5px;border-radius:50%;background:var(--coach-dot);animation:bob 1.05s infinite ease-in-out}
+.bounce i:nth-child(2){animation-delay:.15s}
+.bounce i:nth-child(3){animation-delay:.3s}
+@keyframes bob{0%,70%,100%{transform:translateY(0);opacity:.45}35%{transform:translateY(-6px);opacity:1}}
+@media (prefers-reduced-motion: reduce){.bounce i{animation:blink 1.2s infinite}@keyframes blink{50%{opacity:.3}}}
+.live::after{content:"";display:inline-block;width:5px;height:5px;margin-left:5px;border-radius:50%;background:var(--coach-dot);vertical-align:middle;animation:bob 1.05s infinite ease-in-out}
 @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
 .diff{font:12px var(--f-mono);font-variant-ligatures:none;margin:6px 0;border-radius:6px;overflow:auto;border:1px solid var(--line);background:var(--panel)}
 .diff div{padding:1px 8px;white-space:pre}
@@ -240,3 +245,25 @@ kbd{font:11px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px
 .palempty{padding:18px 16px;color:var(--faint);font-size:13px}
 .palfoot{display:flex;gap:14px;padding:7px 16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--faint)}
 mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);color:inherit;border-radius:2px;transition:background 1s}
+
+/* 코치 준비 안내 */
+.pal.setup{display:block;padding:22px 24px;max-height:none}
+.setup h2{font-size:18px;margin:0 0 6px}
+.setup p{margin:6px 0;color:var(--muted);font-size:13.5px}
+.setup .steps{display:grid;gap:10px;margin:14px 0}
+.setup .step{display:grid;grid-template-columns:26px minmax(0,1fr);gap:4px 10px;align-items:start;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.setup .step .n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--sunk);color:var(--muted)}
+.setup .step.done .n{background:var(--ok-bg);color:var(--ok)}
+.setup .step b{font-size:14px}
+.setup .step .d{grid-column:2;font-size:12.5px;color:var(--muted)}
+.setup .bar{grid-column:2;height:8px;background:var(--sunk);border-radius:4px;overflow:hidden;margin-top:6px}
+.setup .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.setup .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.setup code{font:12px var(--f-mono);background:var(--sunk);padding:1px 5px;border-radius:4px}
+.aistat{cursor:pointer}
+
+.mrow[data-pid]{cursor:pointer}
+.mrow[data-pid]:hover{background:var(--sunk)}
+.mcard .mrow{border-bottom:0;padding:0}
+.mcard:hover{border-color:var(--accent)}
+.statusbar .run{padding:3px 12px;font-size:12.5px;margin-left:4px}

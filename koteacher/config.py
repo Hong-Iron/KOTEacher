@@ -4,7 +4,8 @@ import shutil
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+FROZEN = bool(getattr(sys, "frozen", False))  # PyInstaller로 묶인 앱
+ROOT = Path(sys._MEIPASS) if FROZEN else Path(__file__).resolve().parent.parent
 
 # 문제와 개념 문서. 기본은 저장소의 content/ (볼트에서 tools/sync_content.py로 옮긴 사본).
 # 볼트를 바로 읽으려면 KOTEACHER_CONTENT=<볼트>/알고리즘
@@ -24,7 +25,8 @@ def _data_dir():
 
 
 DATA = _data_dir()
-PACKS = DATA / "packs"
+# 묶인 앱은 미리 만든 문제 팩을 함께 싣는다
+PACKS = ROOT / "packs" if FROZEN and (ROOT / "packs").exists() else DATA / "packs"
 DB = DATA / "koteacher.db"
 
 OLLAMA = os.environ.get("KOTEACHER_OLLAMA", "http://127.0.0.1:11434")
@@ -37,7 +39,17 @@ NUM_CTX = int(os.environ.get("KOTEACHER_NUM_CTX", "8192"))
 
 def ensure_dirs():
     _migrate()
-    PACKS.mkdir(parents=True, exist_ok=True)
+    DATA.mkdir(parents=True, exist_ok=True)
+    if not FROZEN:
+        PACKS.mkdir(parents=True, exist_ok=True)
+
+
+def child_cmd(script, *args):
+    """학생 코드 검사(harness)와 팩 만들기(capture)를 별도 프로세스로 띄우는 명령.
+    묶인 앱에는 python 실행 파일이 없으므로 앱 자신을 '--harness' 같은 인자로 다시 띄운다."""
+    if FROZEN:
+        return [sys.executable, f"--{script}", *args]
+    return [sys.executable, "-I", str(ROOT / "koteacher" / f"{script}.py"), *args]
 
 
 def _migrate():

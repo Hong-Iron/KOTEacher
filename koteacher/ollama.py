@@ -1,5 +1,6 @@
 """Ollama /api/chat 클라이언트 (표준 라이브러리만)."""
 import json
+import os
 import time
 import urllib.error
 import urllib.request
@@ -97,3 +98,36 @@ def chat(messages, schema=None, think=False, max_tokens=300, temperature=0.4, on
     meta["first_token_s"] = first
     meta["total_s"] = time.perf_counter() - t0
     return "".join(parts), meta
+
+
+def ram_gb():
+    try:
+        if hasattr(os, "sysconf") and "SC_PHYS_PAGES" in os.sysconf_names:
+            return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / 2 ** 30
+        import ctypes  # 윈도
+        class M(ctypes.Structure):
+            _fields_ = [("l", ctypes.c_ulong), ("m", ctypes.c_ulong), ("t", ctypes.c_ulonglong)] + [(f"x{i}", ctypes.c_ulonglong) for i in range(6)]
+        m = M(); m.l = ctypes.sizeof(M)
+        ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(m))
+        return m.t / 2 ** 30
+    except Exception:
+        return 0
+
+
+def recommend():
+    """메모리 16GB 이상이면 12B, 그보다 작으면 e4b."""
+    gb = ram_gb()
+    if gb >= 15:
+        return {"model": "gemma4:12b-it-qat", "size": "7.2GB", "ram": round(gb)}
+    return {"model": "gemma4:e4b-it-qat", "size": "6.1GB", "ram": round(gb)}
+
+
+def pull(model, on_progress):
+    """모델 받기. on_progress(상태, 받은 바이트, 전체 바이트)."""
+    with _post("/api/pull", {"model": model, "stream": True}, 3600) as r:
+        for line in r:
+            if line.strip():
+                d = json.loads(line)
+                if d.get("error"):
+                    raise RuntimeError(d["error"])
+                on_progress(d.get("status", ""), d.get("completed") or 0, d.get("total") or 0)

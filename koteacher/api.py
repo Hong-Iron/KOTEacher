@@ -61,7 +61,7 @@ class Api:
             "params": pk["params"],
             "examples": [{"args": a[1:-1].rstrip(","), "expected": o} for a, o in pk["examples"]],
             "hidden_total": len(pk["hidden"]),
-            "ladder": [{"step": l["step"], "title": l["title"]} for l in ladder],
+            "ladder": [{"step": l["step"], "title": l["title"]} for l in ladder], "hints_max": vault.HINTS,
             "code": code, "template": template_code(pk["params"]),
             "mistakes": self.store.mistakes(pid),
         }
@@ -85,14 +85,42 @@ class Api:
     def ai_status(self):
         return ollama.status()
 
+    def setup_info(self):
+        return {**ollama.status(), "recommend": ollama.recommend(), "download": "https://ollama.com/download"}
+
+    def pull_model(self, model):
+        """모델을 받는다. 진행은 'pull' 이벤트로, 끝나면 'pull_done'."""
+        def work():
+            last = [0.0]
+
+            def prog(status, done, total):
+                now = time.time()
+                if now - last[0] > 0.25 or (total and done >= total):
+                    last[0] = now
+                    self._push("pull", {"status": status, "done": done, "total": total})
+            try:
+                ollama.pull(model, prog)
+                import koteacher.config as cfg
+                if model not in cfg.MODELS:
+                    cfg.MODELS.insert(0, model)
+                st = ollama.status()
+                if st["model"]:
+                    ollama.load()
+                self._push("pull_done", {"ok": True, "status": ollama.status()})
+            except Exception as e:
+                self._push("pull_done", {"ok": False, "error": str(e)[:200]})
+        threading.Thread(target=work, daemon=True).start()
+        return True
+
     # ------------------------------------------------------------ 힌트
     def hint(self, step):
         s = self.s
         step = int(step)
-        if step > s.hints + 1 and step < 5:
+        final = vault.HINTS + 1  # 풀이 보기
+        if step > s.hints + 1 and step < final:
             step = s.hints + 1
         lad = vault.hint_ladder(s.pid)
-        if step <= 4:
+        if step < final:
             s.hints = max(s.hints, step)
             self.store.update_attempt(s.aid, hints_opened=s.hints)
         else:

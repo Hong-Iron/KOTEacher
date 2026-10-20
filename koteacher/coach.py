@@ -165,7 +165,7 @@ def _hint_context(pid, hint_level):
     if hint_level <= 0:
         return ""
     lad = vault.hint_ladder(pid)
-    return "\n".join(f"- {l['title']}: {l['text'][:500]}" for l in lad[:min(hint_level, 4)])
+    return "\n".join(f"- {l['title']}: {l['text'][:500]}" for l in lad[:min(hint_level, vault.HINTS)])
 
 
 def trace_text(result, limit=16):

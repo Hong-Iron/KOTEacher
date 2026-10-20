@@ -70,7 +70,7 @@ def call(fn, args, limit):
     except KeyboardInterrupt:
         return {"timeout": True, "ms": limit * 1000}
     except RecursionError:
-        return {"error": "RecursionError: 재귀가 너무 깊다", "line": None, "ms": (time.perf_counter() - t) * 1000}
+        return {"error": "RecursionError: 재귀가 너무 깊습니다", "line": None, "ms": (time.perf_counter() - t) * 1000}
     except Exception as e:
         tb = traceback.extract_tb(e.__traceback__)
         line = next((f.lineno for f in reversed(tb) if f.filename == "<내 코드>"), None)
@@ -82,7 +82,7 @@ def load_solution(code_or_tree):
     exec(compile(code_or_tree, "<내 코드>", "exec"), g)
     fn = g.get("solution")
     if not callable(fn):
-        raise NameError("solution 함수가 없다")
+        raise NameError("solution 함수가 없습니다")
     return fn
 
 

@@ -34,7 +34,7 @@ def _select_hidden(hidden):
 
 
 def build_one(path: Path, timeout=300):
-    proc = subprocess.run([sys.executable, "-I", str(CAPTURE), str(path)],
+    proc = subprocess.run(config.child_cmd("capture", str(path)),
                           capture_output=True, text=True, timeout=timeout, cwd=path.parent)
     lines = [l for l in proc.stdout.splitlines() if l.startswith("{")]
     if not lines:

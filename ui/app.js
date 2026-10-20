@@ -6,6 +6,9 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const h = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+// AI가 생각하는 동안 보여 주는 점 세 개 (위아래로 차례로 튄다)
+const DOTS = '<span class="bounce" aria-hidden="true"><i></i><i></i><i></i></span>';
+const waiting = text => `${esc(text)}${DOTS}`;
 const now = () => { const d = new Date(); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
 /* ---------------- 파이썬 연결 ---------------- */
@@ -31,7 +34,7 @@ const S = {problems: [], lv: 0, q: "", p: null, mode: "normal", hints: 0, editor
   lastDiag: null};
 
 /* ---------------- 홈 ---------------- */
-const STATUS = {solved: "통과", helped: "도움 받음", tried: "시도", new: "새 문제"};
+const STATUS = {solved: "통과", helped: "힌트로 통과", tried: "시도", new: "새 문제"};
 function renderList() {
   const q = S.q.trim();
   const items = S.problems.filter(p => (!S.lv || p.level === S.lv) &&
@@ -46,15 +49,15 @@ function renderList() {
     r.onkeydown = e => { if (e.key === "Enter") openProblem(p.id); };
     list.append(r);
   }
-  if (!items.length) list.innerHTML = `<p class="note" style="padding:12px 14px;margin:0">맞는 문제가 없다.</p>`;
+  if (!items.length) list.innerHTML = `<p class="note" style="padding:12px 14px;margin:0">맞는 문제가 없습니다.</p>`;
 }
 function setAi(st) {
   for (const el of [$("#aiStat"), $("#aiStat2")]) {
     const ready = st.server && st.model && st.loaded;
     const dot = ready ? "on" : st.server && st.model ? "wait" : "";
-    const txt = ready ? `코치 ${st.name.replace(":", " ")} 준비됨`
-      : st.server && st.model ? "코치 모델을 불러오는 중 · 테스트는 지금도 돈다"
-      : st.server ? "코치 모델이 없다 · 테스트와 수리 검색만 돈다" : "Ollama 꺼짐 · 테스트와 수리 검색만 돈다";
+    const txt = ready ? `코치(${st.name.replace(":", " ")})가 준비되어 있습니다`
+      : st.server && st.model ? "코치 모델을 불러오고 있습니다 · 테스트는 지금도 쓸 수 있습니다"
+      : st.server ? "코치 모델이 없습니다 · 테스트와 수리 검색은 쓸 수 있습니다" : "Ollama가 꺼져 있습니다 · 테스트와 수리 검색은 쓸 수 있습니다";
     el.innerHTML = `<span class="dot ${dot}"></span>${esc(txt)}`;
   }
 }
@@ -173,19 +176,19 @@ function evidence(f) {
 function bubbleThinking(diag) {
   const el = h("div", "bubble");
   el.innerHTML = bubbleHead("코치", diag?.line ? `${diag.line}번 줄` : "", false) +
-    (diag?.fact ? `<div class="evid">${esc(evidence(diag.fact))}</div>` : "") + `<div class="thinking">코치가 보는 중</div>`;
+    (diag?.fact ? `<div class="evid">${esc(evidence(diag.fact))}</div>` : "") + `<div class="thinking">${waiting("코치가 살펴보고 있습니다")}</div>`;
   placeBubble(diag?.line, el);
 }
 function bubbleSay(d) {
   const el = h("div", "bubble");
-  const sub = [d.line ? `${d.line}번 줄` : "", d.diag?.confidence === "확인됨" ? "테스트로 확인됨" : "AI 추정", d.source === "template" ? "정해진 문장" : ""].filter(Boolean).join(" · ");
+  const sub = [d.line ? `${d.line}번 줄` : "", d.diag?.confidence === "확인됨" ? "테스트로 확인했습니다" : "AI가 추정했습니다", d.source === "template" ? "정해진 문장" : ""].filter(Boolean).join(" · ");
   const instant = d.source === "instant";
   el.innerHTML = bubbleHead("코치", sub) + (d.diag?.fact ? `<div class="evid">${esc(evidence(d.diag.fact))}</div>` : "") +
-    `<div class="msgtext"${instant ? " data-instant" : ""}>${esc(d.message)}</div>${instant ? '<div class="note refining">코치가 더 살펴보는 중</div>' : ""}<div class="acts">
-      ${S.hints < 4 ? `<button class="chip pri" data-act="hint">힌트 ${S.hints + 1}단계 열기</button>` : ""}
+    `<div class="msgtext"${instant ? " data-instant" : ""}>${esc(d.message)}</div>${instant ? `<div class="note refining">${waiting("코치가 더 살펴보고 있습니다")}</div>` : ""}<div class="acts">
+      ${S.hints < (S.p?.hints_max ?? 3) ? `<button class="chip pri" data-act="hint">힌트 ${S.hints + 1}단계 열기</button>` : ""}
       <button class="chip" data-act="ask">코치에게 묻기</button>
-      ${d.id ? `<button class="chip ghost" data-act="rate" data-r="good" data-id="${d.id}">도움됨</button>
-      <button class="chip ghost" data-act="rate" data-r="bad" data-id="${d.id}">별로</button>` : ""}</div>`;
+      ${d.id ? `<button class="chip ghost" data-act="rate" data-r="good" data-id="${d.id}">도움이 됐어요</button>
+      <button class="chip ghost" data-act="rate" data-r="bad" data-id="${d.id}">별로예요</button>` : ""}</div>`;
   placeBubble(d.line, el);
 }
 function bubbleChip(diag) {
@@ -230,7 +233,7 @@ $("#edwrap").addEventListener("submit", async e => {
   if (f.classList.contains("ask")) {
     if (!v) { input.focus(); return; }
     addLog("me", "나", v);
-    f.replaceWith(h("div", "thinking", "코치가 생각하는 중"));
+    f.replaceWith(h("div", "thinking", waiting("코치가 생각하고 있습니다")));
     API.ask(v, S.editor.getValue());
   } else if (f.classList.contains("memo")) {
     if (!v) { input.focus(); return; }
@@ -252,7 +255,7 @@ async function runCheck(trigger) {
     monaco.editor.setModelMarkers(S.editor.getModel(), "kg", r.result.syntax ? [{
       startLineNumber: r.result.syntax.line, endLineNumber: r.result.syntax.line, startColumn: 1, endColumn: 200,
       message: r.result.syntax.msg, severity: monaco.MarkerSeverity.Error}] : []);
-    $("#out").textContent = r.result.stdout || "print 출력이 없다.";
+    $("#out").textContent = r.result.stdout || "print 출력이 없습니다.";
     if (r.passed) {
       flagLine(null); S.lastDiag = null;
       if (r.mistake) { bubbleDone(r.mistake); addLog("sys", "기록", `오답 기록: ${r.mistake.name}`); loadMistakes(); }
@@ -286,7 +289,7 @@ function renderTests(r) {
   const ex = res.examples;
   ex.forEach((e, i) => {
     const s = e.skipped ? `<span class="s skip">–</span>` : e.ok ? `<span class="s ok">✓</span>` : `<span class="s bad">✗</span>`;
-    const body = e.ok ? `${esc(e.args)} → <b>${esc(e.got)}</b>` : e.skipped ? `${esc(e.args)} · 앞의 시간 초과로 건너뜀`
+    const body = e.ok ? `${esc(e.args)} → <b>${esc(e.got)}</b>` : e.skipped ? `${esc(e.args)} · 앞에서 시간 초과가 나서 건너뛰었습니다`
       : e.timeout ? `${esc(e.args)} · <b>시간 초과</b>` : e.error ? `${esc(e.args)} · <b>${esc(e.error)}</b>${e.line ? ` (${e.line}번 줄)` : ""}`
       : `${esc(e.args)} 기대 <b>${esc(e.expected)}</b> 내 답 <b>${esc(e.got)}</b>`;
     box.append(h("div", "trow", `${s}<span>예시 ${i + 1}</span><span class="io2" title="${esc(e.args)}">${body}</span><span class="t">${e.ms}ms</span>`));
@@ -296,11 +299,11 @@ function renderTests(r) {
     const ff = hd.first_fail;
     const okAll = !ff && hd.run === hd.total;
     const s = okAll ? `<span class="s ok">✓</span>` : ff ? `<span class="s bad">✗</span>` : `<span class="s skip">–</span>`;
-    const body = okAll ? `무작위 ${hd.total}개 모두 일치` : ff ? (ff.timeout ? `가장 작은 반례 ${esc(ff.args)} · <b>시간 초과</b>` : ff.error ? `가장 작은 반례 ${esc(ff.args)} · <b>${esc(ff.error)}</b>` :
-      `가장 작은 반례 ${esc(ff.args)} 기대 <b>${esc(ff.expected)}</b> 내 답 <b>${esc(ff.got)}</b> · ${hd.run}번째`) : `${hd.run}/${hd.total}개까지 돌림`;
+    const body = okAll ? `무작위 ${hd.total}개가 모두 맞았습니다` : ff ? (ff.timeout ? `가장 작은 반례 ${esc(ff.args)} · <b>시간 초과</b>` : ff.error ? `가장 작은 반례 ${esc(ff.args)} · <b>${esc(ff.error)}</b>` :
+      `가장 작은 반례 ${esc(ff.args)} 기대 <b>${esc(ff.expected)}</b> 내 답 <b>${esc(ff.got)}</b> · ${hd.run}번째`) : `${hd.total}개 중 ${hd.run}개까지 돌렸습니다`;
     box.append(h("div", "trow", `${s}<span>숨은 검사</span><span class="io2" title="${esc(ff?.args || "")}">${body}</span><span class="t">${hd.passed}/${hd.total}</span>`));
   }
-  if (r.risk) box.append(h("div", "trow", `<span class="s skip">!</span><span>속도 어림</span><span class="io2">반복문 ${r.risk.depth}겹 × 입력 최대 ${r.risk.n.toLocaleString()} → 연산 약 ${r.risk.ops.toExponential(1)}번. 시간 초과 위험</span><span class="t"></span>`));
+  if (r.risk) box.append(h("div", "trow", `<span class="s skip">!</span><span>속도 어림</span><span class="io2">반복문 ${r.risk.depth}겹 × 입력 최대 ${r.risk.n.toLocaleString()} → 연산 약 ${r.risk.ops.toExponential(1)}번입니다. 시간 초과가 날 수 있습니다</span><span class="t"></span>`));
   const passedN = ex.filter(e => e.ok).length + (hd && !hd.first_fail && hd.run === hd.total ? 1 : 0);
   cnt.className = "cnt " + (r.passed ? "ok" : "bad"); cnt.textContent = `${passedN} / ${ex.length + 1}`;
 }
@@ -320,6 +323,8 @@ handlers.stream = d => {
   if (!el || el.classList.contains("done") || el.classList.contains("mini")) { bubbleThinking(S.lastDiag); el = S.bubble; }
   const inst = el.querySelector(".msgtext[data-instant]");
   if (inst) { inst.removeAttribute("data-instant"); inst.textContent = ""; inst.classList.add("live"); }
+  // 글이 흘러나오는 동안 끝에 점을 붙여 둔다
+  el.querySelector(".refining")?.remove();
   let m = el.querySelector(".live");
   if (!m) { m = h("div", "live"); const t = el.querySelector(".thinking"); t ? t.replaceWith(m) : el.append(m); }
   m.textContent += d.text.replace(/`/g, "");
@@ -327,7 +332,7 @@ handlers.stream = d => {
 handlers.answer = d => {
   addLog("ai", "코치", d.message);
   const t = S.bubble?.querySelector(".live") || S.bubble?.querySelector(".thinking");
-  if (t) { t.className = ""; t.textContent = d.message; }
+  if (t) { t.className = ""; t.textContent = d.message; }  // 흘려 쓰던 점(.live)도 같이 사라진다
   else { const el = h("div", "bubble"); el.innerHTML = bubbleHead("코치", "질문에 답") + `<div>${esc(d.message)}</div>`; placeBubble(S.lastDiag?.line, el); }
 };
 handlers.coach_error = d => addLog("sys", "코치 오류", d.error);
@@ -343,9 +348,10 @@ function addLog(kind, who, text) {
 function renderLadder(steps) {
   const ol = $("#ladder"); ol.innerHTML = "";
   for (const s of steps) {
-    const li = h("li", "rung" + (s.step === 5 ? " final" : ""));
+    const fin = s.step === steps.length;  // 마지막 단계는 풀이 보기
+    const li = h("li", "rung" + (fin ? " final" : ""));
     li.dataset.step = s.step;
-    li.innerHTML = `<button><span class="n">${s.step === 5 ? "·" : s.step}</span>${esc(s.title)}<span class="lock">${s.step === 5 ? '기록에 "풀이 봄"' : "열기"}</span></button><div class="body" hidden></div>`;
+    li.innerHTML = `<button><span class="n">${fin ? "·" : s.step}</span>${esc(s.title)}<span class="lock">${fin ? '기록에 "풀이 봄"' : "열기"}</span></button><div class="body" hidden></div>`;
     li.querySelector("button").onclick = () => requestStep(s.step);
     ol.append(li);
   }
@@ -353,11 +359,12 @@ function renderLadder(steps) {
 function requestStep(step) {
   const next = $$(".rung").find(r => !r.classList.contains("open"));
   if (!next) return;
-  if (step < 5) step = Math.min(step, +next.dataset.step);
+  const FIN = (S.p?.hints_max ?? 3) + 1;
+  if (step < FIN) step = Math.min(step, +next.dataset.step);
   if ($(`.rung[data-step="${step}"]`).classList.contains("open")) return;
-  if (step === 5 || (step >= 2 && S.hints < 2)) {
+  if (step === FIN || (step >= 2 && S.hints < 2)) {
     S.pendingStep = step;
-    $("#warn span").innerHTML = step === 5 ? "풀이를 보면 이 시도는 <b>오답·풀이 봄</b>으로 기록돼요." : "두 번째 힌트부터는 이 시도가 <b>오답으로 기록</b>돼요.";
+    $("#warn span").innerHTML = step === FIN ? "풀이를 보면 이 시도는 <b>오답·풀이 봄</b>으로 기록돼요." : "두 번째 힌트부터는 이 시도가 <b>오답으로 기록</b>돼요.";
     $("#warn").hidden = false; $("#warn").scrollIntoView({block: "nearest"}); return;
   }
   openStep(step);
@@ -365,10 +372,10 @@ function requestStep(step) {
 async function openStep(step) {
   const r = await API.hint(step);
   const li = $(`.rung[data-step="${r.step}"]`);
-  li.classList.add("open"); li.querySelector(".lock").textContent = "열림";
+  li.classList.add("open"); li.querySelector(".lock").textContent = "열었습니다";
   const body = li.querySelector(".body"); body.innerHTML = r.html; body.hidden = false;
-  S.hints = r.hints; $("#hintMeta").textContent = `힌트 ${S.hints} / 4`;
-  addLog("sys", "힌트", `${r.step === 5 ? "풀이" : r.step + "단계"}를 열었다.`);
+  S.hints = r.hints; $("#hintMeta").textContent = `힌트 ${S.hints} / ${S.p.hints_max}`;
+  addLog("sys", "힌트", `${r.step === S.p.hints_max + 1 ? "풀이" : r.step + "단계"}를 열었습니다.`);
   li.scrollIntoView({block: "nearest", behavior: "smooth"});
 }
 $("#warnYes").onclick = () => { $("#warn").hidden = true; if (S.pendingStep) openStep(S.pendingStep); S.pendingStep = null; };
@@ -378,7 +385,7 @@ $("#warnNo").onclick = () => { $("#warn").hidden = true; S.pendingStep = null; }
 function mistakeRow(m, withTitle) {
   const when = new Date(m.t * 1000);
   const diff = (m.diff || "").split("\n").filter(Boolean).slice(0, 2).map(l => `<code>${esc(l)}</code>`).join(" ");
-  return `<div class="mrow"><span><span class="nm">${esc(m.name)}</span><span class="cat">${esc(m.category)}</span>${m.fixed ? "" : '<span class="cat">못 고침</span>'}</span>
+  return `<div class="mrow" data-pid="${m.problem_id}" title="이 문제 열기"><span><span class="nm">${esc(m.name)}</span><span class="cat">${esc(m.category)}</span>${m.fixed ? "" : '<span class="cat">고치지 못했습니다</span>'}</span>
     <span class="when">${when.getMonth() + 1}월 ${when.getDate()}일${withTitle ? ` · ${esc(m.title)}` : ""}</span>
     <span class="sub">${esc(m.evidence)}${diff ? "<br>" + diff : ""} · ${fmtDur(m.time_to_fix)} · 힌트 ${m.hints_at_detection}개${m.note ? ` · “${esc(m.note)}”` : ""}</span></div>`;
 }
@@ -388,7 +395,7 @@ async function loadMistakes() {
   const others = all.filter(m => m.problem_id !== S.p.id).slice(0, 5);
   $("#misCnt").textContent = here.length; $("#misCnt").className = "cnt" + (here.length ? " coach" : "");
   $("#misPanel").innerHTML = `<div class="sect">이 문제</div>` + (here.length ? here.map(m => mistakeRow(m)).join("") :
-    `<p class="note" style="margin:4px 0">실패하던 검사를 고치면 여기에 남는다.</p>`) +
+    `<p class="note" style="margin:4px 0">실패하던 검사를 고치면 여기에 남습니다.</p>`) +
     (others.length ? `<div class="sect">최근 다른 문제</div>` + others.map(m => mistakeRow(m, true)).join("") : "");
 }
 async function openBook() {
@@ -399,7 +406,7 @@ async function openBook() {
   const draw = () => {
     const xs = all.filter(m => !cur || m.category === cur);
     $("#bookList").innerHTML = xs.length ? xs.map(m => `<div class="mcard">${mistakeRow(m, true)}</div>`).join("")
-      : `<p class="note">아직 기록이 없다. 문제를 풀다 실패한 검사를 고치면 여기에 쌓인다.</p>`;
+      : `<p class="note">아직 기록이 없습니다. 문제를 풀다 실패한 검사를 고치면 여기에 쌓입니다.</p>`;
   };
   for (const c of ["", ...cats]) {
     const b = h("button", "", c ? `${esc(c)} ${all.filter(m => m.category === c).length}` : `전체 ${all.length}`);
@@ -410,6 +417,13 @@ async function openBook() {
   draw(); show("book");
 }
 $("#openBook").onclick = openBook;
+// 오답 기록(오답 노트, 풀기 화면의 탭)을 누르면 그 문제를 연다
+document.addEventListener("click", e => {
+  const row = e.target.closest(".mrow[data-pid]");
+  if (!row || e.target.closest("a, button, input")) return;
+  if (S.p && row.dataset.pid === S.p.id && !$("#solve").hidden) return;  // 지금 푸는 문제면 그대로
+  openProblem(row.dataset.pid);
+});
 $("#bookBack").onclick = () => show("home");
 
 /* ---------------- 문제 열기 ---------------- */
@@ -424,14 +438,18 @@ async function openProblem(pid, withDoc) {
   $("#pExamples").innerHTML = `<tr><th>${esc(p.params.join(", "))}</th><th style="width:30%">result</th></tr>` +
     p.examples.map(e => `<tr><td>${esc(e.args)}</td><td>${esc(e.expected)}</td></tr>`).join("");
   renderLadder(p.ladder);
-  $("#hintMeta").textContent = "힌트 0 / 4";
+  $("#hintMeta").textContent = `힌트 0 / ${p.hints_max}`;
   $("#log").innerHTML = ""; $("#logCnt").textContent = "0";
-  $("#tests").innerHTML = `<p class="note">실행(⌘↵)하면 예시 ${p.examples.length}개와 숨은 검사 ${p.hidden_total}개를 돌린다.</p>`;
+  $("#tests").innerHTML = `<p class="note">실행(⌘↵)하면 예시 ${p.examples.length}개와 숨은 검사 ${p.hidden_total}개를 돌립니다.</p>`;
   $("#testCnt").className = "cnt"; $("#testCnt").textContent = "–";
   show("solve");
   activateTab("problem");
   decorate($('#dbody > .dpanel[data-tab="problem"]')).then(() => applyNotes($('#dbody > .dpanel[data-tab="problem"]')));
+  // 지난 문제 때 자동으로 연 탭은 닫고, 이 문제의 개념 문서를 탭으로 연다
+  for (const t of S.tabs.filter(t => t.auto && !p.concept_files.includes(t.key.slice(4)))) closeTab(t.key);
+  for (const f of p.concept_files) await openDoc(f, false, true);
   if (withDoc) openDoc(withDoc, false);
+  activateTab("problem");
   await makeEditor(p.code);
   clearBubble(); flagLine(null);
   monaco.editor.setModelMarkers(S.editor.getModel(), "kg", []);
@@ -513,18 +531,19 @@ function activateTab(key) {
   $$("#dbody > .dpanel").forEach(p => p.hidden = p.dataset.tab !== key);
   renderTabs();
 }
-async function openDoc(name, activate = true) {
+async function openDoc(name, activate = true, auto = false) {
   setPanes(true, S.rightOn ?? true);
   const key = "doc:" + name;
   if (!S.tabs.find(t => t.key === key)) {
     const d = await API.concept(name);
-    S.tabs.push({key, title: d.title, num: d.num});
+    S.tabs.push({key, title: d.title, num: d.num, auto});
     const panel = h("div", "dpanel doc");
     panel.dataset.tab = key; panel.dataset.doc = name; panel.hidden = true;
     panel.innerHTML = `<h1>${esc(d.title)}</h1>` + d.html;
     $("#dbody").append(panel);
     decorate(panel).then(() => applyNotes(panel));
   }
+  else if (!auto) S.tabs.find(t => t.key === key).auto = false;  // 직접 열면 자동 탭이 아니게 된다
   if (activate) activateTab(key); else renderTabs();
 }
 function closeTab(key) {
@@ -598,7 +617,7 @@ async function openConcept(name) {
   const box = $("#lDoc"); box.innerHTML = d.html; box.dataset.doc = name; box.scrollTop = 0;
   $("#lProblems").innerHTML = d.problem_list.length ? d.problem_list.map(p =>
     `<div class="lp" data-pid="${p.id}" tabindex="0"><span class="lv">Lv${p.level}</span><span class="ti">${esc(p.title)}</span><span class="pill ${p.status}">${STATUS[p.status]}</span></div>`).join("")
-    : `<p class="note">이 문서는 수학 과목과 잇는 문서라 바로 풀 문제가 없다.</p>`;
+    : `<p class="note">이 문서는 수학 과목과 잇는 문서라 바로 풀 문제가 없습니다.</p>`;
   $$(".lp").forEach(el => el.onclick = () => openProblem(el.dataset.pid, name));
   show("learn");
   decorate(box).then(() => applyNotes(box));
@@ -677,7 +696,7 @@ askBtn.onclick = () => {
     hideAsk(); getSelection().removeAllRanges();
     const note = {id: "tmp" + id, quote: s.text, prefix: s.prefix, question: q, answer: ""};
     const box = placeNote(s.host, note, true);
-    if (box) { box.querySelector(".qa").classList.add("thinking"); box.querySelector(".qa").textContent = "코치가 생각하는 중"; box.dataset.rid = id; }
+    if (box) { box.querySelector(".qa").classList.add("thinking"); box.querySelector(".qa").innerHTML = waiting("코치가 생각하고 있습니다"); box.dataset.rid = id; }
     API.ask_doc(id, s.text, s.context, s.doc, q, s.prefix, S.editor && !$("#solve").hidden ? S.editor.getValue() : "");
   };
   askBox.querySelector(".x").onclick = hideAsk;
@@ -748,13 +767,13 @@ document.addEventListener("click", async e => {
 handlers.doc_stream = d => {
   const box = $(`.qa-note[data-rid="${d.id}"]`); if (!box) return;
   const qa = box.querySelector(".qa");
-  if (qa.classList.contains("thinking")) { qa.classList.remove("thinking"); qa.textContent = ""; }
+  if (qa.classList.contains("thinking")) { qa.classList.remove("thinking"); qa.textContent = ""; qa.classList.add("live"); }
   qa.textContent += d.text;
 };
 handlers.doc_answer = d => {
   const box = $(`.qa-note[data-rid="${d.id}"]`); if (!box) return;
   const qa = box.querySelector(".qa");
-  qa.classList.remove("thinking"); qa.textContent = d.message;
+  qa.classList.remove("thinking", "live"); qa.textContent = d.message;
   if (d.note) {  // 기록 번호로 바꿔 단다 (지우기·다시 열기에 쓴다)
     const old = box.dataset.note;
     box.dataset.note = d.note;
@@ -766,7 +785,7 @@ handlers.doc_answer = d => {
 /* ---------------- 전체 검색 (⌘K) ---------------- */
 const pal = $("#palette"), palIn = $("#palInput"), palRes = $("#palRes");
 let palItems = [], palSel = 0, palTimer = null, palSeq = 0;
-function openPalette() { pal.hidden = false; palIn.select(); palIn.focus(); if (!palIn.value) palRes.innerHTML = `<div class="palempty">문제, 개념, 개념 문서 본문, 문서에서 물은 질문과 답, 오답 기록을 한 번에 찾는다. 낱말을 띄어 쓰면 모두 들어 있는 것만 찾는다.</div>`; }
+function openPalette() { pal.hidden = false; palIn.select(); palIn.focus(); if (!palIn.value) palRes.innerHTML = `<div class="palempty">문제, 개념, 개념 문서 본문, 문서에서 물은 질문과 답, 오답 기록을 한 번에 찾습니다. 낱말을 띄어 쓰면 모두 들어 있는 것만 찾습니다.</div>`; }
 function closePalette() { pal.hidden = true; }
 $$("[data-search]").forEach(b => b.onclick = openPalette);
 pal.addEventListener("mousedown", e => { if (e.target === pal) closePalette(); });
@@ -796,7 +815,7 @@ async function runSearch() {
   group("문서 내용", r.content?.map(x => ({...x, t: "content"})), x => `<span class="tt">${esc(x.title)}</span><span class="rt">${x.kind === "doc" ? "개념" : "문제문"} · ${x.count}곳</span><span class="sn">${hl(x.snippet, terms)}</span>`);
   group("내 질문", r.notes?.map(x => ({...x, t: "note"})), x => `<span class="tt">${hl(x.question, terms)}</span><span class="rt">${esc(x.title)}</span><span class="sn">${hl(x.snippet, terms)}</span>`);
   group("오답 기록", r.mistakes?.map(x => ({...x, t: "mistake"})), x => `<span class="tt">${hl(x.name, terms)}</span><span class="rt">${esc(x.title)} · ${esc(x.category)}</span>`);
-  palRes.innerHTML = html || `<div class="palempty">“${esc(q)}”이(가) 들어 있는 곳이 없다.</div>`;
+  palRes.innerHTML = html || `<div class="palempty">“${esc(q)}”이(가) 들어 있는 곳이 없습니다.</div>`;
   palSel = 0; markSel();
 }
 function markSel() { $$(".palitem", palRes).forEach(el => el.setAttribute("aria-selected", +el.dataset.i === palSel)); $(`.palitem[data-i="${palSel}"]`, palRes)?.scrollIntoView({block: "nearest"}); }
@@ -846,9 +865,53 @@ function flashTerm(host, term) {
   setTimeout(() => { m.replaceWith(...m.childNodes); host.normalize(); }, 2500);
 }
 
+
+/* ---------------- 코치(AI) 준비 안내 ---------------- */
+async function openSetup(force) {
+  const info = await API.setup_info();
+  if (!force && info.server && info.model) return;
+  try { if (!force && localStorage.getItem("kt-setup-later") === "1") return; } catch (_) {}
+  const r = info.recommend;
+  $("#setupBody").innerHTML = `
+    <h2>코치(AI)를 준비해요</h2>
+    <p>문제 풀기, 테스트, 반례 찾기는 지금도 쓸 수 있습니다. 코치의 말과 문서 질문에는 내 컴퓨터에서 도는 AI(Ollama + gemma4)가 필요합니다. 코드와 질문은 인터넷으로 보내지 않습니다.</p>
+    <div class="steps">
+      <div class="step ${info.server ? "done" : ""}"><span class="n">${info.server ? "✓" : "1"}</span><b>Ollama 설치</b>
+        <span class="d">${info.server ? "켜져 있습니다." : `<a href="${info.download}" target="_blank" rel="noopener">ollama.com/download</a>에서 받아 설치하고 실행해 주세요. 메뉴 막대에 라마 아이콘이 뜨면 됩니다.`}</span></div>
+      <div class="step ${info.model ? "done" : ""}" id="stepModel"><span class="n">${info.model ? "✓" : "2"}</span><b>코치 모델 받기</b>
+        <span class="d">${info.model ? `${esc(info.name)}이(가) 준비되어 있습니다.` : `이 컴퓨터 메모리 ${r.ram}GB → <code>${esc(r.model)}</code> (${r.size}) 를 추천합니다. 한 번만 받으면 됩니다.`}</span>
+        <div class="bar" id="pullBar" hidden><i></i></div><span class="d" id="pullText"></span></div>
+    </div>
+    <div class="acts">
+      <button class="btn" id="setupLater">나중에</button>
+      ${!info.server ? `<button class="btn" id="setupRetry">다시 확인</button>` : ""}
+      ${info.server && !info.model ? `<button class="run" id="setupPull">모델 받기 (${r.size})</button>` : ""}
+      ${info.server && info.model ? `<button class="run" id="setupOk">시작하기</button>` : ""}
+    </div>`;
+  $("#setup").hidden = false;
+  $("#setupLater").onclick = () => { $("#setup").hidden = true; try { localStorage.setItem("kt-setup-later", "1"); } catch (_) {} };
+  $("#setupRetry") && ($("#setupRetry").onclick = () => openSetup(true));
+  $("#setupOk") && ($("#setupOk").onclick = () => { $("#setup").hidden = true; });
+  $("#setupPull") && ($("#setupPull").onclick = e => {
+    e.target.disabled = true; e.target.innerHTML = waiting("받고 있습니다");
+    $("#pullBar").hidden = false; API.pull_model(r.model);
+  });
+}
+const fmtGB = b => (b / 2 ** 30).toFixed(1);
+handlers.pull = d => {
+  if (!$("#pullBar")) return;
+  if (d.total) $("#pullBar i").style.width = `${Math.round(d.done / d.total * 100)}%`;
+  $("#pullText").textContent = d.total ? `${fmtGB(d.done)} / ${fmtGB(d.total)} GB · ${d.status}` : d.status;
+};
+handlers.pull_done = d => {
+  if (d.ok) { setAi(d.status); openSetup(true); }
+  else if ($("#pullText")) { $("#pullText").textContent = `받지 못했습니다: ${d.error}`; const b = $("#setupPull"); if (b) { b.disabled = false; b.textContent = "다시 받기"; } }
+};
+$$(".aistat").forEach(el => el.addEventListener("click", () => openSetup(true)));
+
 /* ---------------- 시작 ---------------- */
 function start() {
-  boot().then(() => API.log(`boot ok · 문제 ${S.problems.length}개`)).catch(e => API.log("boot 실패 " + e));
+  boot().then(() => { API.log(`boot ok · 문제 ${S.problems.length}개`); openSetup(false); }).catch(e => API.log("boot 실패 " + e));
   loadMonaco().then(() => API.log("monaco ok")).catch(e => API.log("monaco 실패 " + e));
   window.addEventListener("error", e => API.log(`JS 오류 ${e.message} @${e.lineno}`));
 }

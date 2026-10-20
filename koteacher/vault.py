@@ -118,15 +118,19 @@ def problem(pid):
     return {**info, "statement_md": sec.get("문제", ""), "need_md": need, "steps": steps}
 
 
+HINTS = 3  # 힌트 단계 수. 그 다음 단계가 '풀이 보기'
+
+
 def hint_ladder(pid):
-    """힌트 사다리 4단계 + 풀이. 각 단계: 제목, HTML, 프롬프트용 글."""
+    """힌트 사다리 3단계 + 풀이. 각 단계: 제목, HTML, 프롬프트용 글.
+    '필요한 개념'은 사다리에서 빼고, 문제를 열 때 개념 문서 탭으로 함께 연다."""
     p = problem(pid)
     s = p["steps"]
 
     def join(*ks):
         return "\n\n".join(f"**{s[k]['title']}**\n\n{s[k]['md']}" for k in ks if k in s)
 
-    raw = [("필요한 개념", p["need_md"]), ("작은 예로 손으로 풀기", join(1, 2)),
+    raw = [("작은 예로 손으로 풀기", join(1, 2)),
            ("핵심 아이디어", join(3)), ("코드 흐름", join(4)), ("풀이 보기", join(5, 6, 7))]
     return [{"step": i + 1, "title": t, "html": to_html(m), "text": plain(m)} for i, (t, m) in enumerate(raw)]
 
