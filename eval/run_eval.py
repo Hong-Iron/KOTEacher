@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from kotte import coach, runner, ollama  # noqa: E402
+from koteacher import coach, runner, ollama  # noqa: E402
 
 DATA, RES = ROOT / "eval" / "data", ROOT / "eval" / "results"
 HANGUL = re.compile(r"[가-힣]")
@@ -29,7 +29,9 @@ def det():
         fs = coach.facts(r)
         rep = (r.get("repair") or {})
         fixes = rep.get("fixes", [])
-        d = coach.diagnose(b["pid"], b["code"], r, fs) if (fixes or (fs and fs[0]["kind"] in ("timeout", "error", "syntax"))) else None
+        d = coach.diagnose(b["pid"], b["code"], r, fs, llm=False) if fs else None
+        if d and d["tier"] == "rule" and not d.get("line"):
+            d = None  # 결정적 단계로 못 짚음 → AI 몫
         rows.append({"pid": b["pid"], "tier": d["tier"] if d else "llm 필요", "line_ok": bool(d and d.get("line") in b["lines"]),
                      "line": d.get("line") if d else None, "bug_lines": b["lines"], "fact": fs[0]["kind"] if fs else None,
                      "fix_ok": any(f["line"] in b["lines"] for f in fixes), "n_fixes": len(fixes),

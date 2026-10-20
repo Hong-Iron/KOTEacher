@@ -13,8 +13,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "kotte"))
-from kotte import config, runner, packs  # noqa: E402
+sys.path.insert(0, str(ROOT / "koteacher"))
+from koteacher import config, runner, packs  # noqa: E402
 import harness  # noqa: E402  (mutation_sites, apply_mutation)
 
 OUT = ROOT / "eval" / "data"

@@ -1,5 +1,5 @@
 "use strict";
-/* 코테가이드 화면. 파이썬 쪽 함수는 window.pywebview.api로 부른다.
+/* KOTEacher 화면. 파이썬 쪽 함수는 window.pywebview.api로 부른다.
    개발 중에는 tools/devserve.py가 같은 함수를 /api/<이름>으로 열어 준다(브라우저 확인용). */
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -50,8 +50,11 @@ function renderList() {
 }
 function setAi(st) {
   for (const el of [$("#aiStat"), $("#aiStat2")]) {
-    const dot = st.server && st.model ? "on" : st.server ? "wait" : "";
-    const txt = st.server && st.model ? `코치 ${st.name.replace(":", " ")} 준비됨` : st.server ? "모델을 받는 중 · 테스트와 수리 검색만 돈다" : "Ollama 꺼짐 · 테스트와 수리 검색만 돈다";
+    const ready = st.server && st.model && st.loaded;
+    const dot = ready ? "on" : st.server && st.model ? "wait" : "";
+    const txt = ready ? `코치 ${st.name.replace(":", " ")} 준비됨`
+      : st.server && st.model ? "코치 모델을 불러오는 중 · 테스트는 지금도 돈다"
+      : st.server ? "코치 모델이 없다 · 테스트와 수리 검색만 돈다" : "Ollama 꺼짐 · 테스트와 수리 검색만 돈다";
     el.innerHTML = `<span class="dot ${dot}"></span>${esc(txt)}`;
   }
 }
@@ -61,14 +64,16 @@ async function boot() {
   $("#bookCnt").textContent = b.mistakes;
   setAi(b.ai);
   renderList();
-  setInterval(async () => setAi(await API.ai_status()), 15000);
+  // 불러오는 동안은 자주, 준비되면 가끔 확인한다
+  const tick = async () => { const st = await API.ai_status(); setAi(st); setTimeout(tick, st.loaded ? 15000 : 2000); };
+  setTimeout(tick, 2000);
 }
 $$("#lvSeg button").forEach(b => b.onclick = () => {
   S.lv = +b.dataset.lv; $$("#lvSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); renderList();
 });
 $("#search").oninput = e => { S.q = e.target.value; renderList(); };
 
-function show(id) { for (const v of ["home", "solve", "book"]) $("#" + v).hidden = v !== id; if (id === "solve") S.editor?.layout(); }
+function show(id) { for (const v of ["home", "solve", "book", "learn"]) $("#" + v).hidden = v !== id; if (id === "solve") S.editor?.layout(); hideAsk(); }
 
 /* ---------------- Monaco ---------------- */
 let monacoReady;
@@ -105,7 +110,8 @@ async function makeEditor(code) {
     });
     S.editor.onDidChangeModelContent(onEdit);
     S.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => runCheck("run"));
-    S.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyB, () => $("#toggleProb").click());
+    S.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyB, () => toggleLeft());
+    S.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyB, () => toggleRight());
     S.editor.onDidChangeCursorPosition(e => $("#edStat").textContent = `${e.position.lineNumber}번 줄`);
   } else {
     S.editor.setValue(code);
@@ -210,7 +216,7 @@ $("#edwrap").addEventListener("click", async e => {
   const act = t.dataset.act;
   if (act === "fold") { const d = S.lastDiag; clearBubble(); if (d) bubbleChip(d); }
   if (act === "explain") { if (S.lastDiag?.fact?.kind === "syntax") return; bubbleThinking(S.lastDiag); API.explain(); }
-  if (act === "hint") { $("#main").classList.remove("collapsed"); requestStep(S.hints + 1); }
+  if (act === "hint") { setPanes(true, true); activateTab("problem"); requestStep(S.hints + 1); }
   if (act === "rate") { API.rate(t.dataset.id, t.dataset.r); t.textContent += " ✓"; }
   if (act === "ask") {
     if (S.bubble.querySelector(".ask")) return;
@@ -407,13 +413,13 @@ $("#openBook").onclick = openBook;
 $("#bookBack").onclick = () => show("home");
 
 /* ---------------- 문제 열기 ---------------- */
-async function openProblem(pid) {
+async function openProblem(pid, withDoc) {
   const p = await API.open(pid);
   S.p = p; S.hints = 0; S.logN = 0; S.lastDiag = null; S.startT = Date.now();
   $("#pTitle").textContent = p.title; $("#pLevel").textContent = `Lv${p.level}`; $("#pSource").textContent = p.source || "연습문제";
   $("#pSource").hidden = !p.source;
   $("#pStatement").innerHTML = p.statement;
-  $("#pConcepts").textContent = p.concepts.join(", ");
+  $("#pConcepts").innerHTML = p.concept_files.map((f, i) => `<button data-doc="${esc(f)}" title="문서 창에 탭으로 열기">${esc(p.concepts[i])}</button>`).join("");
   $("#pUrl").href = p.url;
   $("#pExamples").innerHTML = `<tr><th>${esc(p.params.join(", "))}</th><th style="width:30%">result</th></tr>` +
     p.examples.map(e => `<tr><td>${esc(e.args)}</td><td>${esc(e.expected)}</td></tr>`).join("");
@@ -423,6 +429,9 @@ async function openProblem(pid) {
   $("#tests").innerHTML = `<p class="note">실행(⌘↵)하면 예시 ${p.examples.length}개와 숨은 검사 ${p.hidden_total}개를 돌린다.</p>`;
   $("#testCnt").className = "cnt"; $("#testCnt").textContent = "–";
   show("solve");
+  activateTab("problem");
+  decorate($('#dbody > .dpanel[data-tab="problem"]')).then(() => applyNotes($('#dbody > .dpanel[data-tab="problem"]')));
+  if (withDoc) openDoc(withDoc, false);
   await makeEditor(p.code);
   clearBubble(); flagLine(null);
   monaco.editor.setModelMarkers(S.editor.getModel(), "kg", []);
@@ -438,7 +447,7 @@ $$("#modeSeg button").forEach(b => b.onclick = () => {
   if (S.mode === "quiet") clearTimeout(S.idleTimer);
 });
 $("#run").onclick = () => runCheck("run");
-$("#toggleProb").onclick = () => { $("#main").classList.toggle("collapsed"); S.editor?.layout(); };
+
 $$(".tabs [role=tab]").forEach(t => t.onclick = () => {
   $$(".tabs [role=tab]").forEach(x => x.setAttribute("aria-selected", x === t));
   $$(".pbody").forEach(p => p.hidden = p.dataset.panel !== t.dataset.tab);
@@ -446,6 +455,396 @@ $$(".tabs [role=tab]").forEach(t => t.onclick = () => {
 });
 $("#dockToggle").onclick = () => { const s = $("#dock").classList.toggle("small"); $("#dockToggle").textContent = s ? "펼치기" : "접기"; };
 setInterval(() => { if (!$("#solve").hidden) { const s = Math.floor((Date.now() - S.startT) / 1000); $("#clock").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; } }, 1000);
+
+
+/* ---------------- 홈: 문제 / 개념 목록 ---------------- */
+S.list = "problems"; S.concepts = [];
+$$("#homeSeg button").forEach(b => b.onclick = async () => {
+  S.list = b.dataset.list; $$("#homeSeg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("#plist").hidden = S.list !== "problems"; $("#clist").hidden = S.list !== "concepts"; $("#lvSeg").hidden = S.list !== "problems";
+  if (S.list === "concepts") { S.concepts = await API.concepts(); renderConcepts(); }
+});
+function renderConcepts() {
+  const q = S.q.trim(), box = $("#clist"); box.innerHTML = "";
+  const items = S.concepts.filter(c => !q || c.title.includes(q) || c.aliases.toLowerCase().includes(q.toLowerCase()));
+  for (const c of items) {
+    const r = h("div", "crow");
+    r.tabIndex = 0;
+    r.innerHTML = `<span class="num">${c.num}</span><span class="ti">${esc(c.title)}<span class="al">${esc(c.aliases.split(",")[0] || "")}</span></span>
+      <span class="pc">${c.problems.length ? `문제 ${c.solved}/${c.problems.length}` : "수학 연결"}</span><span class="su">${esc(c.summary)}</span>`;
+    r.onclick = () => openConcept(c.name);
+    r.onkeydown = e => { if (e.key === "Enter") openConcept(c.name); };
+    box.append(r);
+  }
+}
+$("#search").addEventListener("input", () => { if (S.list === "concepts") renderConcepts(); });
+
+/* ---------------- 문서 그리기 (수식, Mermaid) ---------------- */
+let mermaidReady = false;
+async function decorate(el) {
+  $$(".math", el).forEach(m => {
+    if (m.dataset.done) return;
+    try { katex.render(m.textContent, m, {displayMode: !!m.dataset.display, throwOnError: false}); } catch (_) {}
+    m.dataset.done = 1;
+  });
+  const ms = $$("pre.mermaid:not([data-processed])", el);
+  if (ms.length && window.mermaid) {
+    if (!mermaidReady) { mermaid.initialize({startOnLoad: false, theme: dark.matches ? "dark" : "default", securityLevel: "strict"}); mermaidReady = true; }
+    try { await mermaid.run({nodes: ms}); } catch (e) { API.log("mermaid " + e); }
+  }
+}
+
+/* ---------------- 문서 창 탭 ---------------- */
+S.tabs = [{key: "problem", title: "문제"}]; S.active = "problem";
+function renderTabs() {
+  const bar = $("#dtabs"); bar.innerHTML = "";
+  for (const t of S.tabs) {
+    const b = h("div", "dtab");
+    b.setAttribute("role", "tab"); b.setAttribute("aria-selected", t.key === S.active); b.tabIndex = 0;
+    b.innerHTML = t.key === "problem" ? `<span class="t">문제</span>` : `<span class="k">${esc(t.num)}</span><span class="t">${esc(t.title)}</span><button class="x" aria-label="${esc(t.title)} 닫기">×</button>`;
+    b.onclick = e => { if (e.target.classList.contains("x")) closeTab(t.key); else activateTab(t.key); };
+    b.onauxclick = e => { if (e.button === 1 && t.key !== "problem") closeTab(t.key); };
+    bar.append(b);
+  }
+  $(`.dtab[aria-selected="true"]`)?.scrollIntoView({block: "nearest", inline: "nearest"});
+}
+function activateTab(key) {
+  S.active = key;
+  $$("#dbody > .dpanel").forEach(p => p.hidden = p.dataset.tab !== key);
+  renderTabs();
+}
+async function openDoc(name, activate = true) {
+  setPanes(true, S.rightOn ?? true);
+  const key = "doc:" + name;
+  if (!S.tabs.find(t => t.key === key)) {
+    const d = await API.concept(name);
+    S.tabs.push({key, title: d.title, num: d.num});
+    const panel = h("div", "dpanel doc");
+    panel.dataset.tab = key; panel.dataset.doc = name; panel.hidden = true;
+    panel.innerHTML = `<h1>${esc(d.title)}</h1>` + d.html;
+    $("#dbody").append(panel);
+    decorate(panel).then(() => applyNotes(panel));
+  }
+  if (activate) activateTab(key); else renderTabs();
+}
+function closeTab(key) {
+  const i = S.tabs.findIndex(t => t.key === key);
+  if (i <= 0) return;
+  S.tabs.splice(i, 1);
+  $(`#dbody > .dpanel[data-tab="${CSS.escape(key)}"]`)?.remove();
+  if (S.active === key) activateTab(S.tabs[Math.max(0, i - 1)].key); else renderTabs();
+}
+renderTabs();
+
+// 문서 속 링크: 개념은 탭으로, 문제는 그 문제를 연다
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-doc], [data-problem]");
+  if (!a || a.closest(".crow")) return;
+  e.preventDefault();
+  if (a.dataset.problem) openProblem(a.dataset.problem);
+  else if (!$("#learn").hidden) openConcept(a.dataset.doc);
+  else openDoc(a.dataset.doc);
+});
+
+/* ---------------- 창 접기와 너비 ---------------- */
+function setPanes(left, right) {
+  if (!left && !right) right = true;   // 둘 다 접을 수는 없다
+  S.leftOn = left; S.rightOn = right;
+  const sp = $("#split");
+  sp.classList.toggle("left-off", !left); sp.classList.toggle("right-off", !right);
+  $("#railLeft").hidden = left; $("#railRight").hidden = right;
+  $("#foldLeft").setAttribute("aria-pressed", left); $("#foldRight").setAttribute("aria-pressed", right);
+  S.editor?.layout();
+}
+const toggleLeft = () => setPanes(!(S.leftOn ?? true), S.rightOn ?? true);
+const toggleRight = () => setPanes(S.leftOn ?? true, !(S.rightOn ?? true));
+$("#foldLeft").onclick = toggleLeft; $("#foldRight").onclick = toggleRight;
+$("#railLeft").onclick = () => setPanes(true, S.rightOn ?? true);
+$("#railRight").onclick = () => setPanes(S.leftOn ?? true, true);
+document.addEventListener("keydown", e => {
+  if ($("#solve").hidden || !(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "b") return;
+  if (document.activeElement?.closest("#editor")) return;  // 편집기 안에서는 Monaco 명령이 받는다
+  e.preventDefault(); e.shiftKey ? toggleRight() : toggleLeft();
+});
+(function splitter() {
+  const sp = $("#splitter"), split = $("#split");
+  try { const w = localStorage.getItem("kt-left-w"); if (w) split.style.setProperty("--left-w", w); } catch (_) {}
+  const setW = px => {
+    const total = split.getBoundingClientRect().width;
+    const w = Math.round(Math.min(Math.max(px, 260), total - 320) / total * 1000) / 10 + "%";
+    split.style.setProperty("--left-w", w);
+    try { localStorage.setItem("kt-left-w", w); } catch (_) {}
+    S.editor?.layout();
+  };
+  sp.addEventListener("pointerdown", e => {
+    sp.setPointerCapture(e.pointerId); sp.classList.add("drag");
+    const left = split.getBoundingClientRect().left;
+    const move = ev => setW(ev.clientX - left);
+    const up = () => { sp.classList.remove("drag"); sp.removeEventListener("pointermove", move); sp.removeEventListener("pointerup", up); };
+    sp.addEventListener("pointermove", move); sp.addEventListener("pointerup", up);
+  });
+  sp.addEventListener("keydown", e => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    setW($("#leftPane").getBoundingClientRect().width + (e.key === "ArrowLeft" ? -40 : 40));
+  });
+  sp.addEventListener("dblclick", () => { split.style.removeProperty("--left-w"); try { localStorage.removeItem("kt-left-w"); } catch (_) {} S.editor?.layout(); });
+})();
+
+/* ---------------- 학습 화면 ---------------- */
+async function openConcept(name) {
+  const d = await API.concept(name);
+  S.learnDoc = name;
+  $("#lTitle").textContent = d.title; $("#lAlias").textContent = d.aliases.split(",")[0] || ""; $("#lAlias").hidden = !d.aliases;
+  const box = $("#lDoc"); box.innerHTML = d.html; box.dataset.doc = name; box.scrollTop = 0;
+  $("#lProblems").innerHTML = d.problem_list.length ? d.problem_list.map(p =>
+    `<div class="lp" data-pid="${p.id}" tabindex="0"><span class="lv">Lv${p.level}</span><span class="ti">${esc(p.title)}</span><span class="pill ${p.status}">${STATUS[p.status]}</span></div>`).join("")
+    : `<p class="note">이 문서는 수학 과목과 잇는 문서라 바로 풀 문제가 없다.</p>`;
+  $$(".lp").forEach(el => el.onclick = () => openProblem(el.dataset.pid, name));
+  show("learn");
+  decorate(box).then(() => applyNotes(box));
+}
+$("#learnBack").onclick = () => show("home");
+
+/* ---------------- 문서에서 골라 묻기 ---------------- */
+const askBtn = h("button", "askbtn", "코치에게 묻기");
+const askBox = h("div", "askbox");
+askBtn.hidden = askBox.hidden = true;
+document.body.append(askBtn, askBox);
+let askSel = null, askSeq = 0;
+function hideAsk() { askBtn.hidden = true; askBox.hidden = true; }
+// 문서 안의 글자 지도: 공백을 뺀 글자마다 (텍스트 노드, 위치). 기록 상자와 묻기 창은 뺀다.
+function textMap(host) {
+  const pos = []; let str = "";
+  const walker = document.createTreeWalker(host, NodeFilter.SHOW_TEXT, {acceptNode: n =>
+    n.parentElement.closest(".qa-note, .askbox, .katex-mathml, script, style") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT});
+  for (let n; (n = walker.nextNode());) {
+    const t = n.nodeValue;
+    for (let i = 0; i < t.length; i++) if (!/\s/.test(t[i])) { str += t[i]; pos.push([n, i]); }
+  }
+  return {str, pos};
+}
+const squash = t => t.replace(/\s+/g, "");
+function docKeyOf(host) {
+  if (host.id === "lDoc") return host.dataset.doc;
+  if (host.dataset.doc) return host.dataset.doc;
+  if (host.dataset.tab === "problem" && S.p) return "problem:" + S.p.id;
+  return null;
+}
+function selectionInDoc() {
+  const sel = getSelection();
+  if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+  const text = sel.toString().trim();
+  if (squash(text).length < 2) return null;
+  const range = sel.getRangeAt(0);
+  const el = n => n.nodeType === 1 ? n : n.parentElement;
+  const host = el(range.startContainer).closest(".dpanel, #lDoc");
+  if (!host || host !== el(range.endContainer).closest(".dpanel, #lDoc") || el(range.startContainer).closest(".qa-note")) return null;
+  const doc = docKeyOf(host); if (!doc) return null;
+  const {str, pos} = textMap(host);
+  const start = pos.findIndex(([n, o]) => range.comparePoint(n, o) >= 0);
+  const block = el(range.startContainer).closest("p, li, td, .cbody, pre, h2, h3") || host;
+  return {text: text.slice(0, 1200), context: block.innerText.slice(0, 1500), doc, host,
+          prefix: start > 0 ? str.slice(Math.max(0, start - 30), start) : "", rect: range.getBoundingClientRect()};
+}
+document.addEventListener("mouseup", e => {
+  if (e.target.closest?.(".askbox, .askbtn")) return;
+  setTimeout(() => {
+    const s = selectionInDoc();
+    if (!s) { if (askBox.hidden) hideAsk(); return; }
+    askSel = s;
+    askBtn.style.left = `${Math.min(innerWidth - 130, s.rect.left + s.rect.width / 2 - 50)}px`;
+    askBtn.style.top = `${Math.max(8, s.rect.top - 36)}px`;
+    askBtn.hidden = false;
+  }, 0);
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") hideAsk(); });
+askBtn.addEventListener("mousedown", e => e.preventDefault());
+askBtn.onclick = () => {
+  const s = askSel; if (!s) return;
+  askBtn.hidden = true;
+  askBox.innerHTML = `<div class="who">고른 부분에 대해 묻기<button class="x" aria-label="닫기">×</button></div>
+    <blockquote>${esc(s.text.length > 160 ? s.text.slice(0, 160) + "…" : s.text)}</blockquote>
+    <div class="quick"><button data-q="이게 무슨 뜻인지 쉬운 말로 설명해 줘">쉽게 설명</button><button data-q="작은 예를 하나 들어 줘">예를 들어 줘</button><button data-q="왜 그런지 이유를 알려 줘">왜 그래?</button></div>
+    <form class="ask"><input placeholder="이 부분에서 궁금한 것" aria-label="질문"><button class="chip pri">묻기</button></form>`;
+  const r = s.rect, w = 380;
+  askBox.style.left = `${Math.max(8, Math.min(innerWidth - w - 8, r.left))}px`;
+  askBox.style.top = `${Math.min(innerHeight - 220, r.bottom + 8)}px`;
+  askBox.hidden = false;
+  askBox.querySelector("input").focus();
+  const send = q => {
+    // 묻는 순간 원문에 표시하고, 문단 아래 기록 상자에 답을 흘려 쓴다
+    const id = ++askSeq;
+    hideAsk(); getSelection().removeAllRanges();
+    const note = {id: "tmp" + id, quote: s.text, prefix: s.prefix, question: q, answer: ""};
+    const box = placeNote(s.host, note, true);
+    if (box) { box.querySelector(".qa").classList.add("thinking"); box.querySelector(".qa").textContent = "코치가 생각하는 중"; box.dataset.rid = id; }
+    API.ask_doc(id, s.text, s.context, s.doc, q, s.prefix, S.editor && !$("#solve").hidden ? S.editor.getValue() : "");
+  };
+  askBox.querySelector(".x").onclick = hideAsk;
+  askBox.querySelectorAll(".quick button").forEach(b => b.onclick = () => send(b.dataset.q));
+  askBox.querySelector("form").onsubmit = ev => { ev.preventDefault(); const v = ev.target.querySelector("input").value.trim(); send(v || "이 부분을 쉬운 말로 설명해 줘"); };
+};
+
+/* 기록: 원문 하이라이트 + 문단 아래 작은 상자 */
+function placeNote(host, note, fresh = false) {
+  const {str, pos} = textMap(host);
+  const q = squash(note.quote), pre = squash(note.prefix || "");
+  if (!q) return null;
+  let at = pre ? str.indexOf(pre + q) : -1;
+  at = at >= 0 ? at + pre.length : str.indexOf(q);
+  if (at < 0) return null;  // 문서가 바뀌어 원문을 찾지 못함
+  const seg = pos.slice(at, at + q.length);
+  // 텍스트 노드마다 고른 구간을 <mark>로 감싼다 (뒤에서부터 해야 위치가 안 밀린다)
+  const byNode = new Map();
+  for (const [n, o] of seg) { const r = byNode.get(n) || [o, o]; r[0] = Math.min(r[0], o); r[1] = Math.max(r[1], o); byNode.set(n, r); }
+  let last = null;
+  for (const [n, [a, b]] of [...byNode].reverse()) {
+    let mid = n;
+    if (a > 0) mid = n.splitText(a);
+    if (b - a + 1 < mid.nodeValue.length) mid.splitText(b - a + 1);
+    const m = document.createElement("mark");
+    m.className = "qa-mark"; m.dataset.note = note.id;
+    mid.parentNode.insertBefore(m, mid); m.append(mid);
+    last = last || m;
+  }
+  const box = h("div", "qa-note" + (fresh ? "" : " folded"));
+  box.dataset.note = note.id;
+  box.innerHTML = `<div class="qh"><span class="q">${esc(note.question)}</span><button class="qx" title="이 기록 지우기">지우기</button></div><div class="qa">${esc(note.answer)}</div>`;
+  const anchor = last;
+  const li = anchor.closest("li");
+  const cell = anchor.closest("td, th");
+  const blk = anchor.closest("p, pre, h2, h3, h4, figure, blockquote, .math[data-display]");
+  if (li && host.contains(li)) li.append(box);
+  else if (cell) cell.closest("table").after(box);
+  else if (blk && host.contains(blk)) blk.after(box);
+  else host.append(box);
+  return box;
+}
+async function applyNotes(host) {
+  const doc = docKeyOf(host); if (!doc) return;
+  $$(".qa-note", host).forEach(b => b.remove());
+  $$("mark.qa-mark", host).forEach(m => m.replaceWith(...m.childNodes));
+  host.normalize();
+  for (const n of await API.doc_notes(doc)) placeNote(host, n);
+}
+document.addEventListener("click", async e => {
+  const x = e.target.closest(".qa-note .qx");
+  if (x) {
+    const box = x.closest(".qa-note"), id = box.dataset.note, host = box.closest(".dpanel, #lDoc");
+    if (!String(id).startsWith("tmp")) await API.delete_note(id);
+    box.remove();
+    $$(`mark.qa-mark[data-note="${id}"]`, host).forEach(m => m.replaceWith(...m.childNodes));
+    host?.normalize();
+    return;
+  }
+  const qh = e.target.closest(".qa-note .qh");
+  if (qh) { qh.parentElement.classList.toggle("folded"); return; }
+  const mk = e.target.closest("mark.qa-mark");
+  if (mk) {
+    const box = $(`.qa-note[data-note="${mk.dataset.note}"]`, mk.closest(".dpanel, #lDoc"));
+    if (box) { box.classList.remove("folded"); box.scrollIntoView({block: "nearest", behavior: "smooth"}); box.classList.add("flash"); setTimeout(() => box.classList.remove("flash"), 900); }
+  }
+});
+handlers.doc_stream = d => {
+  const box = $(`.qa-note[data-rid="${d.id}"]`); if (!box) return;
+  const qa = box.querySelector(".qa");
+  if (qa.classList.contains("thinking")) { qa.classList.remove("thinking"); qa.textContent = ""; }
+  qa.textContent += d.text;
+};
+handlers.doc_answer = d => {
+  const box = $(`.qa-note[data-rid="${d.id}"]`); if (!box) return;
+  const qa = box.querySelector(".qa");
+  qa.classList.remove("thinking"); qa.textContent = d.message;
+  if (d.note) {  // 기록 번호로 바꿔 단다 (지우기·다시 열기에 쓴다)
+    const old = box.dataset.note;
+    box.dataset.note = d.note;
+    $$(`mark.qa-mark[data-note="${old}"]`).forEach(m => m.dataset.note = d.note);
+  }
+};
+
+
+/* ---------------- 전체 검색 (⌘K) ---------------- */
+const pal = $("#palette"), palIn = $("#palInput"), palRes = $("#palRes");
+let palItems = [], palSel = 0, palTimer = null, palSeq = 0;
+function openPalette() { pal.hidden = false; palIn.select(); palIn.focus(); if (!palIn.value) palRes.innerHTML = `<div class="palempty">문제, 개념, 개념 문서 본문, 문서에서 물은 질문과 답, 오답 기록을 한 번에 찾는다. 낱말을 띄어 쓰면 모두 들어 있는 것만 찾는다.</div>`; }
+function closePalette() { pal.hidden = true; }
+$$("[data-search]").forEach(b => b.onclick = openPalette);
+pal.addEventListener("mousedown", e => { if (e.target === pal) closePalette(); });
+document.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); pal.hidden ? openPalette() : closePalette(); }
+}, true);
+const hl = (text, terms) => {
+  let out = esc(text);
+  for (const t of terms) if (t) out = out.replace(new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), m => `<b class="hl">${m}</b>`);
+  return out;
+};
+palIn.addEventListener("input", () => { clearTimeout(palTimer); palTimer = setTimeout(runSearch, 120); });
+async function runSearch() {
+  const q = palIn.value.trim(), seq = ++palSeq;
+  if (!q) { palRes.innerHTML = ""; palItems = []; return; }
+  const r = await API.search(q);
+  if (seq !== palSeq) return;
+  const terms = q.split(/\s+/);
+  palItems = []; let html = "";
+  const group = (name, rows, render) => {
+    if (!rows?.length) return;
+    html += `<div class="palgrp">${name}</div>`;
+    for (const row of rows) { html += `<div class="palitem" role="option" data-i="${palItems.length}">${render(row)}</div>`; palItems.push(row); }
+  };
+  group("문제", r.problems?.map(x => ({...x, t: "problem"})), x => `<span class="tt">${hl(x.title, terms)}</span><span class="rt">Lv${x.level} · ${STATUS[x.status]}</span><span class="sn">${hl(x.sub || "", terms)}</span>`);
+  group("개념", r.concepts?.map(x => ({...x, t: "concept"})), x => `<span class="tt">${hl(x.title, terms)}</span><span class="rt">개념 문서</span><span class="sn">${esc(x.sub)}</span>`);
+  group("문서 내용", r.content?.map(x => ({...x, t: "content"})), x => `<span class="tt">${esc(x.title)}</span><span class="rt">${x.kind === "doc" ? "개념" : "문제문"} · ${x.count}곳</span><span class="sn">${hl(x.snippet, terms)}</span>`);
+  group("내 질문", r.notes?.map(x => ({...x, t: "note"})), x => `<span class="tt">${hl(x.question, terms)}</span><span class="rt">${esc(x.title)}</span><span class="sn">${hl(x.snippet, terms)}</span>`);
+  group("오답 기록", r.mistakes?.map(x => ({...x, t: "mistake"})), x => `<span class="tt">${hl(x.name, terms)}</span><span class="rt">${esc(x.title)} · ${esc(x.category)}</span>`);
+  palRes.innerHTML = html || `<div class="palempty">“${esc(q)}”이(가) 들어 있는 곳이 없다.</div>`;
+  palSel = 0; markSel();
+}
+function markSel() { $$(".palitem", palRes).forEach(el => el.setAttribute("aria-selected", +el.dataset.i === palSel)); $(`.palitem[data-i="${palSel}"]`, palRes)?.scrollIntoView({block: "nearest"}); }
+palIn.addEventListener("keydown", e => {
+  if (e.key === "Escape") { closePalette(); return; }
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); if (palItems.length) { palSel = (palSel + (e.key === "ArrowDown" ? 1 : -1) + palItems.length) % palItems.length; markSel(); } }
+  if (e.key === "Enter" && palItems[palSel]) { e.preventDefault(); goResult(palItems[palSel]); }
+});
+palRes.addEventListener("click", e => { const it = e.target.closest(".palitem"); if (it) goResult(palItems[+it.dataset.i]); });
+palRes.addEventListener("mousemove", e => { const it = e.target.closest(".palitem"); if (it && +it.dataset.i !== palSel) { palSel = +it.dataset.i; markSel(); } });
+
+// 결과로 가기: 풀기 화면이면 개념은 문서 창 탭으로, 아니면 학습 화면으로 연다
+const inSolve = () => !$("#solve").hidden;
+async function showDoc(name) {
+  if (inSolve()) { await openDoc(name); return $(`#dbody > .dpanel[data-tab="doc:${CSS.escape(name)}"]`); }
+  await openConcept(name); return $("#lDoc");
+}
+async function goResult(x) {
+  closePalette();
+  const term = palIn.value.trim().split(/\s+/)[0];
+  if (x.t === "problem" || x.t === "mistake") return openProblem(x.id || x.pid);
+  if (x.t === "concept") return showDoc(x.name);
+  if (x.t === "content") {
+    if (x.kind === "pdoc") { await openProblem(x.key); return flashTerm($('#dbody > .dpanel[data-tab="problem"]'), term); }
+    const host = await showDoc(x.key); setTimeout(() => flashTerm(host, term), 300); return;
+  }
+  if (x.t === "note") {
+    let host;
+    if (x.doc.startsWith("problem:")) { await openProblem(x.doc.split(":")[1]); host = $('#dbody > .dpanel[data-tab="problem"]'); }
+    else host = await showDoc(x.doc);
+    setTimeout(() => { const b = $(`.qa-note[data-note="${x.id}"]`, host); if (b) { b.classList.remove("folded"); b.scrollIntoView({block: "center"}); b.classList.add("flash"); setTimeout(() => b.classList.remove("flash"), 1200); } }, 500);
+  }
+}
+// 문서 안에서 검색어가 처음 나오는 곳을 찾아 펼치고 잠깐 표시한다
+function flashTerm(host, term) {
+  if (!host || !term) return;
+  const {str, pos} = textMap(host);
+  const at = str.toLowerCase().indexOf(squash(term).toLowerCase());
+  if (at < 0) return;
+  const [n, o] = pos[at];
+  let d = n.parentElement.closest("details");
+  while (d) { d.open = true; d = d.parentElement.closest("details"); }
+  const len = Math.min(squash(term).length, n.nodeValue.length - o);
+  const mid = n.splitText(o); mid.splitText(len);
+  const m = document.createElement("mark"); m.className = "search-hit"; mid.parentNode.insertBefore(m, mid); m.append(mid);
+  m.scrollIntoView({block: "center"});
+  setTimeout(() => { m.replaceWith(...m.childNodes); host.normalize(); }, 2500);
+}
 
 /* ---------------- 시작 ---------------- */
 function start() {

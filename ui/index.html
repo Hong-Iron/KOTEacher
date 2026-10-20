@@ -3,39 +3,44 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>코테가이드</title>
+<title>KOTEacher</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="doc.css">
 </head>
 <body>
 
-<!-- 홈: 문제 목록 -->
+<!-- 홈: 문제 목록과 개념 목록 -->
 <section class="view" id="home">
   <header class="top">
-    <span class="brand">코테가이드</span>
+    <span class="brand"><img src="icon.svg" alt="" class="logo">KOTEacher</span>
     <span class="sp"></span>
     <span class="aistat" id="aiStat"><span class="dot"></span>코치 확인 중</span>
+    <button class="btn searchbtn" data-search>검색 <kbd>⌘K</kbd></button>
     <button class="btn" id="openBook">오답 노트 <span class="cnt coach" id="bookCnt">0</span></button>
   </header>
   <div class="home">
     <div class="home-inner">
       <div class="homebar">
-        <h1>문제</h1>
+        <div class="seg plain big" id="homeSeg" role="tablist" aria-label="목록">
+          <button data-list="problems" aria-pressed="true">문제 90</button><button data-list="concepts" aria-pressed="false">개념 42</button>
+        </div>
         <span class="sp"></span>
         <div class="seg plain" id="lvSeg" role="group" aria-label="레벨">
           <button data-lv="0" aria-pressed="true">전체</button><button data-lv="1" aria-pressed="false">Lv1</button><button data-lv="2" aria-pressed="false">Lv2</button><button data-lv="3" aria-pressed="false">Lv3</button><button data-lv="4" aria-pressed="false">Lv4</button><button data-lv="5" aria-pressed="false">Lv5</button>
         </div>
-        <input id="search" type="search" placeholder="문제나 개념 이름" aria-label="문제 찾기">
+        <input id="search" type="search" placeholder="문제나 개념 이름" aria-label="찾기">
       </div>
       <div class="plist" id="plist"></div>
+      <div class="plist" id="clist" hidden></div>
     </div>
   </div>
 </section>
 
-<!-- 풀기 -->
+<!-- 풀기: 왼쪽 문서 창(탭) | 오른쪽 코드 창 -->
 <section class="view" id="solve" hidden>
   <header class="top">
-    <button class="btn" id="back" title="문제 목록">← 목록</button>
-    <button class="btn" id="toggleProb" title="문제 칸 열고 닫기 (⌘B)">문제 칸</button>
+    <button class="btn" id="back" title="목록">← 목록</button>
     <div class="crumb"><b id="pTitle"></b><span class="tag" id="pLevel"></span><span class="tag" id="pSource"></span></div>
     <span class="sp"></span>
     <span class="meta" id="clock">0:00</span>
@@ -45,20 +50,33 @@
       <button data-mode="normal" aria-pressed="true" title="손을 멈추면 검사하고, 테스트로 확인된 문제만 먼저 말한다">보통</button>
       <button data-mode="active" aria-pressed="false" title="AI가 추정한 문제와 느릴 것 같은 방법도 먼저 짚는다">적극</button>
     </div>
+    <div class="seg plain" role="group" aria-label="창">
+      <button id="foldLeft" aria-pressed="true" title="문서 창 열고 닫기 (⌘B)">문서</button><button id="foldRight" aria-pressed="true" title="코드 창 열고 닫기 (⌘⇧B)">코드</button>
+    </div>
+    <button class="btn searchbtn" data-search title="전체 검색 (⌘K)">검색</button>
     <button class="run" id="run">실행 ⌘↵</button>
   </header>
-  <div class="main" id="main">
-    <aside class="prob" aria-label="문제">
-      <h2>문제</h2>
-      <div class="st" id="pStatement"></div>
-      <p class="note">개념: <span id="pConcepts"></span> · <a id="pUrl" href="#">원문 보기</a></p>
-      <h2>입출력 예</h2>
-      <table class="io" id="pExamples"></table>
-      <h2>힌트 사다리</h2>
-      <ol class="ladder" id="ladder"></ol>
-      <div class="warn" id="warn" hidden><span></span><button id="warnYes">그래도 열기</button><button id="warnNo">조금 더 해 볼게요</button></div>
-    </aside>
-    <section class="work">
+  <div class="split" id="split">
+    <section class="pane docpane" id="leftPane" aria-label="문서 창">
+      <div class="dtabs" id="dtabs" role="tablist"></div>
+      <div class="dbody" id="dbody">
+        <div class="dpanel prob" data-tab="problem">
+          <h2>문제</h2>
+          <div class="st" id="pStatement"></div>
+          <p class="note">원문: <a id="pUrl" href="#" target="_blank" rel="noopener">프로그래머스</a></p>
+          <h2>개념</h2>
+          <div class="chips" id="pConcepts"></div>
+          <h2>입출력 예</h2>
+          <table class="io" id="pExamples"></table>
+          <h2>힌트 사다리</h2>
+          <ol class="ladder" id="ladder"></ol>
+          <div class="warn" id="warn" hidden><span></span><button id="warnYes">그래도 열기</button><button id="warnNo">조금 더 해 볼게요</button></div>
+        </div>
+      </div>
+    </section>
+    <button class="rail" id="railLeft" hidden title="문서 창 열기">문서</button>
+    <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-label="창 너비" tabindex="0"></div>
+    <section class="pane work" id="rightPane" aria-label="코드 창">
       <div class="edwrap" id="edwrap"><div id="editor"></div></div>
       <div class="dock" id="dock">
         <div class="tabs" role="tablist">
@@ -74,6 +92,25 @@
         <div class="pbody" data-panel="out" hidden><pre class="out" id="out">print 출력이 여기에 나온다.</pre></div>
       </div>
     </section>
+    <button class="rail" id="railRight" hidden title="코드 창 열기">코드</button>
+  </div>
+</section>
+
+<!-- 학습: 개념 문서 읽기 -->
+<section class="view" id="learn" hidden>
+  <header class="top">
+    <button class="btn" id="learnBack">← 목록</button>
+    <div class="crumb"><b id="lTitle"></b><span class="tag" id="lAlias"></span></div>
+    <span class="sp"></span>
+    <button class="btn searchbtn" data-search>검색 <kbd>⌘K</kbd></button>
+  </header>
+  <div class="learn">
+    <article class="ldoc doc" id="lDoc"></article>
+    <aside class="lside">
+      <h2>이 개념으로 풀 문제</h2>
+      <div id="lProblems"></div>
+      <p class="note">문제를 열면 이 개념 문서가 왼쪽 문서 창에 탭으로 함께 열린다.</p>
+    </aside>
   </div>
 </section>
 
@@ -88,6 +125,17 @@
   <div class="mbook"><div class="inner" id="bookList"></div></div>
 </section>
 
+<!-- 전체 검색 (⌘K) -->
+<div class="palette" id="palette" hidden>
+  <div class="pal" role="dialog" aria-label="전체 검색">
+    <input id="palInput" type="search" placeholder="문제, 개념, 문서 내용, 내 질문, 오답 기록 찾기" aria-label="검색어" autocomplete="off">
+    <div class="palres" id="palRes" role="listbox"></div>
+    <div class="palfoot"><span>↑↓ 고르기</span><span>↵ 열기</span><span>esc 닫기</span><span class="sp"></span><span>풀이 단계는 검색하지 않는다</span></div>
+  </div>
+</div>
+
+<script src="vendor/katex/katex.min.js"></script>
+<script src="vendor/mermaid/mermaid.min.js"></script>
 <script src="vendor/monaco/vs/loader.js"></script>
 <script src="app.js"></script>
 </body>

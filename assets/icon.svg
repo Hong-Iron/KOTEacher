@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3563d8"/>
+      <stop offset="1" stop-color="#1b2f74"/>
+    </linearGradient>
+    <linearGradient id="bub" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e9eefb"/>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#0b1640" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <!-- macOS 아이콘 틀: 1024 캔버스 안 824 사각형 -->
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#bg)"/>
+  <!-- 코치의 말풍선 -->
+  <g filter="url(#sh)">
+    <path d="M300 250 H724 Q800 250 800 326 V614 Q800 690 724 690 H420 L318 784 Q304 796 304 778 V690 H300 Q224 690 224 614 V326 Q224 250 300 250 Z" fill="url(#bub)"/>
+  </g>
+  <!-- 코드 세 줄: 가운데 줄을 코치가 짚었다 -->
+  <rect x="300" y="344" width="300" height="46" rx="23" fill="#9fb2e6"/>
+  <rect x="352" y="447" width="372" height="46" rx="23" fill="#f0a93a"/>
+  <circle cx="306" cy="470" r="19" fill="#f0a93a"/>
+  <rect x="352" y="550" width="236" height="46" rx="23" fill="#9fb2e6"/>
+</svg>

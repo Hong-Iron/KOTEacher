@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from kotte import packs  # noqa: E402
+from koteacher import packs  # noqa: E402
 
 t = time.time()
 res = packs.build_all()

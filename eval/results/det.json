@@ -10,8 +10,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 0.9974169952329248,
-  "total_ms": 35.537749994546175
+  "repair_ms": 8.258416004537139,
+  "total_ms": 45.75095800100826
  },
  {
   "pid": "pg12937",
@@ -24,8 +24,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 1.3133329994161613,
-  "total_ms": 34.335208001721185
+  "repair_ms": 12.386082999000791,
+  "total_ms": 51.175500004319474
  },
  {
   "pid": "pg12937",
@@ -38,8 +38,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 1.019125003949739,
-  "total_ms": 32.07329200085951
+  "repair_ms": 12.387292001221795,
+  "total_ms": 47.17695800354704
  },
  {
   "pid": "pg17687",
@@ -52,8 +52,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 419.5748329948401,
-  "total_ms": 454.4387080022716
+  "repair_ms": 435.9403329945053,
+  "total_ms": 473.63887499523116
  },
  {
   "pid": "pg17687",
@@ -66,8 +66,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 424.3625420058379,
-  "total_ms": 457.9602910016547
+  "repair_ms": 436.8311250000261,
+  "total_ms": 476.208250001946
  },
  {
   "pid": "pg17687",
@@ -80,8 +80,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 628.1342919974122,
-  "total_ms": 663.0513749987585
+  "repair_ms": 645.3288749980857,
+  "total_ms": 684.536124994338
  },
  {
   "pid": "pg92335",
@@ -94,8 +94,8 @@
   "fact": "timeout",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 1663.0364170050598,
-  "total_ms": 4215.167666996422
+  "repair_ms": 1693.390583001019,
+  "total_ms": 4253.1655419952585
  },
  {
   "pid": "pg92335",
@@ -108,8 +108,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 417.9807920008898,
-  "total_ms": 455.70045900240075
+  "repair_ms": 427.78433299827157,
+  "total_ms": 463.7326660013059
  },
  {
   "pid": "pg92335",
@@ -122,8 +122,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 213.22150000196416,
-  "total_ms": 247.18720799864968
+  "repair_ms": 229.0290000019013,
+  "total_ms": 266.05349999590544
  },
  {
   "pid": "pg118666",
@@ -136,8 +136,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 6.659667000349145,
-  "total_ms": 45.53245799615979
+  "repair_ms": 12.56841699796496,
+  "total_ms": 55.07987499731826
  },
  {
   "pid": "pg118666",
@@ -150,12 +150,12 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 6.92545799392974,
-  "total_ms": 44.62241600413108
+  "repair_ms": 17.174082997371443,
+  "total_ms": 57.878833002178
  },
  {
   "pid": "pg118666",
-  "tier": "rule",
+  "tier": "llm",
   "line_ok": true,
   "line": 12,
   "bug_lines": [
@@ -164,8 +164,8 @@
   "fact": "error",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 6.80350000038743,
-  "total_ms": 44.722999999066815
+  "repair_ms": 7.135375002690125,
+  "total_ms": 17221.41741700034
  },
  {
   "pid": "pg17677",
@@ -178,8 +178,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 7.089458005793858,
-  "total_ms": 42.965542001184076
+  "repair_ms": 20.48054199985927,
+  "total_ms": 104.4880839981488
  },
  {
   "pid": "pg17677",
@@ -192,8 +192,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 7.245249995321501,
-  "total_ms": 42.28395799873397
+  "repair_ms": 22.6518329945975,
+  "total_ms": 63.10012500034645
  },
  {
   "pid": "pg17677",
@@ -206,8 +206,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 6.19012499373639,
-  "total_ms": 41.402208000363316
+  "repair_ms": 11.613582995778415,
+  "total_ms": 52.64987499685958
  },
  {
   "pid": "pg17684",
@@ -220,8 +220,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 9.607666004740167,
-  "total_ms": 46.11241699603852
+  "repair_ms": 14.375165999808814,
+  "total_ms": 56.787417001032736
  },
  {
   "pid": "pg17684",
@@ -234,8 +234,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 218.58345899818232,
-  "total_ms": 255.87233300029766
+  "repair_ms": 225.13708300539292,
+  "total_ms": 268.2814159998088
  },
  {
   "pid": "pg17684",
@@ -248,8 +248,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 10.11599999765167,
-  "total_ms": 46.56541599979391
+  "repair_ms": 21.82945900131017,
+  "total_ms": 61.2617080041673
  },
  {
   "pid": "pg258712",
@@ -262,8 +262,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 45.941208001750056,
-  "total_ms": 87.14862500346499
+  "repair_ms": 62.3794170023757,
+  "total_ms": 104.61233300156891
  },
  {
   "pid": "pg258712",
@@ -276,8 +276,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 42.88533300132258,
-  "total_ms": 82.38520799932303
+  "repair_ms": 60.6540419976227,
+  "total_ms": 103.18125000048894
  },
  {
   "pid": "pg258712",
@@ -290,12 +290,12 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 43.3235419986886,
-  "total_ms": 83.19570800085785
+  "repair_ms": 62.03950000053737,
+  "total_ms": 110.51249999582069
  },
  {
   "pid": "pg42576",
-  "tier": "rule",
+  "tier": "llm",
   "line_ok": true,
   "line": 7,
   "bug_lines": [
@@ -304,8 +304,8 @@
   "fact": "error",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 2.4257920013042167,
-  "total_ms": 41.87233400443802
+  "repair_ms": 3.6099999997531995,
+  "total_ms": 13209.977791993879
  },
  {
   "pid": "pg42576",
@@ -318,8 +318,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 3.7895839996053837,
-  "total_ms": 41.526332999637816
+  "repair_ms": 9.74391600175295,
+  "total_ms": 91.91254199686227
  },
  {
   "pid": "pg42576",
@@ -332,22 +332,22 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 4.558125001494773,
-  "total_ms": 41.815457996563055
+  "repair_ms": 23.46370799932629,
+  "total_ms": 70.88845899852458
  },
  {
   "pid": "pg42888",
-  "tier": "rule",
-  "line_ok": true,
-  "line": 15,
+  "tier": "llm",
+  "line_ok": false,
+  "line": 8,
   "bug_lines": [
    15
   ],
   "fact": "error",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 8.289374993182719,
-  "total_ms": 62.802458996884525
+  "repair_ms": 2.807958000630606,
+  "total_ms": 15148.615999998583
  },
  {
   "pid": "pg42888",
@@ -360,8 +360,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 3.9400829991791397,
-  "total_ms": 41.68395799933933
+  "repair_ms": 8.624916998087429,
+  "total_ms": 94.77616700314684
  },
  {
   "pid": "pg42888",
@@ -374,12 +374,12 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 3.5097919972031377,
-  "total_ms": 40.89770800055703
+  "repair_ms": 12.889583995274734,
+  "total_ms": 58.06674999621464
  },
  {
   "pid": "pg92334",
-  "tier": "rule",
+  "tier": "llm",
   "line_ok": true,
   "line": 7,
   "bug_lines": [
@@ -388,8 +388,8 @@
   "fact": "error",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 2.9777079980704,
-  "total_ms": 44.78070799814304
+  "repair_ms": 4.629000002751127,
+  "total_ms": 14985.588583003846
  },
  {
   "pid": "pg92334",
@@ -402,12 +402,12 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 3.4174999964307062,
-  "total_ms": 43.79804100608453
+  "repair_ms": 17.834708000009414,
+  "total_ms": 404.75916599825723
  },
  {
   "pid": "pg92334",
-  "tier": "rule",
+  "tier": "llm",
   "line_ok": true,
   "line": 13,
   "bug_lines": [
@@ -416,8 +416,8 @@
   "fact": "error",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 3.1387080016429536,
-  "total_ms": 43.70983300032094
+  "repair_ms": 5.2007499980391,
+  "total_ms": 13669.304333001492
  },
  {
   "pid": "pg42748",
@@ -430,8 +430,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.6676249981392175,
-  "total_ms": 67.48429099388886
+  "repair_ms": 10.419999998703133,
+  "total_ms": 123.88304200430866
  },
  {
   "pid": "pg42748",
@@ -444,8 +444,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.7218329996685497,
-  "total_ms": 67.03391700284556
+  "repair_ms": 8.645834001072217,
+  "total_ms": 83.68537500064122
  },
  {
   "pid": "pg42748",
@@ -458,8 +458,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.5772919980227016,
-  "total_ms": 66.62266600324074
+  "repair_ms": 8.521875002770685,
+  "total_ms": 85.86412500153529
  },
  {
   "pid": "pg42889",
@@ -472,8 +472,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 10.357958999520633,
-  "total_ms": 51.29716700321296
+  "repair_ms": 28.046250001352746,
+  "total_ms": 75.62874999712221
  },
  {
   "pid": "pg42889",
@@ -486,8 +486,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 9.436874999664724,
-  "total_ms": 50.29225000180304
+  "repair_ms": 22.065624994866084,
+  "total_ms": 67.88495900400449
  },
  {
   "pid": "pg42889",
@@ -500,8 +500,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 9.381916002894286,
-  "total_ms": 49.90745899704052
+  "repair_ms": 21.732124994741753,
+  "total_ms": 67.27329199929954
  },
  {
   "pid": "pg42891",
@@ -514,8 +514,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 6.706459003908094,
-  "total_ms": 43.35245800029952
+  "repair_ms": 17.74045799538726,
+  "total_ms": 60.04275000304915
  },
  {
   "pid": "pg42891",
@@ -528,8 +528,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 6.716457995935343,
-  "total_ms": 41.82737500377698
+  "repair_ms": 18.829832995834295,
+  "total_ms": 56.85841599915875
  },
  {
   "pid": "pg42891",
@@ -542,8 +542,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 5.548583001655061,
-  "total_ms": 41.00879200268537
+  "repair_ms": 11.399292001442518,
+  "total_ms": 48.31150000245543
  },
  {
   "pid": "pg17682",
@@ -556,8 +556,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 6.154458998935297,
-  "total_ms": 41.570499997760635
+  "repair_ms": 23.529416001110803,
+  "total_ms": 66.51474999671336
  },
  {
   "pid": "pg17682",
@@ -570,8 +570,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 4.39587499568006,
-  "total_ms": 38.63433300284669
+  "repair_ms": 11.32816599420039,
+  "total_ms": 47.81650000222726
  },
  {
   "pid": "pg17682",
@@ -584,8 +584,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 4.9482079994049855,
-  "total_ms": 39.210124996316154
+  "repair_ms": 10.165666004468221,
+  "total_ms": 52.39616600010777
  },
  {
   "pid": "pg468370",
@@ -598,8 +598,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 11.762917005398776,
-  "total_ms": 47.97012499329867
+  "repair_ms": 18.517666998377535,
+  "total_ms": 123.65212499571498
  },
  {
   "pid": "pg468370",
@@ -612,8 +612,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 11.414915999921504,
-  "total_ms": 45.653542001673486
+  "repair_ms": 18.323374999454245,
+  "total_ms": 60.25099999533268
  },
  {
   "pid": "pg468370",
@@ -626,8 +626,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 11.224125002627261,
-  "total_ms": 46.503834004397504
+  "repair_ms": 17.876207995868754,
+  "total_ms": 57.72354200598784
  },
  {
   "pid": "pg64065",
@@ -640,8 +640,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.429625004879199,
-  "total_ms": 38.322833002894185
+  "repair_ms": 7.474957994418219,
+  "total_ms": 49.03708300116705
  },
  {
   "pid": "pg64065",
@@ -654,8 +654,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.4919580027926713,
-  "total_ms": 37.37995799747296
+  "repair_ms": 8.142458995280322,
+  "total_ms": 50.553416993352585
  },
  {
   "pid": "pg64065",
@@ -668,8 +668,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.5005419956869446,
-  "total_ms": 38.17866600002162
+  "repair_ms": 8.404250002058689,
+  "total_ms": 47.26649999793153
  },
  {
   "pid": "pg72410",
@@ -682,8 +682,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.7785419952124357,
-  "total_ms": 37.717584003985394
+  "repair_ms": 8.837583001877647,
+  "total_ms": 48.23762500018347
  },
  {
   "pid": "pg72410",
@@ -696,8 +696,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.536291998694651,
-  "total_ms": 36.449749997700565
+  "repair_ms": 10.098916995048057,
+  "total_ms": 45.88754099677317
  },
  {
   "pid": "pg72410",
@@ -710,8 +710,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.5814999971771613,
-  "total_ms": 36.488916994130705
+  "repair_ms": 9.32279200060293,
+  "total_ms": 45.760665998386685
  },
  {
   "pid": "pg150370",
@@ -724,22 +724,22 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 6.077707999793347,
-  "total_ms": 44.72258299938403
+  "repair_ms": 12.459917001251597,
+  "total_ms": 67.16325000161305
  },
  {
   "pid": "pg150370",
-  "tier": "rule",
-  "line_ok": true,
-  "line": 12,
+  "tier": "llm",
+  "line_ok": false,
+  "line": 11,
   "bug_lines": [
    12
   ],
   "fact": "error",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 6.109958005254157,
-  "total_ms": 43.09658400597982
+  "repair_ms": 8.126959000946954,
+  "total_ms": 15971.451875004277
  },
  {
   "pid": "pg150370",
@@ -752,8 +752,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 6.388333000359125,
-  "total_ms": 43.35737499786774
+  "repair_ms": 12.579249996633735,
+  "total_ms": 87.00074999796925
  },
  {
   "pid": "pg17683",
@@ -766,8 +766,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 5.853041999216657,
-  "total_ms": 41.666249999252614
+  "repair_ms": 29.369875002885237,
+  "total_ms": 79.18387499375967
  },
  {
   "pid": "pg17683",
@@ -780,8 +780,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 5.975625004793983,
-  "total_ms": 41.70062499906635
+  "repair_ms": 10.96483300352702,
+  "total_ms": 53.439958006492816
  },
  {
   "pid": "pg17683",
@@ -794,8 +794,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 6.364125001709908,
-  "total_ms": 41.450083001109306
+  "repair_ms": 16.214999996009283,
+  "total_ms": 65.15249999938533
  },
  {
   "pid": "pg340213",
@@ -808,8 +808,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 6.9934170023771,
-  "total_ms": 43.96949999500066
+  "repair_ms": 13.406042002316099,
+  "total_ms": 57.55670800135704
  },
  {
   "pid": "pg340213",
@@ -822,8 +822,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 6.847249998827465,
-  "total_ms": 41.985749994637445
+  "repair_ms": 12.010207996354438,
+  "total_ms": 54.95299999893177
  },
  {
   "pid": "pg340213",
@@ -836,8 +836,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 6.811416998971254,
-  "total_ms": 42.754875001264736
+  "repair_ms": 12.23733300139429,
+  "total_ms": 60.432833997765556
  },
  {
   "pid": "pg92341",
@@ -850,8 +850,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 11.25033300195355,
-  "total_ms": 49.51187499682419
+  "repair_ms": 18.157292004616465,
+  "total_ms": 59.85395899915602
  },
  {
   "pid": "pg92341",
@@ -864,8 +864,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 11.292666997178458,
-  "total_ms": 49.143791999085806
+  "repair_ms": 18.804040999384597,
+  "total_ms": 61.17345899838256
  },
  {
   "pid": "pg92341",
@@ -878,8 +878,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 10.913334001088515,
-  "total_ms": 48.931124998489395
+  "repair_ms": 18.12387500103796,
+  "total_ms": 59.7190420012339
  },
  {
   "pid": "pg17678",
@@ -892,8 +892,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 11.34033299604198,
-  "total_ms": 48.09291600395227
+  "repair_ms": 19.69795899640303,
+  "total_ms": 61.025291004625615
  },
  {
   "pid": "pg17678",
@@ -906,8 +906,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 11.356833994796034,
-  "total_ms": 47.597625001799315
+  "repair_ms": 20.998291001887992,
+  "total_ms": 60.903082994627766
  },
  {
   "pid": "pg17678",
@@ -920,8 +920,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 11.781667002651375,
-  "total_ms": 47.32012500608107
+  "repair_ms": 28.083999997761566,
+  "total_ms": 67.98837499809451
  },
  {
   "pid": "pg17679",
@@ -934,8 +934,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 235.8356670010835,
-  "total_ms": 272.796000004746
+  "repair_ms": 258.2917079998879,
+  "total_ms": 299.4428749952931
  },
  {
   "pid": "pg17679",
@@ -948,8 +948,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 254.17983299848856,
-  "total_ms": 290.6850840008701
+  "repair_ms": 273.58845900016604,
+  "total_ms": 316.5982080026879
  },
  {
   "pid": "pg17679",
@@ -962,8 +962,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 43.699916001060046,
-  "total_ms": 80.13745799689787
+  "repair_ms": 52.74079099763185,
+  "total_ms": 91.7388750021928
  },
  {
   "pid": "pg250137",
@@ -976,8 +976,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 9.022124999319203,
-  "total_ms": 47.87762500200188
+  "repair_ms": 21.075166994705796,
+  "total_ms": 61.56708300113678
  },
  {
   "pid": "pg250137",
@@ -990,8 +990,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 7.733874997938983,
-  "total_ms": 45.750084005703684
+  "repair_ms": 19.55308300239267,
+  "total_ms": 59.72991599992383
  },
  {
   "pid": "pg250137",
@@ -1004,8 +1004,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 7.232417003251612,
-  "total_ms": 46.51670799648855
+  "repair_ms": 14.380332999280654,
+  "total_ms": 68.10262500221143
  },
  {
   "pid": "pg42894",
@@ -1018,8 +1018,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 127.60629200056428,
-  "total_ms": 172.86679099925095
+  "repair_ms": 159.58570799557492,
+  "total_ms": 207.76745800685603
  },
  {
   "pid": "pg42894",
@@ -1032,8 +1032,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 1371.7192909971345,
-  "total_ms": 1416.587667001295
+  "repair_ms": 1421.6736250018585,
+  "total_ms": 1470.781290998275
  },
  {
   "pid": "pg42894",
@@ -1046,8 +1046,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 327.6393749983981,
-  "total_ms": 372.5912080044509
+  "repair_ms": 354.8794999951497,
+  "total_ms": 402.86245799507014
  },
  {
   "pid": "pg60061",
@@ -1060,8 +1060,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 20.193500000459608,
-  "total_ms": 60.8660419966327
+  "repair_ms": 27.5164999984554,
+  "total_ms": 74.22187499469146
  },
  {
   "pid": "pg60061",
@@ -1074,8 +1074,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 19.86616700014565,
-  "total_ms": 60.488625000289176
+  "repair_ms": 28.21054200467188,
+  "total_ms": 78.4611249982845
  },
  {
   "pid": "pg60061",
@@ -1088,8 +1088,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 20.543208003800828,
-  "total_ms": 61.59641600243049
+  "repair_ms": 28.091207997931633,
+  "total_ms": 76.71195799775887
  },
  {
   "pid": "pg67256",
@@ -1102,8 +1102,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 28.260665996640455,
-  "total_ms": 65.53783299750648
+  "repair_ms": 49.21166699932655,
+  "total_ms": 90.47737500077346
  },
  {
   "pid": "pg67256",
@@ -1116,8 +1116,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 43.08633299660869,
-  "total_ms": 79.42329199431697
+  "repair_ms": 53.84374999994179,
+  "total_ms": 94.89362499880372
  },
  {
   "pid": "pg67256",
@@ -1130,8 +1130,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 42.49158300081035,
-  "total_ms": 79.6344579939614
+  "repair_ms": 53.53774999821326,
+  "total_ms": 94.68366600049194
  },
  {
   "pid": "pg81302",
@@ -1144,8 +1144,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 32.73037500184728,
-  "total_ms": 80.43224999710219
+  "repair_ms": 43.1490830014809,
+  "total_ms": 93.30074999888893
  },
  {
   "pid": "pg81302",
@@ -1158,8 +1158,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 33.16158300003735,
-  "total_ms": 80.71816599840531
+  "repair_ms": 42.61387499718694,
+  "total_ms": 95.13637499912875
  },
  {
   "pid": "pg81302",
@@ -1172,8 +1172,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 38.882041997567285,
-  "total_ms": 86.19133299362147
+  "repair_ms": 57.59391700121341,
+  "total_ms": 107.2784580028383
  },
  {
   "pid": "pg12906",
@@ -1186,8 +1186,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 3.4377920019323938,
-  "total_ms": 42.04425000352785
+  "repair_ms": 20.34099999582395,
+  "total_ms": 63.79183299577562
  },
  {
   "pid": "pg12906",
@@ -1200,8 +1200,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.4374170025112107,
-  "total_ms": 40.25383299449459
+  "repair_ms": 8.81804100208683,
+  "total_ms": 52.11579200113192
  },
  {
   "pid": "pg12906",
@@ -1214,8 +1214,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.434665999317076,
-  "total_ms": 39.68433400586946
+  "repair_ms": 7.827375004126225,
+  "total_ms": 49.34554200008279
  },
  {
   "pid": "pg64061",
@@ -1228,8 +1228,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 8.000458998139948,
-  "total_ms": 48.34237499744631
+  "repair_ms": 20.050583996635396,
+  "total_ms": 86.47212499636225
  },
  {
   "pid": "pg64061",
@@ -1242,8 +1242,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 8.753709000302479,
-  "total_ms": 48.81475000001956
+  "repair_ms": 25.29741699981969,
+  "total_ms": 70.91462500102352
  },
  {
   "pid": "pg64061",
@@ -1256,8 +1256,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 6.8258329993113875,
-  "total_ms": 45.997665998584125
+  "repair_ms": 18.30566699936753,
+  "total_ms": 63.13991700153565
  },
  {
   "pid": "pg118670",
@@ -1270,8 +1270,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 12.01954200223554,
-  "total_ms": 56.40758400113555
+  "repair_ms": 24.313082998560276,
+  "total_ms": 70.11591699847486
  },
  {
   "pid": "pg118670",
@@ -1284,8 +1284,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 13.440458998957183,
-  "total_ms": 56.86941699968884
+  "repair_ms": 30.935208000300918,
+  "total_ms": 76.82445800310234
  },
  {
   "pid": "pg118670",
@@ -1298,8 +1298,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 11.991749997832812,
-  "total_ms": 56.45904199627694
+  "repair_ms": 25.376916004461236,
+  "total_ms": 70.84649999887915
  },
  {
   "pid": "pg17680",
@@ -1312,8 +1312,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 3.509624999423977,
-  "total_ms": 39.63829099666327
+  "repair_ms": 9.408041994902305,
+  "total_ms": 49.1091250005411
  },
  {
   "pid": "pg17680",
@@ -1326,8 +1326,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 3.6192500047036447,
-  "total_ms": 39.29379099281505
+  "repair_ms": 9.460375003982335,
+  "total_ms": 47.164165996946394
  },
  {
   "pid": "pg17680",
@@ -1340,8 +1340,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 3.621165997174103,
-  "total_ms": 39.74725000443868
+  "repair_ms": 8.480917000269983,
+  "total_ms": 48.084708003443666
  },
  {
   "pid": "pg81303",
@@ -1354,8 +1354,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 26.10974999697646,
-  "total_ms": 63.08970799727831
+  "repair_ms": 38.158374998602085,
+  "total_ms": 80.2356249987497
  },
  {
   "pid": "pg81303",
@@ -1368,8 +1368,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 26.891999994404614,
-  "total_ms": 65.23270800244063
+  "repair_ms": 44.68504100077553,
+  "total_ms": 99.37191599601647
  },
  {
   "pid": "pg81303",
@@ -1382,12 +1382,12 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 27.36449999792967,
-  "total_ms": 64.22500000189757
+  "repair_ms": 40.68004200235009,
+  "total_ms": 86.87566599837737
  },
  {
   "pid": "pg17685",
-  "tier": "rule",
+  "tier": "llm",
   "line_ok": true,
   "line": 11,
   "bug_lines": [
@@ -1396,12 +1396,12 @@
   "fact": "error",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 5.456999999296386,
-  "total_ms": 41.445125003519934
+  "repair_ms": 8.205833000829443,
+  "total_ms": 14829.698292000103
  },
  {
   "pid": "pg17685",
-  "tier": "rule",
+  "tier": "llm",
   "line_ok": true,
   "line": 12,
   "bug_lines": [
@@ -1410,8 +1410,8 @@
   "fact": "error",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 5.423791000794154,
-  "total_ms": 40.735541995672975
+  "repair_ms": 8.072249998804182,
+  "total_ms": 12803.162374999374
  },
  {
   "pid": "pg17685",
@@ -1424,8 +1424,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 6.573083002876956,
-  "total_ms": 42.12816699873656
+  "repair_ms": 14.32862500223564,
+  "total_ms": 89.98612499999581
  },
  {
   "pid": "pg64063",
@@ -1438,8 +1438,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 431.4690410028561,
-  "total_ms": 472.1049580039107
+  "repair_ms": 457.2048330010148,
+  "total_ms": 506.76741700590355
  },
  {
   "pid": "pg64063",
@@ -1452,8 +1452,8 @@
   "fact": "timeout",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 652.0406249983353,
-  "total_ms": 3297.6453750015935
+  "repair_ms": 665.4474169990863,
+  "total_ms": 3382.3943749957834
  },
  {
   "pid": "pg64063",
@@ -1466,8 +1466,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 4.231666993291583,
-  "total_ms": 40.196583002398256
+  "repair_ms": 30.93220799928531,
+  "total_ms": 104.37800000363495
  },
  {
   "pid": "pg17676",
@@ -1480,8 +1480,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 14.29124999413034,
-  "total_ms": 49.79241699766135
+  "repair_ms": 29.84983399801422,
+  "total_ms": 125.56104200484697
  },
  {
   "pid": "pg17676",
@@ -1494,8 +1494,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 13.76841699675424,
-  "total_ms": 50.50991699681617
+  "repair_ms": 31.96183399995789,
+  "total_ms": 118.3602079981938
  },
  {
   "pid": "pg17676",
@@ -1508,8 +1508,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 14.707832997373771,
-  "total_ms": 49.96704099903582
+  "repair_ms": 28.742832997522783,
+  "total_ms": 76.92308399418835
  },
  {
   "pid": "pg42890",
@@ -1522,8 +1522,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 5.132167003466748,
-  "total_ms": 44.25362499750918
+  "repair_ms": 31.72762499889359,
+  "total_ms": 81.1835000058636
  },
  {
   "pid": "pg42890",
@@ -1536,8 +1536,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 4.756749993248377,
-  "total_ms": 41.76074999850243
+  "repair_ms": 11.641790995781776,
+  "total_ms": 68.19862499833107
  },
  {
   "pid": "pg42890",
@@ -1550,8 +1550,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 5.344333003449719,
-  "total_ms": 42.39904200221645
+  "repair_ms": 17.893916003231425,
+  "total_ms": 63.44349999562837
  },
  {
   "pid": "pg468371",
@@ -1564,8 +1564,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 5.091500002890825,
-  "total_ms": 44.74079099600203
+  "repair_ms": 13.179540997953154,
+  "total_ms": 64.04966699483339
  },
  {
   "pid": "pg468371",
@@ -1578,8 +1578,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 5.622666998533532,
-  "total_ms": 42.69604200089816
+  "repair_ms": 20.053957996424288,
+  "total_ms": 75.13233299687272
  },
  {
   "pid": "pg468371",
@@ -1592,8 +1592,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 4.94783299654955,
-  "total_ms": 42.814333995920606
+  "repair_ms": 13.352000001759734,
+  "total_ms": 58.235458003764506
  },
  {
   "pid": "pg60057",
@@ -1606,8 +1606,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 10.056500002974644,
-  "total_ms": 44.96625000319909
+  "repair_ms": 22.875916998600587,
+  "total_ms": 74.46579200041015
  },
  {
   "pid": "pg60057",
@@ -1620,8 +1620,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 10.036541003501043,
-  "total_ms": 43.586959000094794
+  "repair_ms": 20.989333002944477,
+  "total_ms": 67.42012500035344
  },
  {
   "pid": "pg60057",
@@ -1634,8 +1634,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 10.07029200263787,
-  "total_ms": 43.89495899522444
+  "repair_ms": 24.332250002771616,
+  "total_ms": 72.80666699807625
  },
  {
   "pid": "pg60059",
@@ -1648,8 +1648,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 21.813415994984098,
-  "total_ms": 70.18329100537812
+  "repair_ms": 41.849916997307446,
+  "total_ms": 115.30191599740647
  },
  {
   "pid": "pg60059",
@@ -1662,8 +1662,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 22.659709000436123,
-  "total_ms": 66.2012920001871
+  "repair_ms": 40.7058330019936,
+  "total_ms": 101.55624999606516
  },
  {
   "pid": "pg60059",
@@ -1676,8 +1676,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 26.837999997951556,
-  "total_ms": 70.18370799778495
+  "repair_ms": 49.069541004428174,
+  "total_ms": 113.455625003553
  },
  {
   "pid": "pg60062",
@@ -1690,8 +1690,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 11.599707999266684,
-  "total_ms": 49.30699999385979
+  "repair_ms": 18.618707996211015,
+  "total_ms": 71.78166599624092
  },
  {
   "pid": "pg60062",
@@ -1704,8 +1704,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 216.61383299942827,
-  "total_ms": 253.78099999943515
+  "repair_ms": 232.3217500015744,
+  "total_ms": 282.50808300072094
  },
  {
   "pid": "pg60062",
@@ -1718,8 +1718,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 219.1936250019353,
-  "total_ms": 268.2668339984957
+  "repair_ms": 227.88225000113016,
+  "total_ms": 277.1517919973121
  },
  {
   "pid": "pg67257",
@@ -1732,8 +1732,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 17.869499999505933,
-  "total_ms": 57.125291001284495
+  "repair_ms": 30.886165994161274,
+  "total_ms": 77.27125000383239
  },
  {
   "pid": "pg67257",
@@ -1746,8 +1746,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 17.126292004832067,
-  "total_ms": 53.61008400359424
+  "repair_ms": 30.267750000348315,
+  "total_ms": 85.41512499505188
  },
  {
   "pid": "pg67257",
@@ -1760,8 +1760,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 19.313374999910593,
-  "total_ms": 54.31508300534915
+  "repair_ms": 38.8412079992122,
+  "total_ms": 79.10112499666866
  },
  {
   "pid": "pg72411",
@@ -1774,8 +1774,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.430083004583139,
-  "total_ms": 41.30887499923119
+  "repair_ms": 8.029875003558118,
+  "total_ms": 49.97962500056019
  },
  {
   "pid": "pg72411",
@@ -1788,8 +1788,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 3.0948339990573004,
-  "total_ms": 40.30074999900535
+  "repair_ms": 15.21258299908368,
+  "total_ms": 55.194209002365824
  },
  {
   "pid": "pg72411",
@@ -1802,8 +1802,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 2.4569579982198775,
-  "total_ms": 39.82295899913879
+  "repair_ms": 8.238665999670047,
+  "total_ms": 49.79166600242024
  },
  {
   "pid": "pg1831",
@@ -1816,8 +1816,8 @@
   "fact": "timeout",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 1660.707666997041,
-  "total_ms": 5760.813334003615
+  "repair_ms": 1696.7408340060501,
+  "total_ms": 6274.343165998289
  },
  {
   "pid": "pg1831",
@@ -1830,8 +1830,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 10.769332999188919,
-  "total_ms": 44.40050000266638
+  "repair_ms": 17.767083998478483,
+  "total_ms": 57.4590830001398
  },
  {
   "pid": "pg1831",
@@ -1844,8 +1844,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 14.605208998546004,
-  "total_ms": 47.76808300084667
+  "repair_ms": 27.810291001514997,
+  "total_ms": 64.1282080032397
  },
  {
   "pid": "pg60058",
@@ -1858,8 +1858,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 13.87116700061597,
-  "total_ms": 47.90754200075753
+  "repair_ms": 22.31829200172797,
+  "total_ms": 58.871667002676986
  },
  {
   "pid": "pg60058",
@@ -1872,8 +1872,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 282.99820800020825,
-  "total_ms": 316.7685000007623
+  "repair_ms": 389.24566700006835,
+  "total_ms": 426.3182909999159
  },
  {
   "pid": "pg60058",
@@ -1886,8 +1886,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 13.582958999904804,
-  "total_ms": 48.01320799742825
+  "repair_ms": 21.720291995734442,
+  "total_ms": 58.714500002679415
  },
  {
   "pid": "pg64064",
@@ -1900,8 +1900,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 5.0034579981002025,
-  "total_ms": 42.58891600329662
+  "repair_ms": 11.117833993921522,
+  "total_ms": 53.660958001273684
  },
  {
   "pid": "pg64064",
@@ -1914,8 +1914,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 5.106915996293537,
-  "total_ms": 41.92854199936846
+  "repair_ms": 11.898917000507936,
+  "total_ms": 56.353957996179815
  },
  {
   "pid": "pg64064",
@@ -1928,8 +1928,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 5.860541001311503,
-  "total_ms": 40.71824999846285
+  "repair_ms": 10.986417000822257,
+  "total_ms": 50.4423339953064
  },
  {
   "pid": "pg92342",
@@ -1942,8 +1942,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 982.2877910046373,
-  "total_ms": 1028.4194160049083
+  "repair_ms": 1619.8529169996618,
+  "total_ms": 1699.6519579988671
  },
  {
   "pid": "pg92342",
@@ -1956,8 +1956,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 368.5732499943697,
-  "total_ms": 411.83662499679485
+  "repair_ms": 386.9044999955804,
+  "total_ms": 431.40358299569925
  },
  {
   "pid": "pg92342",
@@ -1970,8 +1970,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 400.0304170040181,
-  "total_ms": 442.8812080004718
+  "repair_ms": 738.250499998685,
+  "total_ms": 785.9180419982295
  },
  {
   "pid": "pg92343",
@@ -1984,8 +1984,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 16.051458005676977,
-  "total_ms": 57.395249998080544
+  "repair_ms": 27.11049999925308,
+  "total_ms": 72.54191699757939
  },
  {
   "pid": "pg92343",
@@ -1998,8 +1998,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 16.698957995686214,
-  "total_ms": 56.44695900264196
+  "repair_ms": 26.32508300303016,
+  "total_ms": 72.78483299887739
  },
  {
   "pid": "pg92343",
@@ -2012,8 +2012,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 15.535457998339552,
-  "total_ms": 54.98291700496338
+  "repair_ms": 25.649083996540867,
+  "total_ms": 69.61254100315273
  },
  {
   "pid": "pg118667",
@@ -2026,8 +2026,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 9.590583002136555,
-  "total_ms": 46.18075000325916
+  "repair_ms": 20.36699999734992,
+  "total_ms": 61.77841699536657
  },
  {
   "pid": "pg118667",
@@ -2040,8 +2040,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 8.934124998631887,
-  "total_ms": 44.94383300334448
+  "repair_ms": 14.213166999979876,
+  "total_ms": 57.222458002797794
  },
  {
   "pid": "pg118667",
@@ -2054,8 +2054,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 9.992541999963578,
-  "total_ms": 46.525458004907705
+  "repair_ms": 20.90079199842876,
+  "total_ms": 61.536333996627945
  },
  {
   "pid": "pg49995",
@@ -2068,8 +2068,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 8.969457994680852,
-  "total_ms": 45.010832996922545
+  "repair_ms": 17.19674999912968,
+  "total_ms": 58.4052080012043
  },
  {
   "pid": "pg49995",
@@ -2082,8 +2082,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 10.331917001167312,
-  "total_ms": 45.19750000326894
+  "repair_ms": 24.50916700036032,
+  "total_ms": 64.5373750012368
  },
  {
   "pid": "pg49995",
@@ -2096,12 +2096,12 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 9.484707996307407,
-  "total_ms": 45.109207996574696
+  "repair_ms": 16.765375003160443,
+  "total_ms": 55.20770799921593
  },
  {
   "pid": "pg67258",
-  "tier": "rule",
+  "tier": "llm",
   "line_ok": true,
   "line": 9,
   "bug_lines": [
@@ -2110,8 +2110,8 @@
   "fact": "error",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 13.931333996879403,
-  "total_ms": 51.44658399512991
+  "repair_ms": 16.048875004344154,
+  "total_ms": 15674.752667000575
  },
  {
   "pid": "pg67258",
@@ -2124,8 +2124,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 14.292290994490031,
-  "total_ms": 50.935874998685904
+  "repair_ms": 29.294708001543768,
+  "total_ms": 98.95691600104328
  },
  {
   "pid": "pg67258",
@@ -2138,8 +2138,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 12.559542003145907,
-  "total_ms": 50.274291999812704
+  "repair_ms": 23.290249999263324,
+  "total_ms": 76.35016700078268
  },
  {
   "pid": "pg12984",
@@ -2152,8 +2152,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 7.775124999170657,
-  "total_ms": 44.59899999346817
+  "repair_ms": 27.44183300092118,
+  "total_ms": 76.18095899670152
  },
  {
   "pid": "pg12984",
@@ -2166,8 +2166,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 9.933041998010594,
-  "total_ms": 47.7479589972063
+  "repair_ms": 22.492040996439755,
+  "total_ms": 80.57608399394667
  },
  {
   "pid": "pg12984",
@@ -2180,12 +2180,12 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 12.423624997609295,
-  "total_ms": 48.20345800544601
+  "repair_ms": 28.114375003497116,
+  "total_ms": 70.30645899794763
  },
  {
   "pid": "pg68938",
-  "tier": "rule",
+  "tier": "llm",
   "line_ok": true,
   "line": 17,
   "bug_lines": [
@@ -2194,8 +2194,8 @@
   "fact": "error",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 223.4816249983851,
-  "total_ms": 258.8982500019483
+  "repair_ms": 230.25824999785982,
+  "total_ms": 19142.755875000148
  },
  {
   "pid": "pg68938",
@@ -2208,8 +2208,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 427.96670800453285,
-  "total_ms": 462.8577499970561
+  "repair_ms": 457.01925000321353,
+  "total_ms": 533.7190409991308
  },
  {
   "pid": "pg68938",
@@ -2222,8 +2222,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 430.3997500028345,
-  "total_ms": 464.71887499501463
+  "repair_ms": 455.2060830028495,
+  "total_ms": 499.46804199862527
  },
  {
   "pid": "pg72414",
@@ -2236,8 +2236,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 126.39745799970115,
-  "total_ms": 190.4166670065024
+  "repair_ms": 143.4229169972241,
+  "total_ms": 213.10925000580028
  },
  {
   "pid": "pg72414",
@@ -2250,8 +2250,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 183.2793749999837,
-  "total_ms": 254.9056659991038
+  "repair_ms": 222.19224999571452,
+  "total_ms": 311.12574999860954
  },
  {
   "pid": "pg72414",
@@ -2264,8 +2264,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 342.3275419991114,
-  "total_ms": 411.79133300465764
+  "repair_ms": 368.23729099705815,
+  "total_ms": 445.92616699810605
  },
  {
   "pid": "pg92344",
@@ -2278,8 +2278,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 34.959083001012914,
-  "total_ms": 77.87462499982212
+  "repair_ms": 56.62112500431249,
+  "total_ms": 102.90000000532018
  },
  {
   "pid": "pg92344",
@@ -2292,8 +2292,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 38.3827090045088,
-  "total_ms": 81.09933399828151
+  "repair_ms": 54.05595799675211,
+  "total_ms": 97.68050000275252
  },
  {
   "pid": "pg92344",
@@ -2306,8 +2306,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 36.71437499724561,
-  "total_ms": 79.84158399631269
+  "repair_ms": 58.07937500503613,
+  "total_ms": 103.93666700110771
  },
  {
   "pid": "pg389632",
@@ -2320,8 +2320,8 @@
   "fact": "wrong",
   "fix_ok": false,
   "n_fixes": 1,
-  "repair_ms": 1501.788834000763,
-  "total_ms": 1546.3343340015854
+  "repair_ms": 1501.3852499978384,
+  "total_ms": 1560.5736249999609
  },
  {
   "pid": "pg389632",
@@ -2334,8 +2334,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 1345.017583000299,
-  "total_ms": 1386.7197500003385
+  "repair_ms": 1500.9442499940633,
+  "total_ms": 1562.1037499950035
  },
  {
   "pid": "pg389632",
@@ -2348,8 +2348,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 513.5309159959434,
-  "total_ms": 555.2776660042582
+  "repair_ms": 629.7088749997783,
+  "total_ms": 694.1303339990554
  },
  {
   "pid": "pg60060",
@@ -2362,8 +2362,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 7.005917002970818,
-  "total_ms": 47.47325000062119
+  "repair_ms": 15.154375003476162,
+  "total_ms": 63.28587500320282
  },
  {
   "pid": "pg60060",
@@ -2376,8 +2376,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 6.843083996500354,
-  "total_ms": 46.130500006256625
+  "repair_ms": 21.39224999700673,
+  "total_ms": 68.92233299731743
  },
  {
   "pid": "pg60060",
@@ -2390,22 +2390,22 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 7.234292002976872,
-  "total_ms": 47.03866600175388
+  "repair_ms": 14.604124997276813,
+  "total_ms": 61.64758300292306
  },
  {
   "pid": "pg72412",
-  "tier": "rule",
-  "line_ok": true,
-  "line": 11,
+  "tier": "llm",
+  "line_ok": false,
+  "line": 10,
   "bug_lines": [
    11
   ],
   "fact": "error",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 2.956208001705818,
-  "total_ms": 48.702916006732266
+  "repair_ms": 3.8161249976838008,
+  "total_ms": 20030.48349999881
  },
  {
   "pid": "pg72412",
@@ -2418,8 +2418,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 5.1409169973339885,
-  "total_ms": 50.23670800437685
+  "repair_ms": 13.78008299798239,
+  "total_ms": 104.75766699528322
  },
  {
   "pid": "pg72412",
@@ -2432,8 +2432,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 4.98616600089008,
-  "total_ms": 49.47333300515311
+  "repair_ms": 13.042209000559524,
+  "total_ms": 74.97758300451096
  },
  {
   "pid": "pg214292",
@@ -2446,8 +2446,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 6.766625003365334,
-  "total_ms": 43.55174999363953
+  "repair_ms": 15.861792002397124,
+  "total_ms": 82.70420799817657
  },
  {
   "pid": "pg214292",
@@ -2460,8 +2460,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 8.19216700620018,
-  "total_ms": 43.27512500458397
+  "repair_ms": 27.590167002927046,
+  "total_ms": 78.75512500322657
  },
  {
   "pid": "pg214292",
@@ -2474,22 +2474,22 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 7.890374996350147,
-  "total_ms": 44.272207996982615
+  "repair_ms": 21.953792005660944,
+  "total_ms": 83.1670830011717
  },
  {
   "pid": "pg43236",
-  "tier": "rule",
-  "line_ok": false,
-  "line": null,
+  "tier": "llm",
+  "line_ok": true,
+  "line": 18,
   "bug_lines": [
    18
   ],
   "fact": "timeout",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 1650.8156659983797,
-  "total_ms": 4232.890250001219
+  "repair_ms": 1691.7515829991316,
+  "total_ms": 26825.85733399901
  },
  {
   "pid": "pg43236",
@@ -2502,8 +2502,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 1037.205749998975,
-  "total_ms": 1073.6794999975245
+  "repair_ms": 1070.5775419992278,
+  "total_ms": 1160.5619999972987
  },
  {
   "pid": "pg43236",
@@ -2516,8 +2516,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 1672.7077500036103,
-  "total_ms": 1710.4503749942523
+  "repair_ms": 1695.0120420005987,
+  "total_ms": 1753.094791994954
  },
  {
   "pid": "pg64062",
@@ -2530,8 +2530,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 1453.3357500040438,
-  "total_ms": 1491.2128750002012
+  "repair_ms": 1479.8805000027642,
+  "total_ms": 1519.6978750027483
  },
  {
   "pid": "pg64062",
@@ -2544,8 +2544,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 1454.977790999692,
-  "total_ms": 1491.4122499976656
+  "repair_ms": 1483.7029580012313,
+  "total_ms": 1521.5123329980997
  },
  {
   "pid": "pg64062",
@@ -2558,8 +2558,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 1242.2923339981935,
-  "total_ms": 1278.5549999971408
+  "repair_ms": 1275.0711670014425,
+  "total_ms": 1316.8279169985908
  },
  {
   "pid": "pg150364",
@@ -2572,8 +2572,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 63.38787499407772,
-  "total_ms": 107.77420900558354
+  "repair_ms": 79.71558300050674,
+  "total_ms": 123.9537500005099
  },
  {
   "pid": "pg150364",
@@ -2586,8 +2586,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 268.4273330014548,
-  "total_ms": 312.12137499824166
+  "repair_ms": 283.94954199757194,
+  "total_ms": 329.6107919959468
  },
  {
   "pid": "pg150364",
@@ -2600,8 +2600,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 265.52845900005195,
-  "total_ms": 308.03849999938393
+  "repair_ms": 282.28295799635816,
+  "total_ms": 326.54254200315336
  },
  {
   "pid": "pg150365",
@@ -2614,8 +2614,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 16.61479099857388,
-  "total_ms": 54.16666599921882
+  "repair_ms": 23.97016699978849,
+  "total_ms": 61.353458993835375
  },
  {
   "pid": "pg150365",
@@ -2628,8 +2628,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 16.616417000477668,
-  "total_ms": 53.39233300037449
+  "repair_ms": 26.073332999658305,
+  "total_ms": 64.96787500509527
  },
  {
   "pid": "pg150365",
@@ -2642,8 +2642,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 17.605332999664824,
-  "total_ms": 53.95716700149933
+  "repair_ms": 27.780124997661915,
+  "total_ms": 71.48387499910314
  },
  {
   "pid": "pg49190",
@@ -2656,8 +2656,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 21.021958003984764,
-  "total_ms": 57.87429100018926
+  "repair_ms": 28.847042005509138,
+  "total_ms": 71.36666699807392
  },
  {
   "pid": "pg49190",
@@ -2670,8 +2670,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 20.40050000505289,
-  "total_ms": 56.756416997814085
+  "repair_ms": 37.0701249994454,
+  "total_ms": 80.92949999991106
  },
  {
   "pid": "pg49190",
@@ -2684,8 +2684,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 13.624541003082413,
-  "total_ms": 51.73479199584108
+  "repair_ms": 40.97100000217324,
+  "total_ms": 87.78737499960698
  },
  {
   "pid": "pg60063",
@@ -2698,8 +2698,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 111.17870799353113,
-  "total_ms": 163.6156660024426
+  "repair_ms": 143.70970799791394,
+  "total_ms": 201.89008399756858
  },
  {
   "pid": "pg60063",
@@ -2712,8 +2712,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 106.10204099793918,
-  "total_ms": 152.70562499790685
+  "repair_ms": 140.82087499991758,
+  "total_ms": 192.33629199879942
  },
  {
   "pid": "pg60063",
@@ -2726,8 +2726,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 111.73833299835678,
-  "total_ms": 158.29825000400888
+  "repair_ms": 145.97579200199107,
+  "total_ms": 202.09116600017296
  },
  {
   "pid": "pg67260",
@@ -2740,8 +2740,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 451.6269580053631,
-  "total_ms": 495.3268749959534
+  "repair_ms": 470.3509590035537,
+  "total_ms": 516.1479579983279
  },
  {
   "pid": "pg67260",
@@ -2754,8 +2754,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 861.9837919977726,
-  "total_ms": 905.0380830012728
+  "repair_ms": 931.3831670006039,
+  "total_ms": 985.1607919990784
  },
  {
   "pid": "pg67260",
@@ -2768,8 +2768,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 243.0820829977165,
-  "total_ms": 285.9109159981017
+  "repair_ms": 267.3776669980725,
+  "total_ms": 421.07854200003203
  },
  {
   "pid": "pg1840",
@@ -2782,8 +2782,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 124.2042920057429,
-  "total_ms": 170.23250000056578
+  "repair_ms": 200.54679200256942,
+  "total_ms": 258.79220900242217
  },
  {
   "pid": "pg1840",
@@ -2796,8 +2796,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 125.80333299410995,
-  "total_ms": 171.3891249964945
+  "repair_ms": 213.4082920019864,
+  "total_ms": 290.93550000106916
  },
  {
   "pid": "pg1840",
@@ -2810,22 +2810,22 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 94.56979200331261,
-  "total_ms": 139.68629099690588
+  "repair_ms": 138.24245800060453,
+  "total_ms": 202.3884169975645
  },
  {
   "pid": "pg81305",
-  "tier": "rule",
+  "tier": "llm",
   "line_ok": false,
-  "line": null,
+  "line": 15,
   "bug_lines": [
    54
   ],
   "fact": "timeout",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 1653.3587500016438,
-  "total_ms": 4209.428082998784
+  "repair_ms": 1700.809374997334,
+  "total_ms": 36869.96929199813
  },
  {
   "pid": "pg81305",
@@ -2838,22 +2838,22 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 1313.6697500012815,
-  "total_ms": 1354.9607089953497
+  "repair_ms": 1351.579166999727,
+  "total_ms": 1450.5353749991627
  },
  {
   "pid": "pg81305",
-  "tier": "rule",
-  "line_ok": false,
-  "line": null,
+  "tier": "llm",
+  "line_ok": true,
+  "line": 47,
   "bug_lines": [
    47
   ],
   "fact": "timeout",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 1660.5754159973003,
-  "total_ms": 4220.403499995882
+  "repair_ms": 1695.8670409949264,
+  "total_ms": 34636.901875004696
  },
  {
   "pid": "pg118669",
@@ -2866,8 +2866,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 437.5144169971463,
-  "total_ms": 481.3391249990673
+  "repair_ms": 459.97445799730485,
+  "total_ms": 534.6274999974412
  },
  {
   "pid": "pg118669",
@@ -2880,8 +2880,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 21.095750002132263,
-  "total_ms": 62.81704200227978
+  "repair_ms": 39.10370799712837,
+  "total_ms": 92.89900000294438
  },
  {
   "pid": "pg118669",
@@ -2894,8 +2894,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 19.660083002236206,
-  "total_ms": 62.22320799861336
+  "repair_ms": 29.391165997367352,
+  "total_ms": 81.5394999954151
  },
  {
   "pid": "pg67259",
@@ -2908,8 +2908,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 61.20974999794271,
-  "total_ms": 104.75250000308733
+  "repair_ms": 88.53570799692534,
+  "total_ms": 141.45658299821662
  },
  {
   "pid": "pg67259",
@@ -2922,8 +2922,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 67.49454099917784,
-  "total_ms": 111.5150419936981
+  "repair_ms": 92.37133299757261,
+  "total_ms": 144.78337499895133
  },
  {
   "pid": "pg67259",
@@ -2936,8 +2936,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 60.62566599575803,
-  "total_ms": 103.93270799977472
+  "repair_ms": 85.07129099598387,
+  "total_ms": 138.0979580062558
  },
  {
   "pid": "pg81304",
@@ -2950,8 +2950,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 20.723375004308764,
-  "total_ms": 2079.8568340032944
+  "repair_ms": 27.491917004226707,
+  "total_ms": 2103.246457998466
  },
  {
   "pid": "pg81304",
@@ -2964,8 +2964,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 23.189250001451,
-  "total_ms": 64.93462499929592
+  "repair_ms": 34.80070800287649,
+  "total_ms": 82.38079200236825
  },
  {
   "pid": "pg81304",
@@ -2978,8 +2978,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 20.020250005472917,
-  "total_ms": 60.50979199790163
+  "repair_ms": 27.22199999698205,
+  "total_ms": 69.56170799821848
  },
  {
   "pid": "pg72413",
@@ -2992,8 +2992,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 38.22579199913889,
-  "total_ms": 82.11104200017871
+  "repair_ms": 47.96429199632257,
+  "total_ms": 90.34354100003839
  },
  {
   "pid": "pg72413",
@@ -3006,8 +3006,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 38.135750000947155,
-  "total_ms": 78.84029099659529
+  "repair_ms": 48.88008299894864,
+  "total_ms": 90.88545799750136
  },
  {
   "pid": "pg72413",
@@ -3020,8 +3020,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 25.877667001623195,
-  "total_ms": 66.22541699471185
+  "repair_ms": 44.57245799858356,
+  "total_ms": 86.7823340013274
  },
  {
   "pid": "pg62050",
@@ -3034,8 +3034,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 658.0149590008659,
-  "total_ms": 699.5391250020475
+  "repair_ms": 675.9694579959614,
+  "total_ms": 718.5886669976753
  },
  {
   "pid": "pg62050",
@@ -3048,8 +3048,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 869.9195419976604,
-  "total_ms": 910.1817090049735
+  "repair_ms": 900.785249999899,
+  "total_ms": 943.1187500013039
  },
  {
   "pid": "pg62050",
@@ -3062,8 +3062,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 666.7989579946152,
-  "total_ms": 708.0261660012184
+  "repair_ms": 718.8874159983243,
+  "total_ms": 762.613416001841
  },
  {
   "pid": "pg150367",
@@ -3076,8 +3076,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 572.6068329968257,
-  "total_ms": 606.7909580015112
+  "repair_ms": 577.6912500004983,
+  "total_ms": 624.2537920043105
  },
  {
   "pid": "pg150367",
@@ -3090,8 +3090,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 216.32858300290536,
-  "total_ms": 252.82591599534499
+  "repair_ms": 220.74979200260714,
+  "total_ms": 255.2826249957434
  },
  {
   "pid": "pg150367",
@@ -3104,8 +3104,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 840.4187499982072,
-  "total_ms": 873.1540419976227
+  "repair_ms": 933.5965830032364,
+  "total_ms": 967.5929580043885
  },
  {
   "pid": "pg42892",
@@ -3118,8 +3118,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 229.4400829996448,
-  "total_ms": 273.6280829994939
+  "repair_ms": 245.7764999999199,
+  "total_ms": 293.8663329987321
  },
  {
   "pid": "pg42892",
@@ -3132,8 +3132,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 224.06954200414475,
-  "total_ms": 267.11833300214494
+  "repair_ms": 240.12520800170023,
+  "total_ms": 290.02862500055926
  },
  {
   "pid": "pg42892",
@@ -3146,8 +3146,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 225.5397500048275,
-  "total_ms": 269.17258399771526
+  "repair_ms": 246.8417500058422,
+  "total_ms": 296.94175000622636
  },
  {
   "pid": "pg118668",
@@ -3160,8 +3160,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 63.97154199657962,
-  "total_ms": 107.38879099517362
+  "repair_ms": 82.72062499599997,
+  "total_ms": 135.5022080024355
  },
  {
   "pid": "pg118668",
@@ -3174,8 +3174,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 59.97729099908611,
-  "total_ms": 101.24645800533472
+  "repair_ms": 74.5231250039069,
+  "total_ms": 122.87108300370164
  },
  {
   "pid": "pg118668",
@@ -3188,8 +3188,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 61.919833002320956,
-  "total_ms": 103.51995899691246
+  "repair_ms": 81.68887499778066,
+  "total_ms": 128.62816599954385
  },
  {
   "pid": "pg12929",
@@ -3202,8 +3202,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 3.8555840001208708,
-  "total_ms": 36.639042002207134
+  "repair_ms": 10.86629099881975,
+  "total_ms": 54.265165999822784
  },
  {
   "pid": "pg12929",
@@ -3216,8 +3216,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 4.410499997902662,
-  "total_ms": 36.26087500015274
+  "repair_ms": 7.629667001310736,
+  "total_ms": 45.43524999462534
  },
  {
   "pid": "pg12929",
@@ -3230,8 +3230,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 4.37262500054203,
-  "total_ms": 35.31820799980778
+  "repair_ms": 7.454583996150177,
+  "total_ms": 47.593582996341866
  },
  {
   "pid": "pg12983",
@@ -3244,8 +3244,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 13.015833006647881,
-  "total_ms": 48.673541998141445
+  "repair_ms": 27.273833002254833,
+  "total_ms": 69.74450000416255
  },
  {
   "pid": "pg12983",
@@ -3258,8 +3258,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 11.954250003327616,
-  "total_ms": 47.716624998429324
+  "repair_ms": 19.816874999378342,
+  "total_ms": 59.63549999432871
  },
  {
   "pid": "pg12983",
@@ -3272,8 +3272,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 11.579541998798959,
-  "total_ms": 46.70079099741997
+  "repair_ms": 28.45595799590228,
+  "total_ms": 69.56662500306265
  },
  {
   "pid": "pg1839",
@@ -3286,8 +3286,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 47.16720800206531,
-  "total_ms": 91.50450000015553
+  "repair_ms": 59.84925000666408,
+  "total_ms": 110.05400000431109
  },
  {
   "pid": "pg1839",
@@ -3300,8 +3300,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 48.58616700221319,
-  "total_ms": 92.98287500132574
+  "repair_ms": 59.76754199946299,
+  "total_ms": 108.08504199667368
  },
  {
   "pid": "pg1839",
@@ -3314,8 +3314,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 50.130499999795575,
-  "total_ms": 94.6206250009709
+  "repair_ms": 70.40075000259094,
+  "total_ms": 117.67933299415745
  },
  {
   "pid": "pg1842",
@@ -3328,8 +3328,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 343.74441699765157,
-  "total_ms": 395.90649999445304
+  "repair_ms": 378.83241700183135,
+  "total_ms": 449.14924999466166
  },
  {
   "pid": "pg1842",
@@ -3342,8 +3342,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 3,
-  "repair_ms": 411.9684170000255,
-  "total_ms": 461.7704159973073
+  "repair_ms": 447.49449999653734,
+  "total_ms": 512.7805409938446
  },
  {
   "pid": "pg1842",
@@ -3356,8 +3356,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 433.6389579984825,
-  "total_ms": 484.5193750006729
+  "repair_ms": 458.5672920002253,
+  "total_ms": 528.1200840036036
  },
  {
   "pid": "pg42897",
@@ -3370,8 +3370,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 3.1581250004819594,
-  "total_ms": 39.379375004500616
+  "repair_ms": 9.753459002240561,
+  "total_ms": 62.60866599768633
  },
  {
   "pid": "pg42897",
@@ -3384,8 +3384,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 3.2941670069703832,
-  "total_ms": 39.267583000764716
+  "repair_ms": 8.094750002783258,
+  "total_ms": 48.713915995904244
  },
  {
   "pid": "pg42897",
@@ -3398,8 +3398,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 3.5299160008435138,
-  "total_ms": 39.44549999869196
+  "repair_ms": 7.776250000461005,
+  "total_ms": 56.25820899876999
  },
  {
   "pid": "pg1843",
@@ -3412,8 +3412,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 66.32858399825636,
-  "total_ms": 103.82787500566337
+  "repair_ms": 83.29149999917718,
+  "total_ms": 124.0907920000609
  },
  {
   "pid": "pg1843",
@@ -3426,8 +3426,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 63.049125004909,
-  "total_ms": 101.74887500033947
+  "repair_ms": 86.53950000007171,
+  "total_ms": 140.66749999619788
  },
  {
   "pid": "pg1843",
@@ -3440,8 +3440,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 65.11075000162236,
-  "total_ms": 125.72808400000213
+  "repair_ms": 86.63583300221944,
+  "total_ms": 131.29054199816892
  },
  {
   "pid": "pg72416",
@@ -3454,8 +3454,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 38.177833004738204,
-  "total_ms": 77.92633300414309
+  "repair_ms": 55.68074999609962,
+  "total_ms": 98.6990409946884
  },
  {
   "pid": "pg72416",
@@ -3468,8 +3468,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 36.091916997975204,
-  "total_ms": 76.05158299702452
+  "repair_ms": 45.21699999895645,
+  "total_ms": 93.12629200576339
  },
  {
   "pid": "pg72416",
@@ -3482,8 +3482,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 36.16949999559438,
-  "total_ms": 74.83766600489616
+  "repair_ms": 52.61416699795518,
+  "total_ms": 94.78404199762736
  },
  {
   "pid": "pg12974",
@@ -3496,8 +3496,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 931.1882909969427,
-  "total_ms": 971.929999999702
+  "repair_ms": 962.6562499979627,
+  "total_ms": 1013.0216250036028
  },
  {
   "pid": "pg12974",
@@ -3510,8 +3510,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 1141.741291998187,
-  "total_ms": 1182.4802919945796
+  "repair_ms": 1173.7302499968791,
+  "total_ms": 1222.6827499980573
  },
  {
   "pid": "pg12974",
@@ -3524,8 +3524,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 1143.8693329982925,
-  "total_ms": 1184.6675839988166
+  "repair_ms": 1175.6528330006404,
+  "total_ms": 1217.3246660022414
  },
  {
   "pid": "pg1834",
@@ -3538,8 +3538,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 1586.9457500011777,
-  "total_ms": 1632.2201250004582
+  "repair_ms": 1616.0604169999715,
+  "total_ms": 1663.5717499957536
  },
  {
   "pid": "pg1834",
@@ -3552,8 +3552,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 1069.858208997175,
-  "total_ms": 1114.7535000054631
+  "repair_ms": 1116.2610839965055,
+  "total_ms": 1170.1015419967007
  },
  {
   "pid": "pg1834",
@@ -3566,8 +3566,8 @@
   "fact": "wrong",
   "fix_ok": false,
   "n_fixes": 0,
-  "repair_ms": 1549.6396660018945,
-  "total_ms": 1592.8453329979675
+  "repair_ms": 1572.5501670021913,
+  "total_ms": 1618.508750005276
  },
  {
   "pid": "pg1841",
@@ -3580,8 +3580,8 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 345.5853749983362,
-  "total_ms": 391.1159579947707
+  "repair_ms": 370.4280420060968,
+  "total_ms": 418.5156250023283
  },
  {
   "pid": "pg1841",
@@ -3594,8 +3594,8 @@
   "fact": "wrong",
   "fix_ok": true,
   "n_fixes": 2,
-  "repair_ms": 359.25029200006975,
-  "total_ms": 404.9910829999135
+  "repair_ms": 398.8479159961571,
+  "total_ms": 450.5119579989696
  },
  {
   "pid": "pg1841",
@@ -3608,7 +3608,7 @@
   "fact": "error",
   "fix_ok": true,
   "n_fixes": 1,
-  "repair_ms": 358.9115409995429,
-  "total_ms": 404.351041004702
+  "repair_ms": 389.3174159966293,
+  "total_ms": 441.9266660042922
  }
 ]
