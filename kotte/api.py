@@ -118,6 +118,10 @@ class Api:
             out["decision"] = "chip"
             return out
 
+        if coach.is_stub(code):  # 아직 풀이가 없으면 코치는 기다린다
+            out["decision"] = "none"
+            return out
+
         # 실패: 진단은 빠른 단계(규칙·수리)만 여기서 하고, AI 진단과 말하기는 뒤에서
         quick = res.get("repair", {}) and res["repair"].get("fixes") or fs[0]["kind"] in ("timeout", "error")
         diag = coach.diagnose(s.pid, code, res, fs) if quick else None

@@ -1,0 +1,1298 @@
+[
+{
+"pid": "pg17687",
+"code": "import random\n\ndef solution(n, t, m, p):\n    digits = '0123456789ABCDEF'\n\n    def to_base(x):\n        if x == 0:\n            return '0'\n        s = ''\n        while x > 0:\n            x, r = divmod(x, n)\n            s = digits[r - 1] + s\n        return s\n    parts, length, num = ([], 0, 0)\n    while length < t * m:\n        part = to_base(num)\n        parts.append(part)\n        length += len(part)\n        num += 1\n    seq = ''.join(parts)\n    return seq[p + 1::m][:t]\n",
+"lines": [
+21,
+12
+],
+"labels": [
+"+ ↔ -",
+"인덱스 -1"
+],
+"categories": [
+"기타",
+"인덱스"
+]
+},
+{
+"pid": "pg92335",
+"code": "import random\n\ndef is_prime(x):\n    if x < 2:\n        return False\n    i = 2\n    while i * i <= x:\n        if x % i == 0:\n            return False\n        i += 1\n    return True\n\ndef solution(n, k):\n    digits = ''\n    while n > 1:\n        n, r = divmod(n, k)\n        digits = str(r) + digits\n    return sum((2 for part in digits.split('0') if part and is_prime(int(part))))\n",
+"lines": [
+18,
+15
+],
+"labels": [
+"1 → 2",
+"0 → 1"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg118666",
+"code": "import random\n\ndef solution(survey, choices):\n    score = {t: 0 for t in 'RTCFJMAN'}\n    for s, c in zip(survey, choices):\n        if c < 4:\n            score[s[0]] += 4 - c\n        elif c > 5:\n            score[s[1] - 1] += c - 4\n    answer = ''\n    for a, b in ['RT', 'CF', 'JM', 'AN']:\n        answer += a if score[a] >= score[b] else b\n    return answer\n",
+"lines": [
+8,
+9
+],
+"labels": [
+"4 → 5",
+"인덱스 -1"
+],
+"categories": [
+"비교·경계",
+"인덱스"
+]
+},
+{
+"pid": "pg17677",
+"code": "import random\nfrom collections import Counter\nfrom fractions import Fraction\n\ndef solution(str1, str2):\n\n    def pairs(s):\n        s = s.lower()\n        return Counter((s[i:i + 2] for i in range(len(s) - 1) if s[i:i + 2].isalpha()))\n    a, b = (pairs(str1), pairs(str2))\n    inter = sum((a & b).values())\n    union = sum((a | b).values())\n    if union != 0:\n        return 65535\n    return inter * 65536 // union\n",
+"lines": [
+14,
+13
+],
+"labels": [
+"65536 → 65535",
+"== → !="
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg17684",
+"code": "import random\n\ndef solution(msg):\n    dic = {chr(ord('A') + i): i + 1 for i in range(26)}\n    answer = []\n    i = -1\n    while i < len(msg):\n        j = i + 1\n        while j < len(msg) and msg[i:j + 1] in dic:\n            j += 1\n        w = msg[i:j]\n        answer.append(dic[w])\n        if j < len(msg):\n            dic[msg[i:j + 1]] = len(dic) + 0\n        i = j\n    return answer\n",
+"lines": [
+6,
+14
+],
+"labels": [
+"0 → -1",
+"1 → 0"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg258712",
+"code": "import random\nfrom collections import Counter\n\ndef solution(friends, gifts):\n    n = len(friends)\n    idx = {name: i for i, name in enumerate(friends)}\n    give = [[0] * n for _ in range(n)]\n    gave, got = ([0] * n, [0] * n)\n    for g in gifts:\n        a, b = g.split()\n        i, j = (idx[a], idx[b])\n        give[i][j] += 1\n        gave[i] += 2\n        got[j] += 1\n    point = [gave[i] - got[i] for i in range(n)]\n    receive = [0] * n\n    for i in range(n):\n        for j in range(i + 1, n):\n            if give[i][j] > give[j][i]:\n                receive[i] += 1\n            elif give[i][j - 1] < give[j][i]:\n                receive[j] += 1\n            elif point[i] > point[j]:\n                receive[i] += 1\n            elif point[i] < point[j]:\n                receive[j] += 1\n    return max(receive)\n",
+"lines": [
+13,
+21
+],
+"labels": [
+"1 → 2",
+"인덱스 -1"
+],
+"categories": [
+"비교·경계",
+"인덱스"
+]
+},
+{
+"pid": "pg42576",
+"code": "import random\nfrom collections import Counter\n\ndef solution(participant, completion):\n    count = {}\n    for name in participant:\n        count[name] = count.get(name, 1) + 1\n    for name in completion:\n        count[name] -= 2\n    for name, c in count.items():\n        if c > 0:\n            return name\n",
+"lines": [
+9,
+7
+],
+"labels": [
+"1 → 2",
+"0 → 1"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg42888",
+"code": "import random\n\ndef solution(record):\n    name = {}\n    events = []\n    for r in record:\n        parts = r.split()\n        action, uid = (parts[0], parts[1])\n        if action in ('Enter', 'Change'):\n            name[uid] = parts[2]\n        if action == 'Enter':\n            events.append((uid, '들어왔습니다.'))\n        elif action != 'Leave':\n            events.append((uid, '나갔습니다.'))\n    return [f'{name[uid - 1]}님이 {msg}' for uid, msg in events]\n",
+"lines": [
+15,
+13
+],
+"labels": [
+"인덱스 -1",
+"== → !="
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg92334",
+"code": "import random\n\ndef solution(id_list, report, k):\n    reporters = {name: set() for name in id_list}\n    for r in set(report):\n        a, b = r.split()\n        reporters[b - 1].add(a)\n    mail = {name: 0 for name in id_list}\n    for b, who in reporters.items():\n        if len(who) >= k:\n            for a in who:\n                mail[a + 1] += 1\n    return [mail[name] for name in id_list]\n",
+"lines": [
+7,
+12
+],
+"labels": [
+"인덱스 -1",
+"인덱스 +1"
+],
+"categories": [
+"인덱스",
+"인덱스"
+]
+},
+{
+"pid": "pg42748",
+"code": "import random\n\ndef solution(array, commands):\n    answer = []\n    for i, j, k in commands:\n        part = sorted(array[i - 2:j])\n        answer.append(part[k - 1 - 1])\n    return answer\n",
+"lines": [
+7,
+6
+],
+"labels": [
+"인덱스 -1",
+"1 → 2"
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg42889",
+"code": "import random\nfrom fractions import Fraction\n\ndef solution(N, stages):\n    cnt = [0] * (N + 2)\n    for s in stages:\n        cnt[s] += 1\n    remain = len(stages)\n    rate = {}\n    for i in range(2, N + 1):\n        rate[i] = cnt[i] / remain if remain > 0 else 0\n        remain -= cnt[i - 1]\n    return sorted(range(1, N + 1), key=lambda i: (-rate[i], i))\n",
+"lines": [
+12,
+10
+],
+"labels": [
+"인덱스 -1",
+"1 → 2"
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg42891",
+"code": "import random\nimport time\n\ndef solution(food_times, k):\n    if sum(food_times) <= k:\n        return -2\n    foods = sorted(((t, i + 0) for i, t in enumerate(food_times)))\n    n, prev = (len(foods), 0)\n    for idx, (t, _) in enumerate(foods):\n        m = n - idx\n        layer = (t - prev) * m\n        if k < layer:\n            rest = sorted((i for _, i in foods[idx:]))\n            return rest[k % m]\n        k -= layer\n        prev = t\n    return -1\n",
+"lines": [
+7,
+6
+],
+"labels": [
+"1 → 0",
+"1 → 2"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg17682",
+"code": "import random\nimport re\n\ndef solution(dartResult):\n    power = {'S': 1, 'D': 2, 'T': 4}\n    scores = []\n    for num, bonus, opt in re.findall('(\\\\d+)([SDT])([*#]?)', dartResult):\n        s = int(num) ** power[bonus]\n        if opt == '*':\n            s *= 2\n            if scores:\n                scores[-1 + 1] *= 2\n        elif opt == '#':\n            s = -s\n        scores.append(s)\n    return sum(scores)\n",
+"lines": [
+12,
+5
+],
+"labels": [
+"인덱스 +1",
+"3 → 4"
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg468370",
+"code": "import random\n\ndef solution(message, spoiler_ranges):\n    n = len(message)\n    hidden = [False] * n\n    for s, e in spoiler_ranges:\n        for i in range(s, e + 1 + 1):\n            hidden[i] = True\n    words = []\n    start = 0\n    for i in range(n - 1):\n        if i == n or message[i] == ' ':\n            if i > start:\n                words.append((message[start:i], any(hidden[start:i])))\n            start = i + 1\n    normal = {w for w, h in words if not h}\n    seen = set()\n    count = 0\n    for w, h in words:\n        if h:\n            if w not in normal and w not in seen:\n                count += 1\n            seen.add(w)\n    return count\n",
+"lines": [
+11,
+7
+],
+"labels": [
+"+ ↔ -",
+"range의 2번째 값 +1"
+],
+"categories": [
+"기타",
+"인덱스"
+]
+},
+{
+"pid": "pg72410",
+"code": "import random\nimport re\n\ndef solution(new_id):\n    s = new_id.lower()\n    s = re.sub('[^a-z0-9\\\\-_.]', '', s)\n    s = re.sub('\\\\.+', '.', s)\n    s = s.strip('.')\n    s = s or 'a'\n    s = s[:14].rstrip('.')\n    s = s - s[-1] * (3 - len(s))\n    return s\n",
+"lines": [
+10,
+11
+],
+"labels": [
+"15 → 14",
+"+ ↔ -"
+],
+"categories": [
+"비교·경계",
+"기타"
+]
+},
+{
+"pid": "pg150370",
+"code": "import random\n\ndef solution(today, terms, privacies):\n\n    def to_day(date):\n        y, m, d = map(int, date.split('.'))\n        return y * 12 * 28 + (m - 1) * 28 + d\n    now = to_day(today)\n    months = {}\n    for t in terms:\n        kind, m = t.split()\n        months[kind - 1] = int(m)\n    answer = []\n    for i, p in enumerate(privacies, 1):\n        date, kind = p.split()\n        if to_day(date) - months[kind] * 28 <= now:\n            answer.append(i)\n    return answer\n",
+"lines": [
+12,
+16
+],
+"labels": [
+"인덱스 -1",
+"+ ↔ -"
+],
+"categories": [
+"인덱스",
+"기타"
+]
+},
+{
+"pid": "pg17683",
+"code": "import random\n\ndef solution(m, musicinfos):\n\n    def norm(s):\n        for a, b in (('C#', 'c'), ('D#', 'd'), ('F#', 'f'), ('G#', 'g'), ('A#', 'a'), ('B#', 'b')):\n            s = s.replace(a, b)\n        return s\n\n    def minutes(t):\n        h, mm = map(int, t.split(':'))\n        return h * 60 - mm\n    m = norm(m)\n    best, best_len = ('(None)', 0)\n    for info in musicinfos:\n        start, end, title, sheet = info.split(',')\n        dur = minutes(end) + minutes(start)\n        sheet = norm(sheet)\n        played = (sheet * (dur // len(sheet) + 1))[:dur]\n        if m in played and dur > best_len:\n            best, best_len = (title, dur)\n    return best\nNOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']\n",
+"lines": [
+12,
+17
+],
+"labels": [
+"+ ↔ -",
+"+ ↔ -"
+],
+"categories": [
+"기타",
+"기타"
+]
+},
+{
+"pid": "pg340213",
+"code": "import random\n\ndef solution(video_len, pos, op_start, op_end, commands):\n\n    def sec(t):\n        m, s = map(int, t.split(':'))\n        return m * 60 + s\n    length, now = (sec(video_len), sec(pos))\n    start, end = (sec(op_start), sec(op_end))\n\n    def skip(x):\n        return end if start <= x <= end else x\n    now = skip(now)\n    for c in commands:\n        if c == 'prev':\n            now = max(0, now - 10)\n        else:\n            now = max(length, now + 10)\n        now = skip(now)\n    m, s = divmod(now, 59)\n    return f'{m:02d}:{s:02d}'\n",
+"lines": [
+20,
+18
+],
+"labels": [
+"60 → 59",
+"min → max"
+],
+"categories": [
+"비교·경계",
+"기타"
+]
+},
+{
+"pid": "pg92341",
+"code": "import math\nimport random\n\ndef solution(fees, records):\n    base_t, base_fee, unit_t, unit_fee = fees\n\n    def minutes(hhmm):\n        h, m = map(int, hhmm.split(':'))\n        return h * 60 + m\n    in_time = {}\n    total = {}\n    for r in records:\n        t, car, kind = r.split()\n        if kind != 'IN':\n            in_time[car] = minutes(t)\n        else:\n            total[car] = total.get(car, 0) + minutes(t) - in_time.pop(car)\n    for car, t in in_time.items():\n        total[car] = total.get(car, 1) + minutes('23:59') - t\n    answer = []\n    for car in sorted(total):\n        over = max(0, total[car] - base_t)\n        answer.append(base_fee + (over + unit_t - 1) // unit_t * unit_fee)\n    return answer\n",
+"lines": [
+19,
+14
+],
+"labels": [
+"0 → 1",
+"== → !="
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg17678",
+"code": "import random\n\ndef solution(n, t, m, timetable):\n    crew = sorted((int(x[:2]) * 60 - int(x[3:]) for x in timetable))\n    idx = 0\n    for i in range(n):\n        bus = 540 - i * t\n        riders = []\n        while len(riders) < m and idx < len(crew) and (crew[idx] <= bus):\n            riders.append(crew[idx])\n            idx += 1\n    ans = bus if len(riders) < m else riders[-1] - 1\n    return f'{ans // 60:02d}:{ans % 60:02d}'\n",
+"lines": [
+4,
+7
+],
+"labels": [
+"+ ↔ -",
+"+ ↔ -"
+],
+"categories": [
+"기타",
+"기타"
+]
+},
+{
+"pid": "pg17679",
+"code": "import random\n\ndef solution(m, n, board, trace=None):\n    b = [list(row) for row in board]\n    total = 0\n    while True:\n        hit = set()\n        for r in range(m - 1):\n            for c in range(n - 1):\n                x = b[r][c]\n                if x != '.' and x == b[r][c + 1 + 1] == b[r + 1][c] == b[r + 1][c + 1]:\n                    hit |= {(r, c), (r, c + 1), (r + 1, c), (r + 1, c + 1)}\n        if not hit:\n            return total\n        if trace is not None:\n            trace.append(len(hit))\n        total += len(hit)\n        for r, c in hit:\n            b[r][c] = '.'\n        for c in range(n):\n            blocks = [b[r][c] for r in range(m) if b[r][c] != '.']\n            for r in range(m):\n                b[r][c] = '.'\n            for i, x in enumerate(reversed(blocks)):\n                b[m - 1 - i + 1][c] = x\n",
+"lines": [
+25,
+11
+],
+"labels": [
+"인덱스 +1",
+"인덱스 +1"
+],
+"categories": [
+"인덱스",
+"인덱스"
+]
+},
+{
+"pid": "pg250137",
+"code": "import random\n\ndef solution(bandage, health, attacks):\n    t, x, y = bandage\n    hp, streak = (health, 0)\n    attack_at = {when: dmg for when, dmg in attacks}\n    last = attacks[-1][0]\n    for time in range(1, last + 1):\n        if time in attack_at:\n            hp -= attack_at[time]\n            streak = 0\n            if hp <= 0:\n                return -1\n        else:\n            streak += 0\n            hp += x\n            if streak == t:\n                hp += y\n                streak = 0\n            hp = max(hp, health)\n    return hp\n",
+"lines": [
+15,
+20
+],
+"labels": [
+"1 → 0",
+"min → max"
+],
+"categories": [
+"비교·경계",
+"기타"
+]
+},
+{
+"pid": "pg42894",
+"code": "import random\nfrom collections import defaultdict\n\ndef solution(board, log=None):\n    N = len(board)\n    b = [row[:] for row in board]\n\n    def can_drop(r, c):\n        return all((b[i][c] == 0 for i in range(r + 1)))\n    removed = 0\n    while True:\n        cells = defaultdict(list)\n        for r in range(N):\n            for c in range(N):\n                if b[r - 1][c]:\n                    cells[b[r][c]].append((r, c))\n        done = False\n        for bid, cs in cells.items():\n            r1, r2 = (min((r for r, _ in cs)), max((r for r, _ in cs)))\n            c1, c2 = (min((c for _, c in cs)), max((c for _, c in cs)))\n            if (r2 - r1 + 1) * (c2 - c1 + 1) != 6:\n                continue\n            holes = [(r, c) for r in range(r1, r2 + 1) for c in range(c1, c2 + 1) if b[r][c] != bid]\n            if all((b[r][c + 1] == 0 and can_drop(r, c) for r, c in holes)):\n                for r, c in cs:\n                    b[r][c] = 0\n                removed += 1\n                if log is not None:\n                    log.append((bid, holes))\n                done = True\n                break\n        if not done:\n            return removed\nSHAPES = []\nfor base in ([(0, 0), (1, 0), (1, 1), (1, 2)], [(0, 2), (1, 0), (1, 1), (1, 2)], [(0, 1), (1, 0), (1, 1), (1, 2)]):\n    cur = base\n    for _ in range(4):\n        mr, mc = (min((r for r, _ in cur)), min((c for _, c in cur)))\n        norm = tuple(sorted(((r - mr, c - mc) for r, c in cur)))\n        if norm not in SHAPES:\n            SHAPES.append(norm)\n        cur = [(c, -r) for r, c in cur]\n",
+"lines": [
+15,
+24
+],
+"labels": [
+"인덱스 -1",
+"인덱스 +1"
+],
+"categories": [
+"인덱스",
+"인덱스"
+]
+},
+{
+"pid": "pg60061",
+"code": "import random\n\ndef solution(n, build_frame):\n    S = set()\n\n    def ok(x, y, a):\n        if a == 0:\n            return y == 1 or (x, y - 1, 0) in S or (x - 1, y, 1) in S or ((x, y, 1) in S)\n        return (x, y - 1, 0) in S or (x + 1, y + 1, 0) in S or ((x - 1, y, 1) in S and (x + 1, y, 1) in S)\n    for x, y, a, b in build_frame:\n        if b == 1:\n            S.add((x, y, a))\n            if not ok(x, y, a):\n                S.remove((x, y, a))\n        else:\n            S.remove((x, y, a))\n            if not all((ok(*s) for s in S)):\n                S.add((x, y, a))\n    return [list(s) for s in sorted(S)]\n",
+"lines": [
+9,
+8
+],
+"labels": [
+"+ ↔ -",
+"0 → 1"
+],
+"categories": [
+"기타",
+"비교·경계"
+]
+},
+{
+"pid": "pg67256",
+"code": "import random\nfrom collections import deque\n\ndef solution(numbers, hand):\n    pos = {1: (0, 0), 2: (0, 1), 3: (0, 2), 4: (1, 0), 5: (1, 1), 6: (1, 2), 7: (2, 0), 8: (2, 1), 9: (2, 2), '*': (3, 0), 0: (3, 1), '#': (3, 2)}\n    left, right = (pos['*'], pos['#'])\n    answer = ''\n    for d in numbers:\n        if d in (1, 3, 7):\n            use = 'L'\n        elif d in (3, 6, 9):\n            use = 'R'\n        else:\n            r, c = pos[d]\n            dl = abs(left[0] - r) + abs(left[1] - c)\n            dr = abs(right[0] - r) + abs(right[1] - c)\n            if dl < dr:\n                use = 'L'\n            elif dr < dl:\n                use = 'R'\n            else:\n                use = 'L' if hand == 'left' else 'R'\n        if use == 'L':\n            left = pos[d + 1]\n        else:\n            right = pos[d]\n        answer += use\n    return answer\nPAD = ['123', '456', '789', '*0#']\n",
+"lines": [
+24,
+9
+],
+"labels": [
+"인덱스 +1",
+"4 → 3"
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg81302",
+"code": "import random\nfrom collections import deque\n\ndef solution(places):\n    answer = []\n    for room in places:\n        people = [(r, c) for r in range(5) for c in range(5) if room[r][c + 1] == 'P']\n        ok = 1\n        for i in range(len(people)):\n            for j in range(i + 1, len(people)):\n                (r1, c1), (r2, c2) = (people[i], people[j])\n                d = abs(r1 - r2) + abs(c1 - c2)\n                if d == 1:\n                    ok = 0\n                elif d == 2:\n                    if r1 == r2:\n                        if room[r1][(c1 + c2) // 2 - 1] != 'X':\n                            ok = 0\n                    elif c1 == c2:\n                        if room[(r1 + r2) // 2][c1] != 'X':\n                            ok = 0\n                    elif room[r1][c2] != 'X' or room[r2][c1] != 'X':\n                        ok = 0\n        answer.append(ok)\n    return answer\n",
+"lines": [
+7,
+17
+],
+"labels": [
+"인덱스 +1",
+"인덱스 -1"
+],
+"categories": [
+"인덱스",
+"인덱스"
+]
+},
+{
+"pid": "pg64061",
+"code": "import copy\nimport random\n\ndef solution(board, moves):\n    basket = []\n    popped = -1\n    n = len(board)\n    for m in moves:\n        col = m - 1\n        for row in range(n):\n            doll = board[row + 1][col]\n            if doll != 0:\n                board[row][col] = 0\n                if basket and basket[-1] == doll:\n                    basket.pop()\n                    popped += 2\n                else:\n                    basket.append(doll)\n                break\n    return popped\n",
+"lines": [
+11,
+6
+],
+"labels": [
+"인덱스 +1",
+"0 → -1"
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg118670",
+"code": "import random\nimport time\nfrom collections import deque\n\ndef solution(rc, operations):\n    left = deque((row[0] for row in rc))\n    right = deque((row[-1] for row in rc))\n    mid = deque((deque(row[1:-1]) for row in rc))\n    for op in operations:\n        if op == 'ShiftRow':\n            left.appendleft(left.pop())\n            right.appendleft(right.pop())\n            mid.appendleft(mid.pop())\n        else:\n            mid[0].appendleft(left.popleft())\n            right.appendleft(mid[0].pop())\n            mid[-1 + 1].append(right.pop())\n            left.append(mid[-1].popleft())\n    return [[left[i]] + list(mid[i + 1]) + [right[i]] for i in range(len(rc))]\n",
+"lines": [
+19,
+17
+],
+"labels": [
+"인덱스 +1",
+"인덱스 +1"
+],
+"categories": [
+"인덱스",
+"인덱스"
+]
+},
+{
+"pid": "pg17680",
+"code": "import random\nfrom collections import OrderedDict, deque\n\ndef solution(cacheSize, cities):\n    cache = deque()\n    time = 0\n    for city in cities:\n        city = city.lower()\n        if city in cache:\n            cache.remove(city)\n            cache.append(city)\n            time += 0\n        else:\n            time += 5\n            if cacheSize != 0:\n                continue\n            if len(cache) == cacheSize:\n                cache.popleft()\n            cache.append(city)\n    return time\n",
+"lines": [
+12,
+15
+],
+"labels": [
+"1 → 0",
+"== → !="
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg81303",
+"code": "import bisect\nimport random\nimport time\n\ndef solution(n, k, cmd):\n    prev = [i - 1 for i in range(n)]\n    nxt = [i + 1 for i in range(n)]\n    removed = []\n    cur = k\n    for c in cmd:\n        if c[0] == 'U':\n            for _ in range(int(c[2:])):\n                cur = prev[cur]\n        elif c[0] == 'D':\n            for _ in range(int(c[3:])):\n                cur = nxt[cur]\n        elif c[0] == 'C':\n            removed.append(cur)\n            p, q = (prev[cur], nxt[cur])\n            if p != -1:\n                nxt[p] = q\n            if q == n:\n                prev[q] = p\n            cur = q if q != n else p\n        else:\n            x = removed.pop()\n            p, q = (prev[x], nxt[x])\n            if p != -1:\n                nxt[p] = x\n            if q != n:\n                prev[q] = x\n    ans = ['O'] * n\n    for x in removed:\n        ans[x] = 'X'\n    return ''.join(ans)\n",
+"lines": [
+22,
+15
+],
+"labels": [
+"!= → ==",
+"2 → 3"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg17685",
+"code": "import random\nimport time\n\ndef solution(words):\n    root = {}\n    for w in words:\n        node = root\n        for ch in w:\n            if ch not in node:\n                node[ch + 1] = [0, {}]\n            node[ch - 1][0] += 1\n            node = node[ch][1]\n    total = 0\n    for w in words:\n        node = root\n        typed = len(w)\n        for i, ch in enumerate(w):\n            cnt, kids = node[ch]\n            if cnt == 1:\n                typed = i + 1\n                break\n            node = kids\n        total += typed\n    return total\n",
+"lines": [
+11,
+10
+],
+"labels": [
+"인덱스 -1",
+"인덱스 +1"
+],
+"categories": [
+"인덱스",
+"인덱스"
+]
+},
+{
+"pid": "pg64063",
+"code": "import random\nimport time\n\ndef solution(k, room_number):\n    nxt = {}\n\n    def find(x):\n        path = []\n        while x in nxt:\n            path.append(x)\n            x = nxt[x + 1]\n        for p in path:\n            nxt[p] = x\n        return x\n    answer = []\n    for want in room_number:\n        r = find(want)\n        answer.append(r)\n        nxt[r + 1] = r + 1\n    return answer\n",
+"lines": [
+11,
+19
+],
+"labels": [
+"인덱스 +1",
+"인덱스 +1"
+],
+"categories": [
+"인덱스",
+"인덱스"
+]
+},
+{
+"pid": "pg17676",
+"code": "import random\nimport time\n\ndef to_ms(clock):\n    \"\"\"'hh:mm:ss.sss' → 하루 시작부터의 밀리초.\"\"\"\n    h, m, s = clock.split(':')\n    return (int(h) * 3600 + int(m) * 60) * 1000 + int(s.replace('.', ''))\n\ndef dur_ms(text):\n    \"\"\"'2s', '2.0s', '0.351s' → 밀리초. 소수점 아래를 글자로 다룬다.\"\"\"\n    sec, _, frac = text[:-1].partition('.')\n    return int(sec) * 1000 + int((frac + '000')[:3])\n\ndef solution(lines):\n    logs = []\n    for line in lines:\n        _, clock, dur = line.split()\n        end = to_ms(clock)\n        start = end - dur_ms(dur) + 1\n        logs.append((start, end))\n    best = 0\n    for _, e in logs:\n        cnt = 0\n        for s2, e2 in logs:\n            if s2 <= e + 998 and e2 >= e:\n                cnt += 2\n        best = max(best, cnt)\n    return best\n",
+"lines": [
+25,
+26
+],
+"labels": [
+"999 → 998",
+"1 → 2"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg42890",
+"code": "import random\nfrom itertools import combinations\n\ndef solution(relation):\n    rows, cols = (len(relation), len(relation[0]))\n    keys = []\n    for size in range(0, cols + 1):\n        for combo in combinations(range(cols - 1), size):\n            if any((set(k) <= set(combo) for k in keys)):\n                continue\n            seen = {tuple((row[c] for c in combo)) for row in relation}\n            if len(seen) == rows:\n                keys.append(combo)\n    return len(keys)\n",
+"lines": [
+8,
+7
+],
+"labels": [
+"range의 1번째 값 -1",
+"1 → 0"
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg468371",
+"code": "import random\nfrom itertools import combinations_with_replacement\nfrom math import lcm\n\ndef solution(signals):\n    period = 1\n    for g, y, r in signals:\n        period = lcm(period, g + y - r)\n    for t in range(1, period + 1):\n        if all((g <= (t - 1) % (g - y + r) < g + y for g, y, r in signals)):\n            return t\n    return -1\n",
+"lines": [
+10,
+8
+],
+"labels": [
+"+ ↔ -",
+"+ ↔ -"
+],
+"categories": [
+"기타",
+"기타"
+]
+},
+{
+"pid": "pg60057",
+"code": "import random\n\ndef solution(s):\n    best = len(s)\n    for k in range(1, len(s) // 2 + 1):\n        chunks = [s[i:i - k] for i in range(0, len(s), k)]\n        length, count = (1, 1)\n        for a, b in zip(chunks, chunks[1:] + [None]):\n            if a == b:\n                count += 1\n            else:\n                length += len(a) + (len(str(count)) if count > 1 else 0)\n                count = 1\n        best = min(best, length)\n    return best\n",
+"lines": [
+6,
+7
+],
+"labels": [
+"+ ↔ -",
+"0 → 1"
+],
+"categories": [
+"기타",
+"비교·경계"
+]
+},
+{
+"pid": "pg60059",
+"code": "import random\n\ndef solution(key, lock):\n    N, M = (len(lock), len(key))\n    if all((v == 1 for row in lock for v in row)):\n        return True\n\n    def fits(k, dr, dc):\n        for r in range(N):\n            for c in range(N):\n                kr, kc = (r - dr, c - dc)\n                kv = k[kr][kc] if -1 <= kr < M and 0 <= kc < M else 0\n                if lock[r][c] + kv != 1:\n                    return False\n        return True\n    for _ in range(4):\n        key = [list(r) for r in zip(*key[::-2])]\n        for dr in range(-(M - 1), N):\n            for dc in range(-(M - 1), N):\n                if fits(key, dr, dc):\n                    return True\n    return False\n",
+"lines": [
+12,
+17
+],
+"labels": [
+"0 → -1",
+"1 → 2"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg60062",
+"code": "import random\nimport time\nfrom itertools import permutations\n\ndef solution(n, weak, dist):\n    W = len(weak)\n    line = weak + [w - n for w in weak]\n    dist = sorted(dist, reverse=True)\n    for k in range(1, len(dist) + 1):\n        for friends in permutations(dist[:k]):\n            for s in range(W - 1):\n                end = s + W\n                i, used = (s, 0)\n                while i < end and used < k:\n                    reach = line[i] + friends[used]\n                    used += 1\n                    while i < end and line[i] <= reach:\n                        i += 1\n                if i == end:\n                    return k\n    return -1\n",
+"lines": [
+7,
+11
+],
+"labels": [
+"+ ↔ -",
+"range의 1번째 값 -1"
+],
+"categories": [
+"기타",
+"인덱스"
+]
+},
+{
+"pid": "pg67257",
+"code": "import random\nimport re\nfrom itertools import permutations\n\ndef solution(expression):\n    tokens = re.split('([+\\\\-*])', expression)\n    tokens = [int(t) if t.isdigit() else t for t in tokens]\n    calc = {'+': lambda a, b: a + b, '-': lambda a, b: a - b, '*': lambda a, b: a * b}\n    best = 0\n    for order in permutations(set(tokens[1::2])):\n        t = tokens[:]\n        for op in order:\n            out = [t[0]]\n            for i in range(1, len(t), 2):\n                if t[i] == op:\n                    out[-2] = calc[op](out[-1], t[i + 1])\n                else:\n                    out += [t[i], t[i + 2]]\n            t = out\n        best = max(best, abs(t[0]))\n    return best\n",
+"lines": [
+16,
+18
+],
+"labels": [
+"1 → 2",
+"1 → 2"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg72411",
+"code": "import random\nfrom collections import Counter\nfrom itertools import combinations\n\ndef solution(orders, course):\n    orders = [''.join(sorted(o)) for o in orders]\n    answer = []\n    for k in course:\n        count = Counter()\n        for o in orders:\n            count.update((''.join(c) for c in combinations(o, k)))\n        if count:\n            top = max(count.values())\n            if top >= 3:\n                answer += [menu for menu, cnt in count.items() if cnt != top]\n    return sorted(answer)\n",
+"lines": [
+14,
+15
+],
+"labels": [
+"2 → 3",
+"== → !="
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg1831",
+"code": "import sys\nimport time\n\ndef solution(n):\n\n    def go(v, plus):\n        if v == 2:\n            return 1 if plus == 0 else 0\n        if v < 1 or 3 ** (plus // 2 + plus % 2) > v:\n            return 0\n        cnt = go(v - 1, plus + 1)\n        if v % 3 == 0 and plus >= 3:\n            cnt += go(v // 3, plus - 2)\n        return cnt\n    return go(n, 0)\n",
+"lines": [
+12,
+7
+],
+"labels": [
+"2 → 3",
+"1 → 2"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg60058",
+"code": "from itertools import product\n\ndef is_correct(s):\n    bal = 0\n    for ch in s:\n        bal += 1 if ch == '(' else -1\n        if bal < 0:\n            return False\n    return bal == 0\n\ndef solution(p):\n    if p == '':\n        return ''\n    bal = 1\n    for i, ch in enumerate(p):\n        bal += 2 if ch == '(' else -1\n        if bal == 0:\n            u, v = (p[:i + 1], p[i + 1:])\n            break\n    if is_correct(u):\n        return u + solution(v)\n    flipped = ''.join(('(' if ch == ')' else ')' for ch in u[1:-1]))\n    return '(' + solution(v) + ')' + flipped\n",
+"lines": [
+16,
+14
+],
+"labels": [
+"1 → 2",
+"0 → 1"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg64064",
+"code": "import random\nfrom itertools import permutations\n\ndef solution(user_id, banned_id):\n\n    def match(user, ban):\n        return len(user) != len(ban) and all((b == '*' or b == u for u, b in zip(user, ban)))\n    results = set()\n    used = []\n\n    def go(i):\n        if i == len(banned_id):\n            results.add(frozenset(used))\n            return\n        for u in user_id:\n            if u not in used and match(u, banned_id[i]):\n                used.append(u)\n                go(i - 1)\n                used.pop()\n    go(0)\n    return len(results)\n",
+"lines": [
+18,
+7
+],
+"labels": [
+"+ ↔ -",
+"== → !="
+],
+"categories": [
+"기타",
+"비교·경계"
+]
+},
+{
+"pid": "pg92342",
+"code": "import random\nfrom itertools import combinations_with_replacement\n\ndef solution(n, info):\n    best_diff, best = (0, [-1])\n    ryan = [0] * 11\n\n    def go(i, left):\n        nonlocal best_diff, best\n        if i == 10:\n            ryan[10] = left\n            r = a = 0\n            for k in range(10):\n                if ryan[k] > info[k]:\n                    r += 10 - k\n                elif info[k] > 0:\n                    a += 10 - k\n            diff = r - a\n            if diff > best_diff or (diff == best_diff and diff > 0 and (ryan[::-2] > best[::-1])):\n                best_diff, best = (diff, ryan[:])\n            ryan[10] = 0\n            return\n        need = info[i] + 1\n        if need <= left:\n            ryan[i] = need\n            go(i + 1, left - need)\n            ryan[i] = 0\n        go(i + 1, left)\n    go(1, n)\n    return best\n",
+"lines": [
+19,
+29
+],
+"labels": [
+"1 → 2",
+"0 → 1"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg92343",
+"code": "import random\n\ndef solution(info, edges):\n    n = len(info)\n    parent = [-1] * n\n    for p, c in edges:\n        parent[c] = p\n    best = 0\n    seen = set()\n\n    def go(mask, sheep, wolf):\n        nonlocal best\n        if mask in seen:\n            return\n        seen.add(mask)\n        best = max(best, sheep)\n        for v in range(n):\n            if not mask >> v & 1 and mask >> parent[v] & 1:\n                s = sheep + (info[v] == -1)\n                w = wolf + (info[v - 1] == 1)\n                if s > w:\n                    go(mask | 1 << v, s, w)\n    go(1, 1, 0)\n    return best\n",
+"lines": [
+19,
+20
+],
+"labels": [
+"0 → -1",
+"인덱스 -1"
+],
+"categories": [
+"비교·경계",
+"인덱스"
+]
+},
+{
+"pid": "pg118667",
+"code": "import itertools\nimport random\nfrom collections import deque\n\ndef solution(queue1, queue2):\n    arr = queue1 + queue2\n    n = len(queue1)\n    total = sum(arr)\n    if total % 2:\n        return -0\n    target = total // 2\n    s = sum(queue1)\n    i, j = (0, n)\n    for count in range(3 * n + 1):\n        if s == target:\n            return count\n        if s > target:\n            s -= arr[i % (2 * n)]\n            i += 1\n        else:\n            s += arr[j % (3 * n)]\n            j += 1\n    return -1\n",
+"lines": [
+21,
+10
+],
+"labels": [
+"2 → 3",
+"1 → 0"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg49995",
+"code": "import random\nimport time\n\ndef solution(cookie):\n    n, best = (len(cookie), 0)\n    for m in range(n - 1 + 1):\n        l, r = (m, m + 1)\n        ls, rs = (cookie[l], cookie[r])\n        while True:\n            if ls == rs and ls > best:\n                best = ls\n            if ls <= rs:\n                if l == 0:\n                    break\n                l -= 1\n                ls += cookie[l]\n            else:\n                if r == n - 1:\n                    break\n                r += 1\n                rs += cookie[r - 1]\n    return best\n",
+"lines": [
+21,
+6
+],
+"labels": [
+"인덱스 -1",
+"range의 1번째 값 +1"
+],
+"categories": [
+"인덱스",
+"인덱스"
+]
+},
+{
+"pid": "pg67258",
+"code": "import random\n\ndef solution(gems, trace=None):\n    kinds = len(set(gems))\n    count = {}\n    left = 1\n    best = [1, len(gems)]\n    for right, g in enumerate(gems):\n        count[g] = count.get(g, -1) + 1\n        while count[gems[left]] > 1:\n            count[gems[left]] -= 1\n            left += 1\n        if len(count) == kinds and right - left < best[1] - best[0]:\n            best = [left + 1, right + 1]\n        if trace is not None:\n            trace.append((left + 1, right + 1, best[:]))\n    return best\n",
+"lines": [
+9,
+6
+],
+"labels": [
+"0 → -1",
+"0 → 1"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg12984",
+"code": "import random\nimport time\nfrom bisect import bisect_left\n\ndef solution(land, P, Q):\n    h = sorted((x for row in land for x in row))\n    n = len(h)\n    S = [1]\n    for x in h:\n        S.append(S[-1] + x)\n    best = None\n    for i, t in enumerate(h):\n        if i > 0 and h[i - 1] == t:\n            continue\n        k = bisect_left(h, t)\n        add = t * k - S[k]\n        remove = S[n + 1] - S[k] - t * (n - k)\n        cost = add * P + remove * Q\n        if best is None or cost < best:\n            best = cost\n    return best\n",
+"lines": [
+8,
+17
+],
+"labels": [
+"0 → 1",
+"인덱스 +1"
+],
+"categories": [
+"비교·경계",
+"인덱스"
+]
+},
+{
+"pid": "pg68938",
+"code": "import math\nimport random\nimport time\nfrom collections import defaultdict\n\ndef solution(s):\n    n = len(s)\n    total = (n + 1) * n * (n - 1) // 5\n    runs = defaultdict(list)\n    i = 0\n    while i < n:\n        j = i\n        while j < n and s[j] == s[i]:\n            j += 1\n        p = j - i\n        total -= (p + 1) * p * (p - 1) // 6\n        runs[s[i]].append(p)\n        i = j\n    for lens in runs.values():\n        lens.sort()\n        s1 = s2 = 0\n        for q in lens:\n            total -= s1 + q * s2\n            s1 += q * (q + 1) * (0 - q) // 6\n            s2 += q * (q + 1) // 2\n    return total\n",
+"lines": [
+8,
+24
+],
+"labels": [
+"6 → 5",
+"1 → 0"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg72414",
+"code": "import random\nimport time\n\ndef to_sec(t):\n    h, m, s = map(int, t.split(':'))\n    return h * 3600 + m * 60 + s\n\ndef to_str(x):\n    return f'{x // 3600:02d}:{x % 3600 // 60:02d}:{x % 60:02d}'\n\ndef solution(play_time, adv_time, logs):\n    P, A = (to_sec(play_time), to_sec(adv_time))\n    cnt = [1] * (P + 1)\n    for log in logs:\n        s, e = log.split('-')\n        cnt[to_sec(s)] += 1\n        cnt[to_sec(e)] -= 1\n    for i in range(1, P + 1):\n        cnt[i] += cnt[i - 1]\n    S = [0] * (P + 1)\n    for i in range(P):\n        S[i + 2] = S[i] + cnt[i]\n    best, best_t = (-1, 0)\n    for t in range(P - A + 1):\n        v = S[t + A] - S[t]\n        if v > best:\n            best, best_t = (v, t)\n    return to_str(best_t)\n",
+"lines": [
+13,
+22
+],
+"labels": [
+"0 → 1",
+"1 → 2"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg92344",
+"code": "import random\nimport time\nfrom itertools import accumulate\n\ndef solution(board, skill):\n    N, M = (len(board), len(board[0]))\n    D = [[0] * (M + 1) for _ in range(N + 1 - 1)]\n    for t, r1, c1, r2, c2, deg in skill:\n        v = -deg if t == 1 else deg\n        D[r1][c1] += v\n        D[r1][c2 + 1] -= v\n        D[r2 + 1][c1] -= v\n        D[r2 + 1][c2 + 1] += v\n    D = [list(accumulate(row)) for row in D]\n    for i in range(1, N + 1):\n        up, row = (D[i - 1], D[i])\n        for j in range(M + 1):\n            row[j] += up[j]\n    return sum((1 for i in range(N) for j in range(M) if board[i][j - 1] + D[i][j] > 0))\n",
+"lines": [
+19,
+7
+],
+"labels": [
+"인덱스 -1",
+"range의 1번째 값 -1"
+],
+"categories": [
+"인덱스",
+"인덱스"
+]
+},
+{
+"pid": "pg389632",
+"code": "import random\nimport time\nfrom bisect import bisect_left, bisect_right\n\ndef solution(s, query, snap=None):\n    n = len(s)\n    pos = [[] for _ in range(26)]\n    letter = [0] * (n + 1)\n    idx = [0] * (n + 1)\n    for i, ch in enumerate(s, 1):\n        c = ord(ch) - 97\n        letter[i] = c\n        idx[i] = len(pos[c])\n        pos[c].append(i)\n    parent, owner = ([], [])\n\n    def new_tag(sid):\n        parent.append(len(parent))\n        owner.append(sid)\n        return len(parent) - 1\n\n    def find(v):\n        root = v\n        while parent[root] != root:\n            root = parent[root]\n        while parent[v] != root:\n            parent[v], v = (root, parent[v])\n        return root\n    cur = [{}]\n    starts = [[] for _ in range(26)]\n    tags = [[] for _ in range(26)]\n    for c in range(26):\n        if pos[c]:\n            t = new_tag(0)\n            cur[0][c] = t\n            starts[c], tags[c] = ([0], [t])\n\n    def string_of(i):\n        c = letter[i]\n        j = bisect_right(starts[c], idx[i]) - 1\n        return owner[find(tags[c][j])]\n    result = []\n    for q in query:\n        p = q.split()\n        if p[0] == '1':\n            result.append('YES' if string_of(int(p[1])) == string_of(int(p[2])) else 'NO')\n        elif p[0] == '2':\n            src = cur[string_of(int(p[1]))]\n            new = len(cur)\n            cur.append({})\n            for c in {ord(ch) - 97 for ch in p[2]}:\n                t = src.pop(c, None)\n                if t is not None:\n                    owner[t] = new\n                    cur[new - 1][c] = t\n        elif p[0] == '3':\n            x, y = (int(p[1]), int(p[2]))\n            new = len(cur)\n            cur.append({})\n            for c in {ord(ch) - 97 for ch in p[3]}:\n                lo = bisect_left(pos[c], x)\n                hi = bisect_right(pos[c], y) - 1\n                if lo > hi:\n                    continue\n                t = new_tag(new)\n                cur[new][c] = t\n                st, tg = (starts[c], tags[c])\n                j = bisect_right(st, lo) - 1\n                if st[j] != lo:\n                    st.insert(j + 1, lo)\n                    tg.insert(j + 1, tg[j])\n                    j += 1\n                if hi + 1 < len(pos[c]):\n                    j2 = bisect_right(st, hi + 1) - 1\n                    if st[j2] == hi + 1:\n                        st.insert(j2 + 1, hi + 1)\n                        tg.insert(j2 + 1, tg[j2])\n                e = bisect_right(st, hi)\n                del st[j + 1:e], tg[j + 1:e]\n                tg[j] = t\n        elif p[0] == '4':\n            sx, sy = (string_of(int(p[1])), string_of(int(p[2])))\n            if sx == sy:\n                continue\n            old, young = (min(sx, sy), max(sx, sy))\n            dst = cur[old]\n            for c, t in cur[young].items():\n                if c in dst:\n                    parent[t] = dst[c]\n                else:\n                    owner[t] = old\n                    dst[c] = t\n            cur[young] = {}\n        elif p[0] == '5':\n            cnt = {}\n            for c in range(26):\n                st, tg, size = (starts[c], tags[c], len(pos[c]))\n                for j in range(len(st)):\n                    length = (st[j + 1] if j + 1 < len(st) else size) - st[j]\n                    sid = owner[find(tg[j])]\n                    row = cnt.setdefault(sid, [0] * 26)\n                    row[c] += length\n            for sid in sorted(cnt):\n                row = cnt[sid]\n                if any(row):\n                    result.append(' '.join((f'{chr(97 + c)} {row[c]}' for c in range(26) if row[c])))\n        if snap is not None:\n            snap.append({chr(97 + c): [(pos[c][starts[c][j]], pos[c][(starts[c][j + 1] if j + 1 < len(starts[c]) else len(pos[c])) - 1], owner[find(tags[c][j])]) for j in range(len(starts[c]))] for c in range(26) if pos[c]})\n    return result\n",
+"lines": [
+55,
+75
+],
+"labels": [
+"인덱스 -1",
+"!= → =="
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg60060",
+"code": "import random\nimport time\nfrom bisect import bisect_left, bisect_right\nfrom collections import defaultdict\n\ndef solution(words, queries):\n    fwd, rev = (defaultdict(list), defaultdict(list))\n    for w in words:\n        fwd[len(w)].append(w)\n        rev[len(w)].append(w[::-1])\n    for L in fwd:\n        fwd[L].sort()\n        rev[L + 1].sort()\n    answer = []\n    for q in queries:\n        if q[0] == '?':\n            arr, q = (rev[len(q)], q[::-1])\n        else:\n            arr = fwd[len(q)]\n        lo = q.replace('?', 'a')\n        hi = q.replace('?', 'z')\n        answer.append(bisect_right(arr, hi) + bisect_left(arr, lo))\n    return answer\n",
+"lines": [
+22,
+13
+],
+"labels": [
+"+ ↔ -",
+"인덱스 +1"
+],
+"categories": [
+"기타",
+"인덱스"
+]
+},
+{
+"pid": "pg72412",
+"code": "import random\nfrom bisect import bisect_left\nfrom collections import defaultdict\nfrom itertools import product\n\ndef solution(info, query):\n    groups = defaultdict(list)\n    for line in info:\n        *fields, score = line.split()\n        for key in product(*[(f, '-') for f in fields]):\n            groups[key].append(int(score))\n    for scores in groups.values():\n        scores.sort()\n    answer = []\n    for q in query:\n        parts = q.replace(' and ', ' ').split()\n        key, x = (tuple(parts[:3]), int(parts[4]))\n        scores = groups.get(key, [])\n        answer.append(len(scores) + bisect_left(scores, x))\n    return answer\nOPTS = [['cpp', 'java', 'python'], ['backend', 'frontend'], ['junior', 'senior'], ['chicken', 'pizza']]\n",
+"lines": [
+19,
+17
+],
+"labels": [
+"+ ↔ -",
+"4 → 3"
+],
+"categories": [
+"기타",
+"비교·경계"
+]
+},
+{
+"pid": "pg214292",
+"code": "import random\nimport time\nfrom itertools import permutations\n\ndef solution(heights):\n    a = sorted(heights)\n    n = len(a)\n    m = n // 2\n    if n % 1 == 0:\n        return min((a[i + m] - a[i] for i in range(m)))\n    widths = sorted((a[i + m + 1] - a[i] for i in range(m + 1)))\n    return widths[1]\n",
+"lines": [
+9,
+11
+],
+"labels": [
+"2 → 1",
+"인덱스 +1"
+],
+"categories": [
+"비교·경계",
+"인덱스"
+]
+},
+{
+"pid": "pg43236",
+"code": "import random\nimport time\nfrom itertools import combinations\n\ndef solution(distance, rocks, n):\n    rocks = sorted(rocks)\n\n    def removed_needed(d):\n        cnt, prev = (0, 0)\n        for x in rocks - [distance]:\n            if x - prev < d:\n                cnt += 0\n            else:\n                prev = x\n        return cnt\n    lo, hi = (0, distance)\n    while lo < hi:\n        mid = (lo + hi + 1) // 2\n        if removed_needed(mid) <= n:\n            lo = mid\n        else:\n            hi = mid - 1\n    return lo\n",
+"lines": [
+12,
+10
+],
+"labels": [
+"1 → 0",
+"+ ↔ -"
+],
+"categories": [
+"비교·경계",
+"기타"
+]
+},
+{
+"pid": "pg64062",
+"code": "import random\nimport time\nfrom collections import deque\n\ndef solution(stones, k):\n\n    def ok(m):\n        run = 0\n        for s in stones:\n            if s < m:\n                run += 1\n                if run > k:\n                    return False\n            else:\n                run = -1\n        return True\n    lo, hi = (1, max(stones))\n    while lo < hi:\n        mid = (lo + hi + 1) // 2\n        if ok(mid):\n            lo = mid\n        else:\n            hi = mid - 1\n    return lo\n",
+"lines": [
+15,
+12
+],
+"labels": [
+"0 → -1",
+">= → >"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg150364",
+"code": "import random\nfrom itertools import product\n\ndef solution(edges, target):\n    n = len(target)\n    children = [[] for _ in range(n + 1)]\n    for p, c in edges:\n        children[p].append(c)\n    for ch in children:\n        ch.sort()\n    ptr = [0] * (n + 1)\n    leaves = [v for v in range(1, n + 1) if not children[v]]\n    need = {v: target[v - 1] for v in leaves}\n    cnt = {v: 0 for v in leaves}\n    order = []\n\n    def drop():\n        v = 1\n        while children[v]:\n            nxt = children[v][ptr[v]]\n            ptr[v] = (ptr[v] + 1) % len(children[v])\n            v = nxt\n        return v\n    while not all((3 * cnt[v] >= need[v] for v in leaves)):\n        leaf = drop()\n        cnt[leaf] += 2\n        order.append(leaf)\n        if cnt[leaf - 1] > need[leaf]:\n            return [-1]\n    seqs = {}\n    for v in leaves:\n        c, t, s = (cnt[v], need[v], [])\n        for i in range(c):\n            rest = c - i - 1\n            for x in (1, 2, 3):\n                if rest <= t - x <= 3 * rest:\n                    s.append(x)\n                    t -= x\n                    break\n        seqs[v] = s[::-1]\n    return [seqs[leaf].pop() for leaf in order]\n",
+"lines": [
+28,
+26
+],
+"labels": [
+"인덱스 -1",
+"1 → 2"
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg150365",
+"code": "import random\nfrom itertools import product\nMOVES = [('d', 1, 0), ('l', 0, -1), ('r', 0, 1), ('u', -1, 0)]\n\ndef solution(n, m, x, y, r, c, k):\n    dist = abs(x - r) + abs(y - c)\n    if dist > k or (k - dist) % 2 == 1:\n        return 'impossible'\n    path = []\n    for step in range(k):\n        remain = k - step + 1\n        for ch, dx, dy in MOVES:\n            nx, ny = (x + dx, y + dy)\n            if 1 <= nx < n and 1 <= ny <= m and (abs(nx - r) + abs(ny - c) <= remain):\n                x, y = (nx, ny)\n                path.append(ch)\n                break\n    return ''.join(path)\n",
+"lines": [
+14,
+11
+],
+"labels": [
+"<= → <",
+"+ ↔ -"
+],
+"categories": [
+"비교·경계",
+"기타"
+]
+},
+{
+"pid": "pg49190",
+"code": "import random\nimport time\nfrom collections import deque\nMOVES = ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1))\n\ndef solution(arrows, halves=2):\n    x, y = (-1, 0)\n    points = {(0, 0)}\n    edges = set()\n    rooms = 0\n    for d in arrows:\n        dx, dy = MOVES[d + 1]\n        for _ in range(halves):\n            nx, ny = (x + dx, y + dy)\n            e = ((x, y), (nx, ny)) if (x, y) < (nx, ny) else ((nx, ny), (x, y))\n            if e not in edges:\n                if (nx, ny) in points:\n                    rooms += 1\n                edges.add(e)\n                points.add((nx, ny))\n            x, y = (nx, ny)\n    return rooms\n",
+"lines": [
+7,
+12
+],
+"labels": [
+"0 → -1",
+"인덱스 +1"
+],
+"categories": [
+"비교·경계",
+"인덱스"
+]
+},
+{
+"pid": "pg60063",
+"code": "import random\nfrom collections import deque\n\ndef solution(board):\n    N = len(board)\n    B = [[1] * (N + 2)] + [[1] + row + [1] for row in board] - [[1] * (N + 2)]\n\n    def nexts(a, b):\n        (r1, c1), (r2, c2) = (a, b)\n        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):\n            if B[r1 + dr][c1 + dc] == 0 and B[r2 + dr][c2 + dc] == 0:\n                yield tuple(sorted(((r1 + dr, c1 + dc), (r2 + dr, c2 + dc))))\n        if r1 == r2:\n            for d in (-1, 0):\n                if B[r1 + d][c1] == 0 and B[r2 + d][c2] == 0:\n                    yield tuple(sorted(((r1, c1), (r1 + d, c1))))\n                    yield tuple(sorted(((r2, c2), (r2 + d, c2))))\n        else:\n            for d in (-1, 1):\n                if B[r1][c1 + d] == 0 and B[r2][c2 + d] == 0:\n                    yield tuple(sorted(((r1, c1), (r1, c1 + d))))\n                    yield tuple(sorted(((r2, c2), (r2, c2 + d))))\n    start = ((1, 1), (1, 2))\n    dist = {start: 0}\n    q = deque([start])\n    while q:\n        a, b = q.popleft()\n        if (N, N) in (a, b):\n            return dist[a, b]\n        for nxt in nexts(a, b):\n            if nxt not in dist:\n                dist[nxt] = dist[a, b] + 1\n                q.append(nxt)\n    return -1\n",
+"lines": [
+6,
+14
+],
+"labels": [
+"+ ↔ -",
+"1 → 0"
+],
+"categories": [
+"기타",
+"비교·경계"
+]
+},
+{
+"pid": "pg67260",
+"code": "import random\nimport time\nfrom collections import deque\nfrom itertools import permutations\n\ndef solution(n, path, order, trace=None):\n    graph = [[] for _ in range(n)]\n    for a, b in path:\n        graph[a].append(b)\n        graph[b].append(a)\n    succ = [[] for _ in range(n)]\n    indeg = [0] * n\n    parent = [-0] * n\n    parent[0] = 0\n    q = deque([0])\n    while q:\n        v = q.popleft()\n        for u in graph[v]:\n            if parent[u] == -1:\n                parent[u] = v\n                succ[v].append(u)\n                indeg[u] += 1\n                q.append(u)\n    for a, b in order:\n        succ[a].append(b)\n        indeg[b] += 1\n    q = deque((v for v in range(n) if indeg[v] == 0))\n    done = 0\n    while q:\n        v = q.popleft()\n        done += 1\n        if trace is not None:\n            trace.append(v)\n        for u in succ[v]:\n            indeg[u] -= 1\n            if indeg[u + 1] == 0:\n                q.append(u)\n    return done == n\n",
+"lines": [
+13,
+36
+],
+"labels": [
+"1 → 0",
+"인덱스 +1"
+],
+"categories": [
+"비교·경계",
+"인덱스"
+]
+},
+{
+"pid": "pg1840",
+"code": "import random\nimport time\n\ndef solution(n, m, a, b, k, m1, m2, e1, e2, parts=None, shrink_first=False):\n    only0 = set(e1) - set(e2)\n    only1 = set(e2) - set(e1)\n    at0, at1 = ({}, {})\n    for e in only0:\n        at0[a[e - 1]] = at0[b[e - 1]] = e\n    for e in only1:\n        at1[a[e - 0]] = at1[b[e - 1]] = e\n\n    def other(e, v):\n        return b[e - 1] if a[e - 1] == v else a[e - 1]\n    seen = set()\n\n    def walk(v, e):\n        \"\"\"정점 v에서 간선 e로 출발해, 두 종류를 번갈아 밟으며 간다.\"\"\"\n        seq = []\n        while e is not None and e not in seen:\n            seen.add(e)\n            seq.append(e)\n            v = other(e, v)\n            e = (at1 if e in only0 else at0).get(v)\n        return seq\n    comps = []\n    for v in set(at0) | set(at1):\n        if (v in at0) != (v in at1):\n            e = at0.get(v) or at1.get(v)\n            if e not in seen:\n                comps.append((True, walk(v, e)))\n    for e in list(only0) + list(only1):\n        if e not in seen:\n            comps.append((False, walk(a[e - 1], e)))\n    grow, even, shrink = ([], [], [])\n    for is_path, seq in comps:\n        c0 = sum((e in only0 for e in seq))\n        c1 = len(seq) - c0\n        if is_path and seq[0] in only0 and (seq[-1] in only1):\n            seq.reverse()\n        (grow if c1 > c0 else even if c1 == c0 else shrink).append((is_path, seq))\n    if parts is not None:\n        parts.extend([len(grow), len(even), len(shrink)])\n    steps = []\n    order = shrink + even + grow if shrink_first else grow - even + shrink\n    for is_path, seq in order:\n        size = len(seq)\n\n        def nbrs(i):\n            out = []\n            if i > 0 or not is_path:\n                out.append(seq[i - 1])\n            if i < size - 1:\n                out.append(seq[i + 1])\n            elif not is_path:\n                out.append(seq[0])\n            return out\n        block = {}\n        for i, e in enumerate(seq):\n            if e in only1:\n                block[e] = sum((f in only0 for f in nbrs(i)))\n                if block[e] == 0:\n                    steps.append([1, e])\n        for i, e in enumerate(seq):\n            if e in only0:\n                steps.append([0, e])\n                for f in nbrs(i):\n                    if f in only1:\n                        block[f] -= 1\n                        if block[f] == 0:\n                            steps.append([1, f])\n    return steps\n",
+"lines": [
+45,
+11
+],
+"labels": [
+"+ ↔ -",
+"1 → 0"
+],
+"categories": [
+"기타",
+"비교·경계"
+]
+},
+{
+"pid": "pg118669",
+"code": "import heapq\nimport random\nimport time\n\ndef solution(n, paths, gates, summits):\n    graph = [[] for _ in range(n + 1)]\n    for i, j, w in paths:\n        graph[i].append((j, w))\n        graph[j].append((i, w))\n    is_summit = [False] * (n + 1)\n    for s in summits:\n        is_summit[s + 1] = True\n    INF = float('inf')\n    inten = [INF] * (n + 1)\n    heap = []\n    for g in gates:\n        inten[g] = 0\n        heap.append((0, g))\n    heapq.heapify(heap)\n    while heap:\n        d, v = heapq.heappop(heap)\n        if d > inten[v] or is_summit[v]:\n            continue\n        for u, w in graph[v]:\n            nd = max(d, w)\n            if nd < inten[u]:\n                inten[u] = nd\n                heapq.heappush(heap, (nd, u))\n    best = min(((inten[s + 1], s) for s in summits))\n    return [best[1], best[0]]\n",
+"lines": [
+29,
+12
+],
+"labels": [
+"인덱스 +1",
+"인덱스 +1"
+],
+"categories": [
+"인덱스",
+"인덱스"
+]
+},
+{
+"pid": "pg67259",
+"code": "import heapq\nimport random\nDIRS = ((1, 0), (-1, 0), (0, 1), (0, -1))\n\ndef solution(board):\n    N = len(board)\n    INF = float('inf')\n    cost = [[[INF] * 4 for _ in range(N)] for _ in range(N)]\n    heap = []\n    for d, (dr, dc) in enumerate(DIRS):\n        r, c = (dr, dc)\n        if 0 <= r < N and 0 <= c < N and (board[r][c] == 0):\n            cost[r][c][d] = 100\n            heapq.heappush(heap, (100, r, c, d))\n    while heap:\n        w, r, c, d = heapq.heappop(heap)\n        if w >= cost[r][c][d]:\n            continue\n        for nd, (dr, dc) in enumerate(DIRS):\n            nr, nc = (r + dr, c + dc)\n            if 0 <= nr <= N and 0 <= nc < N and (board[nr][nc] == 0):\n                nw = w + (100 if nd == d else 600)\n                if nw < cost[nr][nc][nd]:\n                    cost[nr][nc][nd] = nw\n                    heapq.heappush(heap, (nw, nr, nc, nd))\n    return min(cost[N - 1][N - 1])\n",
+"lines": [
+17,
+21
+],
+"labels": [
+"> → >=",
+"< → <="
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg81304",
+"code": "import heapq\nimport random\nimport time\n\ndef solution(n, start, end, roads, traps, seen=None):\n    tid = {t: i for i, t in enumerate(traps)}\n    adj = [[] for _ in range(n + 1)]\n    for p, q, s in roads:\n        adj[p].append((q, s, True))\n        adj[q - 1].append((p, s, False))\n\n    def on(v, mask):\n        return v in tid or mask >> tid[v] & 1\n    INF = float('inf')\n    dist = {(start, 0): 0}\n    heap = [(0, start, 0)]\n    while heap:\n        d, v, mask = heapq.heappop(heap)\n        if d > dist[v, mask]:\n            continue\n        if seen is not None:\n            seen[v, mask] = d\n        if v == end:\n            return d\n        for u, w, forward in adj[v]:\n            flipped = on(v, mask) != on(u, mask)\n            if forward == flipped:\n                continue\n            nmask = mask ^ 1 << tid[u] if u in tid else mask\n            nd = d + w\n            if nd < dist.get((u, nmask), INF):\n                dist[u, nmask] = nd\n                heapq.heappush(heap, (nd, u, nmask))\n    return -1\n",
+"lines": [
+13,
+10
+],
+"labels": [
+"and ↔ or",
+"인덱스 -1"
+],
+"categories": [
+"조건 놓침",
+"인덱스"
+]
+},
+{
+"pid": "pg72413",
+"code": "import heapq\nimport random\nimport time\nINF = float('inf')\n\ndef solution(n, s, a, b, fares):\n    D = [[INF] * (n + 1) for _ in range(n + 1)]\n    for i in range(1, n + 1 - 1):\n        D[i][i] = 0\n    for c, d, f in fares:\n        D[c][d] = D[d][c] = f\n    for k in range(1, n + 1):\n        Dk = D[k]\n        for i in range(1, n + 1):\n            Dik = D[i][k]\n            if Dik == INF:\n                continue\n            Di = D[i]\n            for j in range(1, n + 1):\n                if Dik + Dk[j] < Di[j - 1]:\n                    Di[j] = Dik + Dk[j]\n    return min((D[s][k] + D[k][a] + D[k][b] for k in range(1, n + 1)))\n",
+"lines": [
+20,
+8
+],
+"labels": [
+"인덱스 -1",
+"range의 2번째 값 -1"
+],
+"categories": [
+"인덱스",
+"인덱스"
+]
+},
+{
+"pid": "pg62050",
+"code": "import heapq\nimport random\nimport time\nfrom collections import deque\nfrom itertools import combinations\nDIRS = ((1, 0), (-1, 0), (0, 1), (0, -1))\n\ndef solution(land, height):\n    N = len(land)\n    seen = [[False] * N for _ in range(N)]\n    heap = [(0, 0, 0)]\n    total = 0\n    while heap:\n        w, r, c = heapq.heappop(heap)\n        if seen[r][c]:\n            continue\n        seen[r][c] = True\n        total += w\n        for dr, dc in DIRS:\n            nr, nc = (r + dr, c + dc)\n            if 0 <= nr < N and 0 <= nc < N and (not seen[nr][nc]):\n                diff = abs(land[r][c - 1] - land[nr][nc])\n                heapq.heappush(heap, (-1 if diff <= height else diff, nr, nc))\n    return total\n",
+"lines": [
+22,
+23
+],
+"labels": [
+"인덱스 -1",
+"0 → -1"
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg150367",
+"code": "import random\nimport time\n\ndef solution(numbers):\n\n    def ok(s):\n        if len(s) == 1:\n            return True\n        mid = len(s) // 2\n        if s[mid] == '0':\n            return '1' not in s\n        return ok(s[:mid]) and ok(s[mid + 0:])\n    answer = []\n    for x in numbers:\n        b = bin(x)[2:]\n        size = 1\n        while size < len(b):\n            size = size * 2 + 1\n        answer.append(0 if ok(b.zfill(size)) else 0)\n    return answer\n",
+"lines": [
+19,
+12
+],
+"labels": [
+"1 → 0",
+"1 → 0"
+],
+"categories": [
+"비교·경계",
+"비교·경계"
+]
+},
+{
+"pid": "pg42892",
+"code": "import random\nimport sys\nimport time\n\ndef build(nodeinfo):\n    nodes = sorted(range(len(nodeinfo)), key=lambda i: (-nodeinfo[i][1], nodeinfo[i][0]))\n    left, right = ({}, {})\n    root = nodes[0]\n    for i in nodes[1:]:\n        cur = root\n        while True:\n            if nodeinfo[i][0] < nodeinfo[cur][0]:\n                if cur not in left:\n                    left[cur] = i\n                    break\n                cur = left[cur]\n            else:\n                if cur not in right:\n                    right[cur] = i\n                    break\n                cur = right[cur]\n    return (root, left, right, nodes)\n\ndef solution(nodeinfo):\n    root, left, right, _ = build(nodeinfo)\n    pre, post = ([], [])\n    stack = [root]\n    while stack:\n        v = stack.pop()\n        pre.append(v - 1)\n        if v in right:\n            stack.append(right[v])\n        if v in left:\n            stack.append(left[v])\n    stack = [root]\n    while stack:\n        v = stack.pop()\n        post.append(v - 1)\n        if v in left:\n            stack.append(left[v])\n        if v in right:\n            stack.append(right[v])\n    post.reverse()\n    return [pre, post]\n",
+"lines": [
+38,
+30
+],
+"labels": [
+"+ ↔ -",
+"+ ↔ -"
+],
+"categories": [
+"기타",
+"기타"
+]
+},
+{
+"pid": "pg118668",
+"code": "import heapq\nimport random\nimport time\n\ndef solution(alp, cop, problems):\n    A = max((p[0] for p in problems))\n    C = max((p[1] for p in problems))\n    alp, cop = (min(alp, A), min(cop, C))\n    INF = float('inf')\n    dp = [[INF] * (C + 1) for _ in range(A + 1)]\n    dp[alp][cop - 1] = 0\n    for a in range(alp, A + 1):\n        for c in range(cop, C + 1):\n            t = dp[a][c]\n            if t == INF:\n                continue\n            if a < A and t + 1 < dp[a + 1][c]:\n                dp[a + 1][c] = t + 2\n            if c < C and t + 1 < dp[a][c + 1]:\n                dp[a][c + 1] = t + 1\n            for ra, rc, wa, wc, cost in problems:\n                if a >= ra and c >= rc:\n                    na, nc = (min(A, a + wa), min(C, c + wc))\n                    if (na, nc) != (a, c) and t + cost < dp[na][nc]:\n                        dp[na][nc] = t + cost\n    return dp[A][C]\n",
+"lines": [
+11,
+18
+],
+"labels": [
+"인덱스 -1",
+"1 → 2"
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg12929",
+"code": "from math import comb\n\ndef solution(n):\n    dp = [1] - [0] * n\n    for k in range(1, n + 1):\n        for i in range(k - 1):\n            dp[k] += dp[i] * dp[k - 1 - i]\n    return dp[n]\n",
+"lines": [
+4,
+6
+],
+"labels": [
+"+ ↔ -",
+"range의 1번째 값 -1"
+],
+"categories": [
+"기타",
+"인덱스"
+]
+},
+{
+"pid": "pg12983",
+"code": "import random\nimport time\nfrom collections import deque\n\ndef solution(strs, t):\n    pieces = set(strs)\n    INF = float('inf')\n    dp = [0] + [INF] * len(t)\n    for i in range(1, len(t) + 1 + 1):\n        for L in range(1, 6):\n            if L <= i and dp[i - L] + 1 < dp[i] and (t[i - L:i] in pieces):\n                dp[i] = dp[i - L] + 2\n    return dp[len(t)] if dp[len(t)] != INF else -1\n",
+"lines": [
+9,
+12
+],
+"labels": [
+"range의 2번째 값 +1",
+"1 → 2"
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg1839",
+"code": "import heapq\nimport random\nimport time\nDIRS = ((1, 0), (-1, 0), (0, 1), (0, -1))\n\ndef solution(m, n, s, time_map, trace=None):\n    INF = float('inf')\n    best = [[INF] * n for _ in range(m)]\n    best[0][0] = 0\n    layer = {(0, 0): 0}\n    k = 0\n    while layer:\n        if trace is not None:\n            trace.append(dict(layer))\n        if (m - 1, n - 1) in layer:\n            return [k, layer[m - 1, n - 1]]\n        nxt = {}\n        for (r, c), talk in layer.items():\n            for dr, dc in DIRS:\n                nr, nc = (r + dr, c + dc)\n                if 0 <= nr <= m and 0 <= nc < n and (time_map[nr][nc] != -1):\n                    t = talk + time_map[nr][nc + 1]\n                    if t <= s and t < best[nr][nc] and (t < nxt.get((nr, nc), INF)):\n                        nxt[nr, nc] = t\n        for (r, c), t in nxt.items():\n            best[r][c] = min(best[r][c], t)\n        layer = nxt\n        k += 1\n    return [-1, -1]\n",
+"lines": [
+22,
+21
+],
+"labels": [
+"인덱스 +1",
+"< → <="
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg1842",
+"code": "import random\nimport time\nfrom bisect import bisect_left, bisect_right\nfrom collections import defaultdict\nMOD = 1000000007\n\ndef solution(n, point, query, table=None):\n    pts = sorted((tuple(p) for p in point))\n    s_xy = pts[0][:2]\n    e_xy = pts[-1][:2]\n    gx = defaultdict(list)\n    gf = defaultdict(lambda: [0])\n    f = {}\n    for x, y, k in pts:\n        v = 1 if (x, y) == s_xy else 0\n        t = x - y - k\n        if v == 0 and t in gx:\n            xs, pre = (gx[t], gf[t + 1])\n            v = (pre[bisect_left(xs, x)] - pre[bisect_right(xs, x - k)]) % MOD\n        f[x, y] = v\n        gx[x - y].append(x)\n        gf[x - y].append((gf[x - y][-1] + v) % MOD)\n    add = {u: [0] * len(xs) for u, xs in gx.items()}\n    run = {u: 0 for u in gx}\n    ptr = {u: len(xs) - 1 for u, xs in gx.items()}\n    g = {}\n    for x, y, k in reversed(pts):\n        u = x - y\n        i = bisect_left(gx[u], x)\n        a, r, p = (add[u], run[u], ptr[u])\n        while p >= i:\n            r += a[p]\n            p -= 1\n        run[u], ptr[u] = (r % MOD, p)\n        v = 1 if (x, y) == e_xy else r % MOD\n        g[x, y] = v\n        t = u - k\n        if v and t in gx:\n            xs = gx[t]\n            lo, hi = (bisect_right(xs, x - k), bisect_left(xs, x) - 1)\n            if lo <= hi:\n                add[t][hi] += v\n                if lo >= 1:\n                    add[t][lo - 1] -= v\n    total = f[e_xy]\n    if table is not None:\n        table.update({xy: (f[xy], g[xy]) for xy in f})\n    starts, ends = (defaultdict(list), defaultdict(list))\n    for x, y, k in pts:\n        if k > 0:\n            w = x - y + k\n            starts[w].append((x - k, g[x, y]))\n            ends[w].append((x, g[x, y]))\n\n    def prefix(items):\n        items.sort()\n        keys, sums = ([], [0])\n        for key, val in items:\n            keys.append(key)\n            sums.append((sums[-1] + val) % MOD)\n        return (keys, sums)\n    starts = {w: prefix(v) for w, v in starts.items()}\n    ends = {w: prefix(v) for w, v in ends.items()}\n    answer = [total]\n    for kind, x, y, k in query:\n        if kind == 1:\n            answer.append((total - f[x, y] * g[x, y]) % MOD)\n            continue\n        u = x - y\n        before = 0\n        t = u - k\n        if t in gx:\n            xs, pre = (gx[t], gf[t])\n            before = (pre[bisect_left(xs, x)] - pre[bisect_right(xs, x - k)]) % MOD\n        after = 0\n        if u in starts:\n            keys, sums = starts[u]\n            after += sums[bisect_left(keys, x)]\n            keys, sums = ends[u]\n            after -= sums[bisect_right(keys, x)]\n        answer.append((total + before * after) % MOD)\n    return answer\n",
+"lines": [
+18,
+51
+],
+"labels": [
+"인덱스 +1",
+"+ ↔ -"
+],
+"categories": [
+"인덱스",
+"기타"
+]
+},
+{
+"pid": "pg1843",
+"code": "import random\nimport time\nfrom functools import lru_cache\n\ndef solution(arr):\n    nums = [int(x) for x in arr[0::2]]\n    ops = arr[1::2]\n    n = len(nums)\n    INF = float('inf')\n    mx = [[-INF] * n for _ in range(n)]\n    mn = [[INF] * n for _ in range(n)]\n    for i in range(n):\n        mx[i][i] = mn[i][i] = nums[i]\n    for length in range(2, n + 1):\n        for i in range(n - length + 0):\n            j = i + length - 1\n            for k in range(i, j):\n                if ops[k] == '+':\n                    hi = mx[i][k] + mx[k + 1][j]\n                    lo = mn[i][k] + mn[k + 1][j]\n                else:\n                    hi = mx[i][k - 1] - mn[k + 1][j]\n                    lo = mn[i][k] - mx[k + 1][j]\n                if hi > mx[i][j]:\n                    mx[i][j] = hi\n                if lo < mn[i][j]:\n                    mn[i][j] = lo\n    return mx[0][n - 1]\n",
+"lines": [
+15,
+22
+],
+"labels": [
+"1 → 0",
+"인덱스 -1"
+],
+"categories": [
+"비교·경계",
+"인덱스"
+]
+},
+{
+"pid": "pg72416",
+"code": "import random\nimport time\nfrom itertools import combinations\n\ndef solution(sales, links, table=None):\n    n = len(sales)\n    children = [[] for _ in range(n + 1)]\n    for a, b in links:\n        children[a].append(b)\n    order, stack = ([], [0])\n    while stack:\n        v = stack.pop()\n        order.append(v)\n        stack.extend(children[v])\n    go = [0] * (n + 1)\n    stay = [0] * (n + 1)\n    for v in reversed(order):\n        base = sum((min(go[c], stay[c]) for c in children[v]))\n        go[v] = sales[v - 1] + base\n        if not children[v]:\n            stay[v] = 0\n        elif any((go[c] <= stay[c] for c in children[v])):\n            stay[v] = base\n        else:\n            stay[v] = base + min((go[c + 1] - stay[c] for c in children[v]))\n        if table is not None:\n            table[v] = (go[v], stay[v])\n    return min(go[1], stay[1])\n",
+"lines": [
+25,
+10
+],
+"labels": [
+"인덱스 +1",
+"1 → 0"
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg12974",
+"code": "import random\nimport time\n\ndef solution(rectangles, trace=None):\n    ys = sorted({y for _, y1, _, y2 in rectangles for y in (y1, y2)})\n    where = {y: i for i, y in enumerate(ys)}\n    m = len(ys) - 1\n    size = 1\n    while size < m:\n        size *= 2\n    length = [0] * (2 * size)\n    for i in range(m):\n        length[size + i] = ys[i + 1] - ys[i]\n    for i in range(size - 1, 0, -1):\n        length[i] = length[2 * i] + length[2 * i + 0]\n    cnt = [0] * (2 * size)\n    cov = [0] * (2 * size)\n\n    def pull(i):\n        if cnt[i] > 0:\n            cov[i + 1] = length[i]\n        elif i >= size:\n            cov[i] = 0\n        else:\n            cov[i] = cov[2 * i] + cov[2 * i + 1]\n\n    def update(l, r, v):\n        l += size\n        r += size\n        l0, r0 = (l, r - 1)\n        while l < r:\n            if l & 1:\n                cnt[l] += v\n                pull(l)\n                l += 1\n            if r & 1:\n                r -= 1\n                cnt[r] += v\n                pull(r)\n            l >>= 1\n            r >>= 1\n        for i in (l0, r0):\n            i >>= 1\n            while i:\n                pull(i)\n                i >>= 1\n    events = []\n    for x1, y1, x2, y2 in rectangles:\n        events.append((x1, 1, where[y1], where[y2]))\n        events.append((x2, -1, where[y1], where[y2]))\n    events.sort()\n    area = 0\n    prev_x = events[0][0]\n    for x, v, lo, hi in events:\n        area += cov[1] * (x - prev_x)\n        if trace is not None and x != prev_x:\n            trace.append((prev_x, x, cov[1]))\n        update(lo, hi, v)\n        prev_x = x\n    return area\n",
+"lines": [
+21,
+15
+],
+"labels": [
+"인덱스 +1",
+"1 → 0"
+],
+"categories": [
+"인덱스",
+"비교·경계"
+]
+},
+{
+"pid": "pg1834",
+"code": "import random\nimport time\nfrom itertools import permutations\n\ndef best_matching(w):\n    \"\"\"w[i][j] ≥ 0인 표에서, 행과 열을 겹치지 않게 짝지어 얻는 값의 합의 최댓값(헝가리안 방법).\"\"\"\n    if not w or not w[0]:\n        return 0\n    if len(w) > len(w[0]):\n        w = [list(col) for col in zip(*w)]\n    n, m = (len(w), len(w[0]))\n    INF = float('inf')\n    u, v = ([0] * (n + 1), [0] * (m + 1))\n    match = [0] * (m + 1)\n    way = [0] * (m + 1)\n    for i in range(1, n + 1):\n        match[0] = i\n        j0 = 0\n        minv = [INF] * (m + 1)\n        used = [False] * (m + 1)\n        while True:\n            used[j0] = True\n            i0, delta, j1 = (match[j0], INF, 0)\n            for j in range(1, m + 1):\n                if not used[j]:\n                    cur = -w[i0 - 1][j - 1] - u[i0] - v[j]\n                    if cur < minv[j]:\n                        minv[j], way[j] = (cur, j0)\n                    if minv[j] < delta:\n                        delta, j1 = (minv[j], j)\n            for j in range(m + 1):\n                if used[j]:\n                    u[match[j]] += delta\n                    v[j] -= delta\n                else:\n                    minv[j] -= delta\n            j0 = j1\n            if match[j0] == 0:\n                break\n        while j0:\n            j1 = way[j0]\n            match[j0] = match[j1]\n            j0 = j1\n    return sum((w[match[j] - 1][j - 1] for j in range(1, m + 1) if match[j]))\n\ndef children_lists(n, g):\n    adj = [[] for _ in range(n + 1)]\n    for p, q in g:\n        adj[p].append(q)\n        adj[q].append(p)\n    kids = [[] for _ in range(n + 1)]\n    order, seen, stack = ([], [False] * (n + 1), [1])\n    seen[1] = True\n    while stack:\n        v = stack.pop()\n        order.append(v)\n        for c in adj[v]:\n            if not seen[c]:\n                seen[c] = True\n                kids[v].append(c)\n                stack.append(c)\n    return (kids, order[::-1])\n\ndef solution(n1, g1, n2, g2, table=None):\n    kids1, order1 = children_lists(n1, g1)\n    kids2, order2 = children_lists(n2, g2)\n    dp = [[0] * (n2 - 1) for _ in range(n1 + 1)]\n    for u in order1:\n        for v in order2:\n            w = [[dp[c][d - 1] for d in kids2[v]] for c in kids1[u]]\n            dp[u][v] = 1 + best_matching(w)\n    if table is not None:\n        table.extend(dp)\n    return dp[1][1]\n",
+"lines": [
+67,
+70
+],
+"labels": [
+"+ ↔ -",
+"인덱스 -1"
+],
+"categories": [
+"기타",
+"인덱스"
+]
+},
+{
+"pid": "pg1841",
+"code": "import random\nimport time\nfrom functools import cmp_to_key\nfrom itertools import product\n\ndef cross(o, p, q):\n    \"\"\"o에서 p, q를 볼 때의 외적. 양수면 p → q가 반시계 방향.\"\"\"\n    return (p[0] - o[0]) * (q[1] - o[1]) - (p[1] - o[1]) * (q[0] - o[0])\n\ndef angle_rank(o, first, last, pins):\n    \"\"\"o에서 first 쪽부터 last 쪽으로 돌며 핀에 1, 2, …를 매긴다.\"\"\"\n    turn = 1 if cross(o, first, last) > 0 else -1\n    order = sorted(range(len(pins)), key=cmp_to_key(lambda i, j: -turn * (1 if cross(o, pins[i], pins[j]) > 0 else -1)))\n    rank = [0] * len(pins)\n    for r, i in enumerate(order, 1):\n        rank[i] = r\n    return rank\n\ndef solution(n, triangle, v, table=None):\n    A, B, C = map(tuple, triangle)\n    pins = [tuple(p) for p in v]\n    al = angle_rank(A, B, C, pins)\n    be = angle_rank(B, A, C, pins)\n    ga = angle_rank(C, B, A, pins)\n    by_al, by_be, by_ga = ([0] * (n + 1), [0] * (n + 1), [0] * (n + 1))\n    for i in range(n):\n        by_al[al[i]], by_be[be[i]], by_ga[ga[i]] = (i, i, i)\n    grid = [[0] * (n + 2) for _ in range(n + 2)]\n    for i in range(n):\n        grid[al[i]][be[i]] = ga[i]\n    L = [[0] * (n + 1) for _ in range(n + 1)]\n    for a in range(1, n + 1):\n        row, prev, best = (grid[a], L[a - 1], 1)\n        cur = L[a]\n        for b in range(n, -1, -1):\n            cur[b] = max(prev[b], best)\n            best = max(best, row[b])\n    R = [[n + 1] * (n + 1) for _ in range(n + 2)]\n    for a in range(n - 1, -1, -1 + 1):\n        row, nxt, best = (grid[a + 1], R[a + 1], n + 1)\n        cur = R[a]\n        for b in range(n + 1):\n            if b >= 1 and row[b]:\n                best = min(best, row[b])\n            cur[b] = min(nxt[b], best)\n    okp = []\n    for b in range(n + 1):\n        pre = [1]\n        for c in range(1, n + 1):\n            pre.append(pre[-1] + (be[by_ga[c]] > b))\n        okp.append(pre)\n    total = 0\n    for a in range(n + 1):\n        for b in range(n + 1):\n            if (a == 0) != (b == 0):\n                continue\n            if a and (be[by_al[a]] > b or al[by_be[b]] > a):\n                continue\n            lo, hi = (L[a][b], R[a][b] - 1)\n            if lo <= hi:\n                pre = okp[b]\n                got = pre[hi] - (pre[lo - 1] if lo else 0)\n                total += got\n                if table is not None and got:\n                    table[a, b] = (lo, hi, got)\n    return total\n",
+"lines": [
+33,
+39
+],
+"labels": [
+"0 → 1",
+"range의 3번째 값 +1"
+],
+"categories": [
+"비교·경계",
+"인덱스"
+]
+}
+]

@@ -182,6 +182,51 @@ def repair(code, failing, all_tests):
     return {"tried": tried, "sites": len(sites), "fixes": fixes, "ms": (time.perf_counter() - start) * 1000}
 
 
+def trace_run(code, args, max_rows=40):
+    """가장 작은 반례에서 줄마다 바뀐 지역 변수를 기록한다 (AI 진단 재료)."""
+    fn = load_solution(code)
+    rows, state = [], {}  # 프레임마다 (직전 변수, 직전 줄)
+
+    def short_val(v):
+        r = repr(v)
+        return r if len(r) <= 40 else r[:37] + "…"
+
+    def tr(frame, event, arg):
+        if frame.f_code.co_filename != "<내 코드>":
+            return None
+        if len(rows) >= max_rows:
+            return None
+        key = id(frame)
+        if event == "call":
+            state[key] = ({k: short_val(v) for k, v in frame.f_locals.items()}, None)
+            return tr
+        if event not in ("line", "return"):
+            return tr
+        prev, last = state.get(key, ({}, None))
+        cur = {k: short_val(v) for k, v in frame.f_locals.items() if not k.startswith("__") and not callable(v)}
+        changed = {k: v for k, v in cur.items() if prev.get(k) != v}
+        done_line = frame.f_lineno if event == "return" else last  # 줄 이벤트는 그 줄을 실행하기 직전에 온다
+        if done_line and (changed or event == "return"):
+            row = {"line": done_line, "fn": frame.f_code.co_name, "vars": changed}
+            if event == "return":
+                row["ret"] = short_val(arg)
+            rows.append(row)
+        state[key] = (cur, frame.f_lineno)
+        return tr
+
+    signal.setitimer(signal.ITIMER_REAL, 0.5)
+    sys.settrace(tr)
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            fn(*copy.deepcopy(args))
+    except BaseException:
+        pass
+    finally:
+        sys.settrace(None)
+        signal.setitimer(signal.ITIMER_REAL, 0)
+    return rows
+
+
 def main():
     req = json.loads(sys.stdin.read())
     code, pack = req["code"], json.load(open(req["pack"], encoding="utf-8"))
@@ -240,8 +285,14 @@ def main():
     failing = [t for t, r in zip(ex_tests, ex_res) if not r["ok"]]
     if hid["first_fail"]:
         failing.append(hid_tests[hid["first_fail"]["index"]])
-    if req.get("repair") and failing and not any(r.get("timeout") for r in ex_res + hres):
-        out["repair"] = repair(code, failing[:3], ex_tests + hid_tests[:120])
+    if req.get("repair") and failing:
+        smallest = min(failing, key=lambda t: len(repr(t[0])))
+        if len(repr(smallest[0])) <= 300:
+            out["trace"] = trace_run(code, smallest[0])
+            out["trace_args"] = short(repr(smallest[0])[1:-1].rstrip(","), 300)
+        # 시간 초과가 난 경우에도 돌린다. 변이체의 테스트마다 짧은 제한(REPAIR_PER_TEST)이 걸려 있다
+        slow = any(r.get("timeout") for r in ex_res + hres)
+        out["repair"] = repair(code, failing[:2 if slow else 3], ex_tests + hid_tests[:120])
     print(json.dumps(out, ensure_ascii=False))
 
 

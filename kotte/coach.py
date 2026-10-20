@@ -48,6 +48,19 @@ def passed(result):
     return bool(ex) and all(e.get("ok") for e in ex) and hid.get("first_fail") is None and hid.get("run", 0) == hid.get("total", 0)
 
 
+def is_stub(code):
+    """아직 풀이라고 할 게 없는 코드 (템플릿 그대로, 본문 두 문장 이하)."""
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return False
+    fn = next((n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "solution"), None)
+    if fn is None:
+        return True
+    stmts = [n for n in ast.walk(fn) if isinstance(n, ast.stmt)] [1:]
+    return len(stmts) <= 2
+
+
 # ---------------------------------------------------------------- 복잡도 어림 (AST)
 
 def limits_n(statement_md):
@@ -111,21 +124,30 @@ def diagnose(pid, code, result, fs):
     if f["kind"] in ("syntax", "load", "fatal"):
         return {"tier": "rule", "category": "예외", "line": f.get("line"), "lesson": "", "secret": None,
                 "confidence": "확인됨", "fact": f}
+    rep = result.get("repair") or {}
+    if rep.get("fixes"):  # 한 군데 수정으로 전부 통과하면 그 줄이 가장 믿을 만하다
+        fx = rep["fixes"][0]
+        return {"tier": "repair", "category": fx["category"], "line": fx["line"], "lesson": "",
+                "secret": fx["label"], "confidence": "확인됨", "fact": f, "fix": fx}
     if f["kind"] == "timeout":
         return {"tier": "rule", "category": "복잡도", "line": None, "lesson": "", "secret": None,
                 "confidence": "확인됨", "fact": f}
     if f["kind"] == "error" and f.get("line"):
         return {"tier": "rule", "category": "예외", "line": f["line"], "lesson": "", "secret": None,
                 "confidence": "확인됨", "fact": f}
-    rep = result.get("repair") or {}
-    if rep.get("fixes"):
-        fx = rep["fixes"][0]
-        return {"tier": "repair", "category": fx["category"], "line": fx["line"], "lesson": "",
-                "secret": fx["label"], "confidence": "확인됨", "fact": f, "fix": fx}
-    return llm_diagnose(pid, code, f)
+    return llm_diagnose(pid, code, f, result)
 
 
-def llm_diagnose(pid, code, f):
+def trace_text(result, limit=30):
+    rows = (result or {}).get("trace") or []
+    out = []
+    for r in rows[:limit]:
+        vs = ", ".join(f"{k}={v}" for k, v in r["vars"].items())
+        out.append(f"{r['line']}번 줄 ({r.get('fn', '')}): {vs}" + (f" → 반환 {r['ret']}" if r.get("ret") else ""))
+    return "\n".join(out)
+
+
+def llm_diagnose(pid, code, f, result=None):
     p = vault.problem(pid)
     sys = ("너는 코딩 테스트 채점 보조다. 학생 코드가 반례에서 왜 틀리는지 찾는다. "
            "반드시 아래 증거에서 출발한다. 증거로 설명되지 않는 버그를 지어내지 않는다. "
@@ -134,6 +156,9 @@ def llm_diagnose(pid, code, f):
     user = (f"[문제]\n{vault.plain(p['statement_md'])[:700]}\n\n"
             f"[증거] {f['where']}에서 틀림. 입력: {f.get('args')}\n기대: {f.get('expected')}\n내 답: {f.get('got') or f.get('msg')}\n\n"
             f"[코드]\n{numbered(code)}")
+    tt = trace_text(result)
+    if tt:
+        user += f"\n\n[실행 추적] 입력 {result.get('trace_args')}에서 줄마다 바뀐 변수\n{tt}"
     try:
         text, meta = ollama.chat([{"role": "system", "content": sys}, {"role": "user", "content": user}],
                                  schema=DIAG_SCHEMA, max_tokens=300, temperature=0.2)
