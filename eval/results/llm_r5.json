@@ -1,0 +1,449 @@
+[
+ {
+  "pid": "pg17687",
+  "bug_lines": [
+   21,
+   12
+  ],
+  "labels": [
+   "+ ↔ -",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 12,
+  "diag_line_ok": true,
+  "diag_cat": "기타",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "r이 0일 때 인덱스 오류 또는 잘못된 접근",
+  "lesson": "",
+  "message": "11번 줄에서 계산된 r의 값이 12번 줄에서 digits의 인덱스로 들어갈 때 어떤 일이 일어나는지 확인해 보세요. r이 0일 때 digits[r - 1]은 어떤 값을 가리키게 되나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 19.59,
+  "t_say": 0.0,
+  "first_token_say": 9.026996041997336,
+  "first_msg_char": 10.59,
+  "total": 19.59,
+  "len": 104,
+  "hangul": 0.67,
+  "question": true,
+  "lines_said": [
+   11,
+   12
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92335",
+  "bug_lines": [
+   18,
+   15
+  ],
+  "labels": [
+   "1 → 2",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 15,
+  "diag_line_ok": true,
+  "diag_cat": "비교·경계",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "n이 1일 때 반복문 종료",
+  "lesson": "",
+  "message": "예시 3에서 n이 1이 되었을 때 반복문이 종료되나요? 16번 줄의 n과 r 값을 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 17.18,
+  "t_say": 0.0,
+  "first_token_say": 7.919670750001387,
+  "first_msg_char": 9.55,
+  "total": 17.18,
+  "len": 54,
+  "hangul": 0.78,
+  "question": true,
+  "lines_said": [
+   16
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118666",
+  "bug_lines": [
+   8,
+   9
+  ],
+  "labels": [
+   "4 → 5",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 9,
+  "diag_line_ok": true,
+  "diag_cat": "자료구조",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "문자열과 정수의 뺄셈 연산",
+  "lesson": "",
+  "message": "9번 줄에서 s[1]은 어떤 자료형인가요? 해당 변수와 4를 연산할 때 어떤 일이 발생하는지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 23.36,
+  "t_say": 0.0,
+  "first_token_say": 10.074413874994207,
+  "first_msg_char": 11.9,
+  "total": 23.36,
+  "len": 60,
+  "hangul": 0.83,
+  "question": true,
+  "lines_said": [
+   9
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17677",
+  "bug_lines": [
+   14,
+   13
+  ],
+  "labels": [
+   "65536 → 65535",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": 13,
+  "diag_line_ok": true,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "union이 0일 때 예외 처리 미흡",
+  "lesson": "",
+  "message": "반례에서 13번 줄의 union 값을 확인해 보시겠어요? 만약 0이라면 15번 줄에서 어떤 일이 벌어질까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 28.47,
+  "t_say": 0.0,
+  "first_token_say": 11.36538645800465,
+  "first_msg_char": 14.47,
+  "total": 28.47,
+  "len": 60,
+  "hangul": 0.74,
+  "question": true,
+  "lines_said": [
+   13,
+   15
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "bug_lines": [
+   6,
+   14
+  ],
+  "labels": [
+   "0 → -1",
+   "1 → 0"
+  ],
+  "tier": "llm",
+  "diag_line": 11,
+  "diag_line_ok": false,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "j의 초기값과 슬라이싱 범위 오류",
+  "lesson": "",
+  "message": "반례 'AA'에서 11번 줄의 w에 어떤 값이 들어오는지 확인해 보시겠어요? 그 값이 12번 줄에서 사전의 키로 적절한지 생각해보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 30.06,
+  "t_say": 0.0,
+  "first_token_say": 12.340943875002267,
+  "first_msg_char": 15.47,
+  "total": 30.06,
+  "len": 75,
+  "hangul": 0.81,
+  "question": true,
+  "lines_said": [
+   11,
+   12
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "bug_lines": [
+   13,
+   21
+  ],
+  "labels": [
+   "1 → 2",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 13,
+  "diag_line_ok": true,
+  "diag_cat": "비교·경계",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "gave[i]에 2를 더함",
+  "lesson": "",
+  "message": "반례에서 f2가 f0에게 선물을 줄 때 gave[2]의 값이 어떻게 변하는지 확인해 보세요. 문제에서 준 수와 받은 수의 정의를 다시 생각해보면 좋을 것 같아요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 32.82,
+  "t_say": 0.0,
+  "first_token_say": 16.20921724999789,
+  "first_msg_char": 18.88,
+  "total": 32.82,
+  "len": 90,
+  "hangul": 0.81,
+  "question": false,
+  "lines_said": [],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg42576",
+  "bug_lines": [
+   9,
+   7
+  ],
+  "labels": [
+   "1 → 2",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 7,
+  "diag_line_ok": true,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "get의 기본값과 더하기 연산 중복",
+  "lesson": "",
+  "message": "반례에서 7번 줄이 실행될 때마다 count의 값이 어떻게 변하는지 확인해 보시겠어요? 처음 이름이 들어왔을 때의 결과가 의도와 맞는지 봐주세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 25.25,
+  "t_say": 0.0,
+  "first_token_say": 10.05644170800224,
+  "first_msg_char": 12.44,
+  "total": 25.25,
+  "len": 81,
+  "hangul": 0.87,
+  "question": true,
+  "lines_said": [
+   7
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92341",
+  "bug_lines": [
+   19,
+   14
+  ],
+  "labels": [
+   "0 → 1",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": 14,
+  "diag_line_ok": true,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "IN과 OUT 조건 분기 오류",
+  "lesson": "",
+  "message": "14번 줄에서 kind가 'IN'이 아닐 때와 'IN'일 때의 처리가 의도대로 나누어져 있나요? 17번 줄의 실행 결과를 다시 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 29.3,
+  "t_say": 0.0,
+  "first_token_say": 13.786197749999701,
+  "first_msg_char": 16.27,
+  "total": 29.3,
+  "len": 79,
+  "hangul": 0.7,
+  "question": true,
+  "lines_said": [
+   14,
+   17
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg60061",
+  "bug_lines": [
+   9,
+   8
+  ],
+  "labels": [
+   "+ ↔ -",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 12,
+  "diag_line_ok": false,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "설치 조건 미충족 시 세트 유지",
+  "lesson": "",
+  "message": "8번 줄의 ok 함수가 False를 반환했을 때 12번 줄의 결과가 어떻게 변하는지 확인해 보시겠어요? 14번 줄의 동작과 연결해서 생각해보면 좋을 것 같아요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 32.73,
+  "t_say": 0.0,
+  "first_token_say": 15.882176332997915,
+  "first_msg_char": 18.2,
+  "total": 32.73,
+  "len": 89,
+  "hangul": 0.79,
+  "question": true,
+  "lines_said": [
+   8,
+   12,
+   14
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "bug_lines": [
+   19,
+   17
+  ],
+  "labels": [
+   "인덱스 +1",
+   "인덱스 +1"
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": false,
+  "diag_cat": "비교·경계",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "2x2 행렬에서 mid가 빈 deque로 생성됨",
+  "lesson": "",
+  "message": "예시 5에서 mid의 각 요소가 어떻게 초기화되는지 확인해 보시겠어요? 2x2 행렬에서 mid가 비어있는 상태로 생성되는 이유를 생각해보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 31.56,
+  "t_say": 0.0,
+  "first_token_say": 14.265534583006229,
+  "first_msg_char": 16.62,
+  "total": 31.56,
+  "len": 79,
+  "hangul": 0.81,
+  "question": true,
+  "lines_said": [],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17680",
+  "bug_lines": [
+   12,
+   15
+  ],
+  "labels": [
+   "1 → 0",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": 15,
+  "diag_line_ok": true,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "cacheSize가 0일 때 continue가 실행되지 않음",
+  "lesson": "",
+  "message": "cacheSize가 0일 때 15번 줄의 조건문이 어떻게 실행되는지 확인해 보세요. 그 결과로 18번 줄이 실행될 수 있는지 생각해보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 26.58,
+  "t_say": 0.0,
+  "first_token_say": 10.683428917000128,
+  "first_msg_char": 12.95,
+  "total": 26.58,
+  "len": 79,
+  "hangul": 0.74,
+  "question": true,
+  "lines_said": [
+   15,
+   18
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg81303",
+  "bug_lines": [
+   22,
+   15
+  ],
+  "labels": [
+   "!= → ==",
+   "2 → 3"
+  ],
+  "tier": "llm",
+  "diag_line": 22,
+  "diag_line_ok": true,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "리스트 인덱스 범위 초과",
+  "lesson": "",
+  "message": "22번 줄에서 q가 n일 때 prev[q]에 접근하면 어떤 인덱스를 참조하게 되나요? n이 리스트의 크기와 같을 때 이 접근이 가능한지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 31.83,
+  "t_say": 0.0,
+  "first_token_say": 16.525525333003316,
+  "first_msg_char": 18.9,
+  "total": 31.83,
+  "len": 84,
+  "hangul": 0.78,
+  "question": true,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]

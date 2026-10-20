@@ -14,7 +14,7 @@ DB = DATA / "kotte.db"
 
 OLLAMA = os.environ.get("KOTTE_OLLAMA", "http://127.0.0.1:11434")
 MODEL = os.environ.get("KOTTE_MODEL", "gemma4:12b-it-qat")
-NUM_CTX = int(os.environ.get("KOTTE_NUM_CTX", "16384"))
+NUM_CTX = int(os.environ.get("KOTTE_NUM_CTX", "8192"))
 
 # 사용자 코드를 돌리는 파이썬. 앱을 띄운 파이썬과 같은 것을 쓴다.
 PYTHON = os.environ.get("KOTTE_PYTHON", "/usr/bin/env python3")

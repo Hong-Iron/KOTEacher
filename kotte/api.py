@@ -54,6 +54,7 @@ class Api:
         ladder = vault.hint_ladder(pid)
         code = self.store.last_code(pid) or template_code(pk["params"])
         self.s.code = code
+
         return {
             "id": pid, "title": p["title"], "level": p["level"], "source": p["source"], "url": p["url"],
             "concepts": p["concepts"], "statement": vault.to_html(p["statement_md"]),
@@ -123,13 +124,19 @@ class Api:
             return out
 
         # 실패: 진단은 빠른 단계(규칙·수리)만 여기서 하고, AI 진단과 말하기는 뒤에서
-        quick = bool((res.get("repair") or {}).get("fixes")) or (fs[0]["kind"] == "error" and fs[0].get("line"))
+        quick = bool((res.get("repair") or {}).get("fixes"))
         diag = coach.diagnose(s.pid, code, res, fs) if quick else None
+        decision = None
         if diag:
             s.diag = diag
             self._open_fail(code, diag)
+            # 확인된 진단이면 정해진 문장을 바로 보여 주고, AI 문장이 준비되면 그 자리를 바꾼다
+            decision = s.policy.decide(self.mode, trigger, diag)
+            out["decision"] = decision
+            if decision == "speak":
+                out["instant"] = coach.template(diag)
         out["diag"] = self._diag_public(diag) if diag else {"pending": True, "fact": fs[0]}
-        threading.Thread(target=self._coach_bg, args=(gen, code, res, fs, trigger, diag), daemon=True).start()
+        threading.Thread(target=self._coach_bg, args=(gen, code, res, fs, trigger, diag, decision), daemon=True).start()
         return out
 
     def _diag_public(self, d):
@@ -143,18 +150,29 @@ class Api:
             s.open_fail = {"t": time.time(), "hints": s.hints}
         s.open_fail.update(code=code, diag=diag)
 
-    def _coach_bg(self, gen, code, res, fs, trigger, diag):
+    def _streamer(self, gen):
+        def emit(piece):
+            if gen == self.s.gen:
+                self._push("stream", {"gen": gen, "text": piece})
+        return emit
+
+    def _coach_bg(self, gen, code, res, fs, trigger, diag, decision=None):
         s = self.s
         try:
             if diag is None:
+                # 한 군데 수정으로 안 고쳐짐 → AI가 진단과 말하기를 한 번에. 먼저 말해도 되는 상황이면 글자를 흘려 보낸다
+                live = self.mode != "quiet" and (trigger == "run" or self.mode == "active")
                 self._push("thinking", {"gen": gen})
-                diag = coach.diagnose(s.pid, code, res, fs)
+                diag = coach.diagnose(s.pid, code, res, fs, llm=self.mode != "quiet", hint_level=s.hints,
+                                      history=s.history, weak=self.store.weak_categories(),
+                                      on_message=self._streamer(gen) if live else None)
                 if gen != s.gen:
                     return
                 s.diag = diag
                 self._open_fail(code, diag)
                 self._push("diag", {"gen": gen, "diag": self._diag_public(diag)})
-            decision = s.policy.decide(self.mode, trigger, diag)
+            if decision is None:
+                decision = s.policy.decide(self.mode, trigger, diag)
             if decision != "speak":
                 self._push("chip", {"gen": gen, "diag": self._diag_public(diag)})
                 return
@@ -164,11 +182,13 @@ class Api:
 
     def _speak(self, gen, code, diag, trigger):
         s = self.s
-        self._push("thinking", {"gen": gen})
+        if not diag.get("said"):
+            self._push("thinking", {"gen": gen})
         t = time.time()
-        u = coach.say(s.pid, code, diag, s.hints, s.history, self.store.weak_categories())
+        u = coach.say(s.pid, code, diag, s.hints, s.history, self.store.weak_categories(), on_message=self._streamer(gen))
         if gen != s.gen:
             return
+        diag.pop("said", None)  # 같은 말을 두 번 쓰지 않는다
         s.policy.spoke(trigger, diag)
         s.history.append(u["message"])
         mid = self.store.coach_msg(s.aid, signal=diag["fact"].get("kind"), tier=diag["tier"], hint_level=s.hints,
@@ -182,8 +202,22 @@ class Api:
         s = self.s
         if not s.diag:
             return False
-        gen = s.gen
-        threading.Thread(target=self._speak, args=(gen, s.code, s.diag, "ask"), daemon=True).start()
+        gen, diag, code = s.gen, s.diag, s.code
+
+        def work():
+            d = diag
+            # 조용히 모드라 AI 진단을 건너뛰었던 경우: 지금 진단한다
+            if d["tier"] == "rule" and not d.get("line") and d["fact"].get("kind") in ("wrong", "timeout"):
+                res = runner.check(code, s.pid)
+                fs = coach.facts(res)
+                if fs:
+                    d = coach.diagnose(s.pid, code, res, fs, hint_level=s.hints, history=s.history,
+                                       weak=self.store.weak_categories(), on_message=self._streamer(gen))
+                    s.diag = d
+            self._speak(gen, code, d, "ask")
+
+        self._push("thinking", {"gen": gen})
+        threading.Thread(target=work, daemon=True).start()
         return True
 
     def ask(self, question, code):
@@ -192,19 +226,17 @@ class Api:
         gen = s.gen
 
         def work():
-            p = vault.problem(s.pid)
-            ctx = f"[문제]\n{vault.plain(p['statement_md'])[:600]}\n\n[학생 코드]\n{coach.numbered(code)}"
+            dyn = ""
             if s.diag:
-                f = s.diag["fact"]
-                ctx += f"\n\n[최근 검사] {f.get('where', '')} 입력 {f.get('args')} 기대 {f.get('expected')} 내 답 {f.get('got') or f.get('msg')}"
-            hc = coach._hint_context(s.pid, s.hints)
-            if hc:
-                ctx += f"\n\n[학생이 연 힌트]\n{hc}"
-            rules = coach.SAY_RULES.replace("[증거]에 있는 사실 하나에 대해서만 말한다", "학생 질문에 답하되, 질문이 정답을 달라는 것이면 힌트 사다리의 다음 단계를 열어 보라고 권한다")
-            msgs = [{"role": "system", "content": rules}, {"role": "user", "content": ctx + f"\n\n[학생 질문] {question}"}]
+                dyn = coach.evidence(s.diag["fact"], None, code, s.diag.get("line") if s.diag.get("confidence") == "확인됨" else None)
+            ex = coach.extras(s.pid, s.hints, s.history, [])
+            task = (f"[학생 질문] {question}\n학생 질문에 답한다(message). 규칙 1을 지킨다. "
+                    "질문이 정답이나 고친 코드를 달라는 것이면, 왼쪽 힌트 사다리의 다음 단계를 열어 보라고 권한다.")
+            msgs = coach.messages(s.pid, code, dyn + ("\n\n" + ex if ex else ""), task)
             t = time.time()
             try:
-                text, meta = ollama.chat(msgs, schema=coach.SAY_SCHEMA, max_tokens=260)
+                text, meta = ollama.chat(msgs, schema=coach.SAY_SCHEMA, max_tokens=220,
+                                         on_token=coach.MessageStream(self._streamer(gen)).feed)
                 msg = json.loads(text).get("message", "").strip()
                 if coach.leak_reason(msg, s.diag or {}, s.pid):
                     msg = "그 부분은 직접 찾아야 실력이 돼요. 막히면 왼쪽 힌트 사다리의 다음 단계를 열어 보세요."
@@ -215,7 +247,6 @@ class Api:
             s.history.append(msg)
             self._push("answer", {"gen": gen, "id": mid, "q": question, "message": msg})
 
-        self._push("thinking", {"gen": gen})
         threading.Thread(target=work, daemon=True).start()
         return True
 

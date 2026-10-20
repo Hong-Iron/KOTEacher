@@ -75,11 +75,13 @@ def llm(n=30, tag="llm"):
         fs = coach.facts(r)
         if not fs:
             continue
+        t0 = time.perf_counter()
+        first = []
+        on_msg = lambda piece: first or first.append(time.perf_counter() - t0)
+        d = coach.diagnose(b["pid"], b["code"], r, fs, on_message=on_msg)
+        t_diag = time.perf_counter() - t0
         t = time.perf_counter()
-        d = coach.diagnose(b["pid"], b["code"], r, fs)
-        t_diag = time.perf_counter() - t
-        t = time.perf_counter()
-        u = coach.say(b["pid"], b["code"], d, 0, [], [])
+        u = coach.say(b["pid"], b["code"], d, 0, [], [], on_message=on_msg)
         t_say = time.perf_counter() - t
         sc = score_message(u["message"], b, d)
         row = {"pid": b["pid"], "bug_lines": b["lines"], "labels": b["labels"], "tier": d["tier"],
@@ -87,7 +89,8 @@ def llm(n=30, tag="llm"):
                "cat_ok": d.get("category") in b["categories"], "llm_conf": d.get("llm_conf"), "cause": d.get("secret"),
                "lesson": d.get("lesson"), "message": u["message"], "source": u["source"], "tries": u.get("tries"),
                "t_diag": round(t_diag, 2), "t_say": round(t_say, 2),
-               "first_token_say": (u.get("meta") or {}).get("first_token_s"), **sc}
+               "first_token_say": (u.get("meta") or {}).get("first_token_s"),
+               "first_msg_char": round(first[0], 2) if first else None, "total": round(t_diag + t_say, 2), **sc}
         rows.append(row)
         print(f"[{i + 1}/{len(bugs)}] {b['pid']} 진단줄 {d.get('line')} (버그 {b['lines']}) {d.get('category')} "
               f"{t_diag:.1f}s+{t_say:.1f}s {u['source']} | {u['message'][:90]}", flush=True)
@@ -107,13 +110,50 @@ def summarize(rows):
     print(f"말하기: AI 문장 {sum(r['source'] == 'ai' for r in rows) / n:.0%} (나머지 정해진 문장), 다시 쓴 비율 {sum((r['tries'] or 1) > 1 for r in rows) / n:.0%}")
     print(f"  질문으로 끝남 {pct('question')}, 버그 줄 언급 {pct('line_hit')}, 없는 줄 언급 {pct('fake_line')}, 유출 {pct('leak')}, 코드 섞임 {pct('code_like')}")
     print(f"  길이 중앙값 {st.median(r['len'] for r in rows)}자, 한글 비율 중앙값 {st.median(r['hangul'] for r in rows)}")
-    print(f"시간: 진단 중앙값 {st.median(r['t_diag'] for r in rows):.1f}s, 말하기 중앙값 {st.median(r['t_say'] for r in rows):.1f}s, "
-          f"말하기 첫 글자 중앙값 {st.median((r['first_token_say'] or 0) for r in rows):.1f}s")
+    fm = [r["first_msg_char"] for r in rows if r.get("first_msg_char")]
+    print(f"시간: 전체 중앙값 {st.median(r['total'] for r in rows):.1f}s (최대 {max(r['total'] for r in rows):.1f}s), "
+          f"학생이 첫 글자를 보는 시간 중앙값 {st.median(fm) if fm else 0:.1f}s")
+    by = {}
+    for r in rows:
+        by.setdefault(r["tier"], []).append(r)
+    for k, v in by.items():
+        print(f"  {k}: {len(v)}개, 줄 적중 {sum(x['diag_line_ok'] for x in v) / len(v):.0%}, 전체 시간 중앙값 {st.median(x['total'] for x in v):.1f}s")
+
+
+def say_eval(n=15, tag="say"):
+    """1군데 버그(수리 검색이 정답 수정을 앎)에서 말하기만: 고칠 값을 흘리는지가 핵심."""
+    import random
+    bugs = json.loads((DATA / "bugs1.json").read_text())
+    random.Random(1).shuffle(bugs)
+    rows = []
+    for b in bugs:
+        if len(rows) >= n:
+            break
+        r = runner.check(b["code"], b["pid"], repair=True)
+        fs = coach.facts(r)
+        d = coach.diagnose(b["pid"], b["code"], r, fs, llm=False)
+        if not d or d["tier"] != "repair":
+            continue
+        t0 = time.perf_counter()
+        first = []
+        u = coach.say(b["pid"], b["code"], d, on_message=lambda p: first or first.append(time.perf_counter() - t0))
+        sc = score_message(u["message"], b, d)
+        rows.append({"pid": b["pid"], "fix": d["secret"], "line": d["line"], "message": u["message"], "source": u["source"],
+                     "tries": u.get("tries"), "total": round(time.perf_counter() - t0, 2),
+                     "first": round(first[0], 2) if first else None, **sc})
+        print(f"[{len(rows)}] {b['pid']} {d['line']}번 줄 {d['secret']} {u['source']} {rows[-1]['total']}s | {u['message'][:100]}", flush=True)
+    n = len(rows)
+    print(f"\n말하기(수리 단계) {n}개: AI {sum(r['source'] == 'ai' for r in rows)}, 다시 씀 {sum((r['tries'] or 1) > 1 for r in rows)}, "
+          f"유출(평가 기준) {sum(bool(r['leak']) for r in rows)}, 질문 {sum(r['question'] for r in rows)}, 버그 줄 언급 {sum(r['line_hit'] for r in rows)}")
+    print(f"시간 중앙값 {st.median(r['total'] for r in rows):.1f}s, 첫 글자 중앙값 {st.median(r['first'] or 0 for r in rows):.1f}s")
+    (RES / f"{tag}.json").write_text(json.dumps(rows, ensure_ascii=False, indent=1))
 
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "det"
     if mode == "det":
         det()
+    elif mode == "say":
+        say_eval(int(sys.argv[2]) if len(sys.argv) > 2 else 15, sys.argv[3] if len(sys.argv) > 3 else "say")
     else:
         llm(int(sys.argv[2]) if len(sys.argv) > 2 else 30, sys.argv[3] if len(sys.argv) > 3 else "llm")

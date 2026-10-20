@@ -109,25 +109,117 @@ def complexity_risk(code, statement_md):
 
 # ---------------------------------------------------------------- ② 진단
 
-DIAG_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "category": {"type": "string", "enum": CATEGORIES},
-        "line": {"type": ["integer", "null"]},
-        "cause": {"type": "string"},
-        "lesson": {"type": "string"},
-        "confidence": {"type": "number"},
-    },
-    "required": ["category", "line", "cause", "lesson", "confidence"],
-}
-
-
 def numbered(code):
     return "\n".join(f"{i:>3}| {l}" for i, l in enumerate(code.splitlines(), 1))
 
 
-def diagnose(pid, code, result, fs):
-    """확실한 것부터: 오류 줄 → 수리 검색 → AI 진단."""
+# 프롬프트를 읽는 속도가 초당 120~170토큰이다. gemma4는 슬라이딩 윈도 층이 있어서 앞부분만 같은 프롬프트는
+# 재사용되지 않는다(완전히 같을 때만 재사용). 그래서 프롬프트를 짧게 쓰는 것이 가장 큰 속도 개선이다.
+SYSTEM = (
+    "너는 코딩 테스트 연습 코치다. 부드러운 존댓말.\n"
+    "1. 정답 코드나 바꿀 연산자·값을 학생에게 말하지 않는다.\n"
+    "2. 증거에서 출발하고 증거에 없는 버그를 지어내지 않는다.\n"
+    "3. message: 반례에서 그 줄의 값을 따라가 보게 하는 질문. 두 문장, 100자 안, 코드 블록 없이. 줄은 'N번 줄'로 쓴다."
+)
+
+
+def context(pid, code):
+    p = vault.problem(pid)
+    return f"[문제]\n{vault.plain(p['statement_md'])[:420]}\n\n[학생 코드]\n{numbered(code)}"
+
+
+def messages(pid, code, dynamic, task):
+    return [{"role": "system", "content": SYSTEM},
+            {"role": "user", "content": f"{context(pid, code)}\n\n{dynamic}\n\n[할 일]\n{task}"}]
+
+
+def evidence(f, result=None, code=None, line=None):
+    ev = [f"[증거] {f.get('where', '')}에서 실패. 입력: {f.get('args')}"]
+    if f.get("expected") is not None and f.get("kind") == "wrong":
+        ev.append(f"기대: {f.get('expected')} / 내 답: {f.get('got')}")
+    elif f.get("kind") == "timeout":
+        ev.append("결과: 시간 제한을 넘김 (무한 루프이거나 너무 느림)")
+    elif f.get("msg"):
+        ev.append(f"오류: {f.get('msg')}" + (f" ({f.get('line')}번 줄)" if f.get("line") else ""))
+    if line and code:
+        ev.append(f"테스트로 확인한 문제 줄: {line}번 줄 `{code.splitlines()[line - 1].strip()}`")
+    tt = trace_text(result)
+    if tt:
+        ev.append(f"[실행 추적] L번호: 그 줄 실행 뒤 바뀐 변수\n{tt}")
+    return "\n".join(ev)
+
+
+def extras(pid, hint_level, history, weak):
+    out = []
+    hc = _hint_context(pid, hint_level)
+    if hc:
+        out.append(f"[학생이 이미 연 힌트]\n{hc}")
+    if weak:
+        out.append("[이 학생이 자주 틀리는 분류] " + ", ".join(w["category"] for w in weak))
+    if history:
+        out.append("[코치가 이미 한 말. 되풀이하지 말 것]\n" + "\n".join(f"- {h}" for h in list(history)[-2:]))
+    return "\n\n".join(out)
+
+
+def _hint_context(pid, hint_level):
+    if hint_level <= 0:
+        return ""
+    lad = vault.hint_ladder(pid)
+    return "\n".join(f"- {l['title']}: {l['text'][:500]}" for l in lad[:min(hint_level, 4)])
+
+
+def trace_text(result, limit=16):
+    """짧은 형식: 'L12 s='F'' (12번 줄을 실행한 뒤 바뀐 변수). 프롬프트를 짧게 해 읽는 시간을 줄인다."""
+    rows = (result or {}).get("trace") or []
+    out = []
+    for r in rows[:limit]:
+        vs = " ".join(f"{k}={v}" for k, v in r["vars"].items())
+        out.append(f"L{r['line']} {vs}" + (f" ret={r['ret']}" if r.get("ret") else ""))
+    if len(rows) > limit:
+        out.append("…")
+    return "\n".join(out)
+
+
+class MessageStream:
+    """JSON으로 생성되는 답에서 "message" 값만 글자 단위로 꺼내 넘긴다."""
+
+    def __init__(self, emit):
+        self.emit, self.buf, self.pos, self.done = emit, "", None, False
+
+    def feed(self, piece):
+        if self.done:
+            return
+        self.buf += piece
+        if self.pos is None:
+            m = re.search(r'"message"\s*:\s*"', self.buf)
+            if not m:
+                return
+            self.pos = m.end()
+        out, i = [], self.pos
+        while i < len(self.buf):
+            c = self.buf[i]
+            if c == "\\":
+                if i + 1 >= len(self.buf):
+                    break
+                nxt = self.buf[i + 1]
+                out.append({"n": "\n", "t": " ", '"': '"', "\\": "\\"}.get(nxt, nxt))
+                i += 2
+                continue
+            if c == '"':
+                self.done = True
+                i += 1
+                break
+            out.append(c)
+            i += 1
+        self.pos = i
+        if out:
+            self.emit("".join(out))
+
+
+# ---------------------------------------------------------------- ② 진단
+
+def diagnose(pid, code, result, fs, llm=True, **say_kw):
+    """확실한 것부터: 수리 검색 → 오류 줄 → AI 진단(말하기까지 한 번에)."""
     if not fs:
         return None
     f = fs[0]
@@ -139,128 +231,98 @@ def diagnose(pid, code, result, fs):
         fx = rep["fixes"][0]
         return {"tier": "repair", "category": fx["category"], "line": fx["line"], "lesson": "",
                 "secret": fx["label"], "confidence": "확인됨", "fact": f, "fix": fx}
-    if f["kind"] == "timeout":
-        # 한 군데 수정으로 안 고쳐지는 시간 초과: 실행 추적표(같은 값이 되풀이되는지)를 보고 AI가 줄을 찾는다
-        d = llm_diagnose(pid, code, f, result)
-        if d["tier"] == "none":
-            return {"tier": "rule", "category": "복잡도", "line": None, "lesson": "", "secret": None,
-                    "confidence": "확인됨", "fact": f}
-        if d["category"] not in ("복잡도", "조건 놓침", "비교·경계", "초기값"):
-            d["category"] = "복잡도"
-        return d
-    if f["kind"] == "error" and f.get("line"):
-        return {"tier": "rule", "category": "예외", "line": f["line"], "lesson": "", "secret": None,
-                "confidence": "확인됨", "fact": f}
-    return llm_diagnose(pid, code, f, result)
+    # 오류는 오류 난 줄과 원인 줄이 다른 일이 많다(2군데 버그에서 50%). 수리로 안 고쳐지면 AI가 추적표로 원인 줄을 찾는다
+    rule = {"tier": "rule", "category": {"timeout": "복잡도", "error": "예외"}.get(f["kind"], "기타"),
+            "line": f.get("line") if f["kind"] == "error" else None, "lesson": "", "secret": None,
+            "confidence": "확인됨" if f["kind"] in ("timeout", "error") else "추정", "fact": f}
+    if not llm:
+        return rule
+    d = diagnose_and_say(pid, code, f, result, **say_kw)
+    if d["tier"] == "none":
+        return rule
+    if f["kind"] == "timeout" and d["category"] not in ("복잡도", "조건 놓침", "비교·경계", "초기값"):
+        d["category"] = "복잡도"
+    return d
 
 
-def trace_text(result, limit=30):
-    rows = (result or {}).get("trace") or []
-    out = []
-    for r in rows[:limit]:
-        vs = ", ".join(f"{k}={v}" for k, v in r["vars"].items())
-        out.append(f"{r['line']}번 줄 ({r.get('fn', '')}): {vs}" + (f" → 반환 {r['ret']}" if r.get("ret") else ""))
-    return "\n".join(out)
+DIAG_SAY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "line": {"type": ["integer", "null"]},
+        "message": {"type": "string"},
+        "category": {"type": "string", "enum": CATEGORIES},
+        "cause": {"type": "string"},
+    },
+    "required": ["line", "message", "category", "cause"],
+}
+
+DIAG_TASK = ("버그 줄을 찾아 JSON으로: line, message(학생에게, 규칙 3), category, cause(원인 20자, 학생에게 안 보임).\n"
+             "line은 오류가 난 줄이 아니라 잘못된 값이 처음 만들어진 줄이다. 실행 추적에서 값이 처음 어긋나는 곳을 찾는다. 모르면 null.")
 
 
-def llm_diagnose(pid, code, f, result=None):
-    p = vault.problem(pid)
-    sys = ("너는 코딩 테스트 채점 보조다. 학생 코드가 반례에서 왜 틀리는지 찾는다. "
-           "반드시 아래 증거에서 출발한다. 증거로 설명되지 않는 버그를 지어내지 않는다. "
-           "cause는 원인을 한 문장으로, lesson은 학생이 배워야 할 점을 고치는 법 없이 한 문장으로 쓴다. "
-           "줄 번호는 코드 왼쪽 숫자를 쓴다. 모르겠으면 line은 null, confidence는 0.3 이하.")
-    user = (f"[문제]\n{vault.plain(p['statement_md'])[:700]}\n\n"
-            f"[증거] {f['where']}에서 틀림. 입력: {f.get('args')}\n기대: {f.get('expected')}\n내 답: {f.get('got') or f.get('msg')}\n\n"
-            f"[코드]\n{numbered(code)}")
-    tt = trace_text(result)
-    if tt:
-        user += f"\n\n[실행 추적] 입력 {result.get('trace_args')}에서 줄마다 바뀐 변수\n{tt}"
+def diagnose_and_say(pid, code, f, result, hint_level=0, history=(), weak=(), on_message=None):
+    dyn = evidence(f, result)
+    ex = extras(pid, hint_level, history, weak)
+    msgs = messages(pid, code, dyn + ("\n\n" + ex if ex else ""), DIAG_TASK)
+    stream = MessageStream(on_message) if on_message else None
     try:
-        text, meta = ollama.chat([{"role": "system", "content": sys}, {"role": "user", "content": user}],
-                                 schema=DIAG_SCHEMA, max_tokens=300, temperature=0.2)
+        text, meta = ollama.chat(msgs, schema=DIAG_SAY_SCHEMA, max_tokens=170, temperature=0.3,
+                                 on_token=stream.feed if stream else None)
         d = json.loads(text)
     except Exception as e:
-        return {"tier": "none", "category": "기타", "line": None, "lesson": "", "secret": None,
-                "confidence": "추정", "fact": f, "error": str(e)[:200]}
-    conf = float(d.get("confidence") or 0)
-    line = d.get("line") if isinstance(d.get("line"), int) and 1 <= d["line"] <= len(code.splitlines()) else None
-    return {"tier": "llm", "category": d.get("category", "기타"), "line": line if conf >= 0.5 else None,
-            "lesson": d.get("lesson", ""), "secret": d.get("cause", ""), "confidence": "추정",
-            "fact": f, "llm_conf": conf, "meta": meta}
+        return {"tier": "none", "fact": f, "error": str(e)[:200]}
+    n = len(code.splitlines())
+    line = d.get("line") if isinstance(d.get("line"), int) and 1 <= d["line"] <= n else None
+    diag = {"tier": "llm", "category": d.get("category", "기타"), "line": line,
+            "lesson": "", "secret": d.get("cause", ""), "confidence": "추정", "fact": f, "meta": meta}
+    msg = tidy(d.get("message") or "")
+    reason = leak_reason(msg, diag, pid)
+    diag["said"] = ({"kind": "question", "message": trim(msg), "source": "ai", "meta": meta, "tries": 1} if not reason
+                    else {"kind": "nudge", "message": template(diag), "source": "template", "meta": meta, "tries": 1, "leak": reason})
+    return diag
 
 
 # ---------------------------------------------------------------- ③ 말하기
 
 SAY_SCHEMA = {
     "type": "object",
-    "properties": {
-        "kind": {"type": "string", "enum": ["question", "nudge", "warning"]},
-        "message": {"type": "string"},
-    },
-    "required": ["kind", "message"],
+    "properties": {"message": {"type": "string"}},
+    "required": ["message"],
 }
 
-SAY_RULES = (
-    "너는 코딩 테스트를 연습하는 학생 옆의 선배 코치다. 반말 대신 부드러운 존댓말(~요)을 쓴다.\n"
-    "규칙:\n"
-    "1. 정답 코드, 고친 코드, 바꿀 연산자나 값을 말하지 않는다. 학생이 스스로 찾게 한다.\n"
-    "2. [증거]에 있는 사실 하나에 대해서만 말한다. 증거에 없는 버그를 지어내지 않는다.\n"
-    "3. 반례를 학생이 손으로 따라가 볼 수 있게 짚고, 질문 하나로 끝낸다.\n"
-    "4. 두세 문장, 180자 안. 쉬운 한국어. 코드 블록을 쓰지 않는다.\n"
-    "5. 줄을 짚을 때는 'N번 줄'이라고 쓴다."
-)
+SAY_TASK = "JSON으로 message만 쓴다. '테스트로 확인한 문제 줄'을 짚되 무엇을 바꿀지는 말하지 않는다."
 
 
-def _hint_context(pid, hint_level):
-    if hint_level <= 0:
-        return ""
-    lad = vault.hint_ladder(pid)
-    return "\n".join(f"- {l['title']}: {l['text'][:500]}" for l in lad[:min(hint_level, 4)])
-
-
-def speak_messages(pid, code, diag, hint_level, history, weak):
-    p = vault.problem(pid)
-    f = diag["fact"]
-    lines = code.splitlines()
-    ev = [f"{f.get('where', '')}: 입력 {f.get('args')}"]
-    if f.get("expected") is not None:
-        ev.append(f"기대 {f.get('expected')}, 내 답 {f.get('got') or f.get('msg')}")
-    elif f.get("msg"):
-        ev.append(f"오류 {f.get('msg')}")
-    if diag.get("line"):
-        ev.append(f"의심 줄: {diag['line']}번 줄 `{lines[diag['line'] - 1].strip()}`")
-    ev.append(f"실수 분류: {diag['category']}")
-    if diag.get("lesson"):
-        ev.append(f"배울 점(그대로 말하지 말 것): {diag['lesson']}")
-    user = f"[문제]\n{vault.plain(p['statement_md'])[:600]}\n\n[증거]\n" + "\n".join(ev)
-    hc = _hint_context(pid, hint_level)
-    if hc:
-        user += f"\n\n[학생이 이미 연 힌트]\n{hc}"
-    if weak:
-        user += "\n\n[이 학생이 자주 틀리는 분류] " + ", ".join(w["category"] for w in weak)
-    if history:
-        user += "\n\n[코치가 이미 한 말. 되풀이하지 말 것]\n" + "\n".join(f"- {h}" for h in history[-2:])
-    return [{"role": "system", "content": SAY_RULES}, {"role": "user", "content": user}]
-
-
-def say(pid, code, diag, hint_level=0, history=(), weak=(), on_token=None):
+def say(pid, code, diag, hint_level=0, history=(), weak=(), on_message=None):
     """말하기 + 유출 검사. 실패하면 정해진 문장."""
-    msgs = speak_messages(pid, code, diag, hint_level, list(history), list(weak))
+    if diag.get("said"):
+        return diag["said"]
+    f = diag["fact"]
+    dyn = evidence(f, None, code, diag.get("line")) + f"\n실수 분류: {diag['category']}"
+    ex = extras(pid, hint_level, history, weak)
+    msgs = messages(pid, code, dyn + ("\n\n" + ex if ex else ""), SAY_TASK)
     meta, tries = {}, 0
     for tries in (1, 2):
+        stream = MessageStream(on_message) if (on_message and tries == 1) else None
         try:
-            text, meta = ollama.chat(msgs, schema=SAY_SCHEMA, max_tokens=220, temperature=0.5)
-            d = json.loads(text)
-            msg = d.get("message", "").strip()
+            text, meta = ollama.chat(msgs, schema=SAY_SCHEMA, max_tokens=120, temperature=0.5,
+                                     on_token=stream.feed if stream else None)
+            msg = tidy(json.loads(text).get("message", ""))
         except Exception as e:
             meta = {"error": str(e)[:200]}
             break
         reason = leak_reason(msg, diag, pid)
         if not reason:
-            return {"kind": d.get("kind", "question"), "message": trim(msg), "source": "ai", "meta": meta, "tries": tries}
+            return {"kind": "question", "message": trim(msg), "source": "ai", "meta": meta, "tries": tries}
         msgs = msgs + [{"role": "assistant", "content": text},
                        {"role": "user", "content": f"규칙 위반({reason}). 고치는 법을 빼고 질문으로 다시 써라."}]
     return {"kind": "nudge", "message": template(diag), "source": "template", "meta": meta, "tries": tries}
+
+
+def tidy(msg):
+    """추적표 표기(L12)를 '12번 줄'로, 백틱을 지운다."""
+    msg = re.sub(r"(?<![A-Za-z0-9_])L(\d+)(?!\d)", r"\1번 줄", msg.strip())
+    return msg.replace("`", "")
 
 
 # ---------------------------------------------------------------- ④ 유출 검사

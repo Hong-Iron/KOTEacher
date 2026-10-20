@@ -36,14 +36,12 @@ class H(SimpleHTTPRequestHandler):
     def log_message(self, *a):
         pass
 
-    def do_GET(self):
+    def do_POST(self):
         if self.path == "/events":
             with lock:
-                out, events[:] = list(events), []
+                out = list(events)
+                events.clear()
             return self._json(out)
-        return super().do_GET()
-
-    def do_POST(self):
         name = self.path.split("/api/")[1]
         args = json.loads(self.rfile.read(int(self.headers["Content-Length"])) or b"[]")
         try:
@@ -60,6 +58,7 @@ class H(SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(body)
 

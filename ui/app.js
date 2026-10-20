@@ -16,7 +16,7 @@ function devBridge() {
     return r.json();
   };
   const poll = async () => {
-    try { const evs = await (await fetch("/events")).json(); evs.forEach(([e, d]) => KG.on(e, d)); } catch (_) {}
+    try { const evs = await (await fetch("/events", {method: "POST", cache: "no-store"})).json(); evs.forEach(([e, d]) => KG.on(e, d)); } catch (_) {}
     setTimeout(poll, 250);
   };
   poll();
@@ -173,12 +173,13 @@ function bubbleThinking(diag) {
 function bubbleSay(d) {
   const el = h("div", "bubble");
   const sub = [d.line ? `${d.line}번 줄` : "", d.diag?.confidence === "확인됨" ? "테스트로 확인됨" : "AI 추정", d.source === "template" ? "정해진 문장" : ""].filter(Boolean).join(" · ");
+  const instant = d.source === "instant";
   el.innerHTML = bubbleHead("코치", sub) + (d.diag?.fact ? `<div class="evid">${esc(evidence(d.diag.fact))}</div>` : "") +
-    `<div>${esc(d.message)}</div><div class="acts">
+    `<div class="msgtext"${instant ? " data-instant" : ""}>${esc(d.message)}</div>${instant ? '<div class="note refining">코치가 더 살펴보는 중</div>' : ""}<div class="acts">
       ${S.hints < 4 ? `<button class="chip pri" data-act="hint">힌트 ${S.hints + 1}단계 열기</button>` : ""}
       <button class="chip" data-act="ask">코치에게 묻기</button>
-      <button class="chip ghost" data-act="rate" data-r="good" data-id="${d.id}">도움됨</button>
-      <button class="chip ghost" data-act="rate" data-r="bad" data-id="${d.id}">별로</button></div>`;
+      ${d.id ? `<button class="chip ghost" data-act="rate" data-r="good" data-id="${d.id}">도움됨</button>
+      <button class="chip ghost" data-act="rate" data-r="bad" data-id="${d.id}">별로</button>` : ""}</div>`;
   placeBubble(d.line, el);
 }
 function bubbleChip(diag) {
@@ -257,6 +258,7 @@ async function runCheck(trigger) {
     if (d && !d.pending) {
       S.lastDiag = d; flagLine(d.line);
       if (r.decision === "chip") bubbleChip(d);
+      if (r.instant) bubbleSay({message: r.instant, line: d.line, diag: d, source: "instant"});
     } else if (d?.pending) {
       S.lastDiag = {fact: d.fact, line: d.fact.line};
     }
@@ -298,13 +300,27 @@ function renderTests(r) {
 }
 
 /* ---------------- 코치 이벤트 ---------------- */
-handlers.thinking = () => { if (S.lastDiag && !S.bubble?.classList.contains("done")) bubbleThinking(S.lastDiag); };
+handlers.thinking = () => {
+  // 바로 보여 준 문장이 있으면 그대로 두고 AI 문장을 기다린다
+  if (S.bubble?.querySelector(".msgtext[data-instant]")) return;
+  if (S.lastDiag && !S.bubble?.classList.contains("done")) bubbleThinking(S.lastDiag);
+};
 handlers.diag = d => { S.lastDiag = d.diag; flagLine(d.diag?.line); };
 handlers.chip = d => { S.lastDiag = d.diag; flagLine(d.diag?.line); bubbleChip(d.diag); };
 handlers.say = d => { S.lastDiag = d.diag; flagLine(d.line); bubbleSay(d); addLog("ai", "코치", d.message); };
+handlers.stream = d => {
+  // 코치 말이 생성되는 대로 말풍선에 흘려 쓴다
+  let el = S.bubble;
+  if (!el || el.classList.contains("done") || el.classList.contains("mini")) { bubbleThinking(S.lastDiag); el = S.bubble; }
+  const inst = el.querySelector(".msgtext[data-instant]");
+  if (inst) { inst.removeAttribute("data-instant"); inst.textContent = ""; inst.classList.add("live"); }
+  let m = el.querySelector(".live");
+  if (!m) { m = h("div", "live"); const t = el.querySelector(".thinking"); t ? t.replaceWith(m) : el.append(m); }
+  m.textContent += d.text.replace(/`/g, "");
+};
 handlers.answer = d => {
   addLog("ai", "코치", d.message);
-  const t = S.bubble?.querySelector(".thinking");
+  const t = S.bubble?.querySelector(".live") || S.bubble?.querySelector(".thinking");
   if (t) { t.className = ""; t.textContent = d.message; }
   else { const el = h("div", "bubble"); el.innerHTML = bubbleHead("코치", "질문에 답") + `<div>${esc(d.message)}</div>`; placeBubble(S.lastDiag?.line, el); }
 };

@@ -1,0 +1,353 @@
+[
+ {
+  "pid": "pg17687",
+  "bug_lines": [
+   21,
+   12
+  ],
+  "labels": [
+   "+ ↔ -",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 12,
+  "diag_line_ok": true,
+  "diag_cat": "기타",
+  "cat_ok": true,
+  "llm_conf": 1.0,
+  "cause": "나머지 값 r을 인덱스로 사용할 때 r 대신 r - 1을 사용하여 잘못된 문자를 참조하고 있습니다.",
+  "lesson": "배열이나 문자열의 인덱스는 0부터 시작하므로 나머지 연산의 결과값을 그대로 인덱스로 사용해야 합니다.",
+  "message": "예시 1에서 4번째 사람인 튜브가 말할 숫자가 3일 때, 2진법으로 변환하면 11이 되네요. 12번 줄에서 문자열을 만들 때 인덱스를 어떻게 계산하고 있는지 다시 한번 확인해 볼 수 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 18.17,
+  "t_say": 11.04,
+  "first_token_say": 3.939723999996204,
+  "len": 107,
+  "hangul": 0.86,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92335",
+  "bug_lines": [
+   18,
+   15
+  ],
+  "labels": [
+   "1 → 2",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 18,
+  "diag_line_ok": true,
+  "diag_cat": "기타",
+  "cat_ok": false,
+  "llm_conf": 1.0,
+  "cause": "sum 함수 내에서 조건에 맞는 경우 2를 반환하도록 작성하여 소수의 개수가 아닌 소수 값의 합을 계산하고 있습니다.",
+  "lesson": "조건에 맞는 요소의 개수를 구할 때는 generator expression 내에서 1을 반환하거나 len()을 활용해야 합니다.",
+  "message": "예시 3에서 77을 4진수로 바꾸면 103이 되는데요. 18번 줄의 코드가 이 숫자들을 어떻게 처리해서 개수를 세고 있는지 한 번 따라가 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 15.4,
+  "t_say": 9.91,
+  "first_token_say": 3.8878992090030806,
+  "len": 83,
+  "hangul": 0.83,
+  "question": true,
+  "lines_said": [
+   18
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118666",
+  "bug_lines": [
+   8,
+   9
+  ],
+  "labels": [
+   "4 → 5",
+   "인덱스 -1"
+  ],
+  "tier": "rule",
+  "diag_line": 9,
+  "diag_line_ok": true,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": null,
+  "lesson": "",
+  "message": "9번 줄에서 s[1]은 문자열인데, 여기에 숫자인 1을 빼려고 해서 오류가 발생한 것 같아요. s[1]을 숫자로 바꾸려면 어떤 과정이 필요할까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 0.0,
+  "t_say": 9.4,
+  "first_token_say": 4.124347417004174,
+  "len": 81,
+  "hangul": 0.79,
+  "question": true,
+  "lines_said": [
+   9
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17677",
+  "bug_lines": [
+   14,
+   13
+  ],
+  "labels": [
+   "65536 → 65535",
+   "== → !="
+  ],
+  "tier": "rule",
+  "diag_line": 15,
+  "diag_line_ok": false,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": null,
+  "lesson": "",
+  "message": "입력으로 들어온 문자열들이 모두 공집합일 때, 15번 줄에서 `union` 변수의 값은 얼마가 될까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 0.0,
+  "t_say": 7.95,
+  "first_token_say": 3.8939266669985955,
+  "len": 57,
+  "hangul": 0.76,
+  "question": true,
+  "lines_said": [
+   15
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "bug_lines": [
+   6,
+   14
+  ],
+  "labels": [
+   "0 → -1",
+   "1 → 0"
+  ],
+  "tier": "rule",
+  "diag_line": 12,
+  "diag_line_ok": false,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": null,
+  "lesson": "",
+  "message": "12번 줄에서 dic[w]를 찾을 때, w가 빈 문자열이 될 수 있는 상황이 있는지 1번 줄부터 차근차근 따라가 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 0.0,
+  "t_say": 8.6,
+  "first_token_say": 3.581399499998952,
+  "len": 69,
+  "hangul": 0.77,
+  "question": true,
+  "lines_said": [
+   12,
+   1
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "bug_lines": [
+   13,
+   21
+  ],
+  "labels": [
+   "1 → 2",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 21,
+  "diag_line_ok": true,
+  "diag_cat": "비교·경계",
+  "cat_ok": true,
+  "llm_conf": 1.0,
+  "cause": "21번 줄에서 `give[i][j - 1]`과 같이 잘못된 인덱스를 참조하여 `f0`와 `f2` 사이의 관계를 비교할 때 엉뚱한 값을 참조하고 있습니다.",
+  "lesson": "배열의 인덱스를 참조할 때 변수 `j`가 가리키는 대상과 일치하는지 정확히 확인해야 합니다.",
+  "message": "21번 줄에서 `j - 1`이 가리키는 인덱스가 현재 비교하려는 두 사람 중 누구를 의미하는지 다시 한번 확인해 볼 수 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 23.42,
+  "t_say": 9.65,
+  "first_token_say": 4.728478625002026,
+  "len": 72,
+  "hangul": 0.85,
+  "question": true,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg42576",
+  "bug_lines": [
+   9,
+   7
+  ],
+  "labels": [
+   "1 → 2",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 7,
+  "diag_line_ok": true,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": 1.0,
+  "cause": "count.get(name, 1)을 사용하여 처음 등장하는 이름의 카운트를 2로 설정하고 있습니다.",
+  "lesson": "딕셔너리에서 개수를 셀 때 초기값을 0으로 설정하고 1씩 더하는 방식을 사용해야 합니다.",
+  "message": "7번 줄에서 새로운 이름을 처음 만났을 때 `count.get(name, 1)`이 어떤 값을 반환하는지 확인해 보셨나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 14.27,
+  "t_say": 8.17,
+  "first_token_say": 3.944344249997812,
+  "len": 67,
+  "hangul": 0.61,
+  "question": true,
+  "lines_said": [
+   7
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg42888",
+  "bug_lines": [
+   15,
+   13
+  ],
+  "labels": [
+   "인덱스 -1",
+   "== → !="
+  ],
+  "tier": "rule",
+  "diag_line": 15,
+  "diag_line_ok": true,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": null,
+  "lesson": "",
+  "message": "15번 줄에서 uid와 1을 빼려고 하시는데, 현재 uid가 어떤 자료형으로 들어오고 있는지 확인해 보셨나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 0.0,
+  "t_say": 8.35,
+  "first_token_say": 4.220561750000343,
+  "len": 61,
+  "hangul": 0.77,
+  "question": true,
+  "lines_said": [
+   15
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92334",
+  "bug_lines": [
+   7,
+   12
+  ],
+  "labels": [
+   "인덱스 -1",
+   "인덱스 +1"
+  ],
+  "tier": "rule",
+  "diag_line": 7,
+  "diag_line_ok": true,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": null,
+  "lesson": "",
+  "message": "7번 줄에서 b는 어떤 타입으로 저장되어 있나요? 입력된 문자열에서 숫자로 변환하는 과정이 빠져 있는지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 0.0,
+  "t_say": 8.12,
+  "first_token_say": 3.877957458003948,
+  "len": 66,
+  "hangul": 0.92,
+  "question": true,
+  "lines_said": [
+   7
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg42748",
+  "bug_lines": [
+   7,
+   6
+  ],
+  "labels": [
+   "인덱스 -1",
+   "1 → 2"
+  ],
+  "tier": "rule",
+  "diag_line": 7,
+  "diag_line_ok": true,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": null,
+  "lesson": "",
+  "message": "7번 줄에서 k에서 1을 두 번 빼고 있는데, 문제에서 k는 몇 번째 수라고 했는지 다시 확인해 볼래요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 0.0,
+  "t_say": 7.73,
+  "first_token_say": 3.6140736250017653,
+  "len": 58,
+  "hangul": 0.86,
+  "question": true,
+  "lines_said": [
+   7
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]

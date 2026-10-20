@@ -1,0 +1,375 @@
+[
+ {
+  "pid": "pg17687",
+  "bug_lines": [
+   21,
+   12
+  ],
+  "labels": [
+   "+ ↔ -",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 12,
+  "diag_line_ok": true,
+  "diag_cat": "인덱스",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "digits 인덱스에 r을 그대로 사용해야 함",
+  "lesson": "",
+  "message": "실행 추적을 보면 11번 줄에서 r이 0일 때 12번 줄에서 어떤 문자가 선택되는지 확인해 볼 수 있어요. 0부터 시작하는 digits 리스트에서 r이 0일 때 어떤 인덱스를 참조해야 할까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 20.53,
+  "t_say": 0.0,
+  "first_token_say": 10.377301125001395,
+  "first_msg_char": 15.02,
+  "total": 20.53,
+  "len": 107,
+  "hangul": 0.79,
+  "question": true,
+  "lines_said": [
+   11,
+   12
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92335",
+  "bug_lines": [
+   18,
+   15
+  ],
+  "labels": [
+   "1 → 2",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 15,
+  "diag_line_ok": true,
+  "diag_cat": "비교·경계",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "n이 1일 때 반복문이 종료됨",
+  "lesson": "",
+  "message": "예시 3에서 n이 1이 되었을 때 16번 줄의 r이 0이 되는 과정을 확인해 보셨나요? 15번 줄의 조건이 모든 자릿수를 추출하는 데 충분한지 다시 한번 살펴봐 주세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 18.34,
+  "t_say": 0.0,
+  "first_token_say": 8.390747000004922,
+  "first_msg_char": 13.16,
+  "total": 18.34,
+  "len": 94,
+  "hangul": 0.84,
+  "question": true,
+  "lines_said": [
+   16,
+   15
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118666",
+  "bug_lines": [
+   8,
+   9
+  ],
+  "labels": [
+   "4 → 5",
+   "인덱스 -1"
+  ],
+  "tier": "rule",
+  "diag_line": 9,
+  "diag_line_ok": true,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": null,
+  "lesson": "",
+  "message": "9번 줄에서 s[1]은 문자열인데 여기에 숫자를 빼려고 해서 오류가 발생하고 있어요. 예시 3번의 두 번째 질문에서 s[1]이 무엇인지 확인해 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 0.0,
+  "t_say": 11.99,
+  "first_token_say": 6.856887333000486,
+  "first_msg_char": 7.49,
+  "total": 11.99,
+  "len": 86,
+  "hangul": 0.82,
+  "question": true,
+  "lines_said": [
+   9
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17677",
+  "bug_lines": [
+   14,
+   13
+  ],
+  "labels": [
+   "65536 → 65535",
+   "== → !="
+  ],
+  "tier": "rule",
+  "diag_line": 15,
+  "diag_line_ok": false,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": null,
+  "lesson": "",
+  "message": "입력된 두 문자열에서 알파벳 쌍이 하나도 없는 경우를 생각해보세요. 이럴 때 15번 줄의 union 값은 무엇이 될까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 0.0,
+  "t_say": 9.36,
+  "first_token_say": 5.165154041002097,
+  "first_msg_char": 5.79,
+  "total": 9.36,
+  "len": 67,
+  "hangul": 0.82,
+  "question": true,
+  "lines_said": [
+   15
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "bug_lines": [
+   6,
+   14
+  ],
+  "labels": [
+   "0 → -1",
+   "1 → 0"
+  ],
+  "tier": "rule",
+  "diag_line": 12,
+  "diag_line_ok": false,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": null,
+  "lesson": "",
+  "message": "'AA'를 입력했을 때 8번 줄에서 j가 어떻게 변하는지 따라가 보시겠어요? 그 결과로 12번 줄에서 w에 어떤 값이 들어오는지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 0.0,
+  "t_say": 9.73,
+  "first_token_say": 4.8502217499990365,
+  "first_msg_char": 5.41,
+  "total": 9.73,
+  "len": 80,
+  "hangul": 0.82,
+  "question": true,
+  "lines_said": [
+   8,
+   12
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "bug_lines": [
+   13,
+   21
+  ],
+  "labels": [
+   "1 → 2",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 21,
+  "diag_line_ok": true,
+  "diag_cat": "인덱스",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "j-1 대신 j를 사용해야 함",
+  "lesson": "",
+  "message": "입력값에서 f0와 f2가 서로 선물을 주고받은 상황을 21번 줄에서 다시 확인해 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 20.87,
+  "t_say": 0.0,
+  "first_token_say": 13.263833333003276,
+  "first_msg_char": 17.75,
+  "total": 20.87,
+  "len": 51,
+  "hangul": 0.82,
+  "question": true,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg42576",
+  "bug_lines": [
+   9,
+   7
+  ],
+  "labels": [
+   "1 → 2",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 7,
+  "diag_line_ok": true,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "get의 기본값을 1로 설정하여 카운트가 1씩 더 큼",
+  "lesson": "",
+  "message": "입력값이 ['n0', 'n0', 'n0']일 때 7번 줄을 거치며 count의 값이 어떻게 변하는지 한 번만 더 따라가 볼 수 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 16.13,
+  "t_say": 0.0,
+  "first_token_say": 6.219568166998215,
+  "first_msg_char": 11.56,
+  "total": 16.13,
+  "len": 76,
+  "hangul": 0.6,
+  "question": true,
+  "lines_said": [
+   7
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg42888",
+  "bug_lines": [
+   15,
+   13
+  ],
+  "labels": [
+   "인덱스 -1",
+   "== → !="
+  ],
+  "tier": "rule",
+  "diag_line": 15,
+  "diag_line_ok": true,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": null,
+  "lesson": "",
+  "message": "15번 줄에서 uid와 1을 연산하려고 시도하고 있네요. 입력값에서 uid가 문자열로 들어올 때 이 코드가 어떻게 실행될지 한 번 확인해 볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 0.0,
+  "t_say": 11.56,
+  "first_token_say": 5.737759334006114,
+  "first_msg_char": 6.4,
+  "total": 11.56,
+  "len": 81,
+  "hangul": 0.82,
+  "question": true,
+  "lines_said": [
+   15
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92334",
+  "bug_lines": [
+   7,
+   12
+  ],
+  "labels": [
+   "인덱스 -1",
+   "인덱스 +1"
+  ],
+  "tier": "rule",
+  "diag_line": 7,
+  "diag_line_ok": true,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": null,
+  "lesson": "",
+  "message": "7번 줄에서 b는 report 리스트에서 분리된 문자열인데, 여기에 숫자를 뺄 수 있는지 확인해 볼까요? 입력값 'u0 u1'에서 b가 어떤 값으로 들어오는지 따라가 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 0.0,
+  "t_say": 13.38,
+  "first_token_say": 5.845215291999921,
+  "first_msg_char": 6.51,
+  "total": 13.38,
+  "len": 97,
+  "hangul": 0.76,
+  "question": true,
+  "lines_said": [
+   7
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg42748",
+  "bug_lines": [
+   7,
+   6
+  ],
+  "labels": [
+   "인덱스 -1",
+   "1 → 2"
+  ],
+  "tier": "rule",
+  "diag_line": 7,
+  "diag_line_ok": true,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": null,
+  "lesson": "",
+  "message": "예시 2에서 array[0:3]을 정렬하면 part는 [4, 7, 9]이 돼요. 7번 줄에서 k가 2일 때 part의 몇 번째 인덱스를 참조하게 되는지 직접 계산해 볼 수 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 0.0,
+  "t_say": 14.56,
+  "first_token_say": 4.625381041994842,
+  "first_msg_char": 5.31,
+  "total": 14.56,
+  "len": 101,
+  "hangul": 0.6,
+  "question": true,
+  "lines_said": [
+   7
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]
