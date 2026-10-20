@@ -5,3 +5,4 @@ __pycache__/
 *.sqlite
 *.db
 .env
+ui/vendor/monaco/vs/**/*.map
