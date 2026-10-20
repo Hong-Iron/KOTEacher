@@ -14,10 +14,10 @@
 ### 맥 (가장 쉬운 방법)
 
 1. [Releases](https://github.com/Hong-Iron/KOTEacher/releases)에서 `KOTEacher-*-arm64.dmg`를 받아 열고, KOTEacher를 Applications로 끌어다 놓습니다.
-2. 처음 열 때 "확인되지 않은 개발자" 경고가 뜨면 Finder에서 KOTEacher를 **오른쪽 클릭 → 열기 → 열기**를 누릅니다.
+2. 처음 열 때 "확인되지 않은 개발자" 경고가 뜨면 **완료**를 누르고, **시스템 설정 → 개인정보 보호 및 보안**의 맨 아래에서 KOTEacher 옆 **그래도 열기**를 누릅니다. (macOS 15부터는 오른쪽 클릭 → 열기로는 넘어가지 않습니다.) 터미널이 편하면 `xattr -dr com.apple.quarantine /Applications/KOTEacher.app` 한 줄로도 됩니다.
 3. 앱이 코치 준비를 안내합니다. [Ollama](https://ollama.com/download)를 설치하고, 앱 안의 **모델 받기**를 누르면 됩니다.
 
-애플 실리콘(M1 이후) 맥용입니다. 인텔 맥은 아래 한 줄 설치를 써 주세요.
+애플 실리콘(M1 이후) 맥용입니다. 인텔 맥은 아래 한 줄 설치를 써 주세요. 한 줄 설치로 깔면 이 경고 자체가 뜨지 않습니다.
 
 ### Windows (가장 쉬운 방법)
 

@@ -97,8 +97,9 @@ def main():
     (dmgsrc / "Applications").symlink_to("/Applications")
     (dmgsrc / "처음 열 때 읽어 주세요.txt").write_text(
         "1. KOTEacher를 Applications 폴더로 끌어다 놓아 주세요.\n"
-        "2. 처음 열 때 '확인되지 않은 개발자' 경고가 뜨면: Finder에서 KOTEacher를 오른쪽 클릭 → 열기 → 열기를 누르면 됩니다.\n"
-        "   (또는 시스템 설정 → 개인정보 보호 및 보안 → '그래도 열기')\n"
+        "2. 처음 열 때 '확인되지 않은 개발자' 경고가 뜨면: '완료'를 누른 뒤\n"
+        "   시스템 설정 → 개인정보 보호 및 보안 → 맨 아래 KOTEacher 옆 '그래도 열기'를 누르면 됩니다.\n"
+        "   (macOS 15부터는 오른쪽 클릭 → 열기로는 넘어가지 않습니다.)\n"
         "3. 앱이 코치(AI) 준비를 안내합니다: Ollama 설치(ollama.com/download) → 앱 안에서 모델 받기.\n"
         "   AI 없이도 문제 풀기, 테스트, 반례 찾기, 개념 문서는 바로 쓸 수 있습니다.\n", encoding="utf-8")
     if dmg.exists():
