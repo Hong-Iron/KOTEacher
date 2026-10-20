@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>코테가이드 · 풀기 화면 시안</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 배치 B: 왼쪽 문제, 가운데 편집기(코치는 문제 줄 바로 아래 말풍선), 아래 패널(테스트·코치 기록). 코치 색은 형광펜 호박색 하나만 쓴다. */
+:root{
+  --bg:#f3f4f7; --panel:#ffffff; --sunk:#eceef3; --ink:#1b2130; --muted:#5b6476; --faint:#8a92a3; --line:#dde1e8;
+  --accent:#2c56c9; --accent-soft:#e6ecfb;
+  --coach:#9a5f06; --coach-bg:#fbf0d9; --coach-line:#ebcf93; --coach-dot:#d99a1e;
+  --ok:#2e7d4a; --ok-bg:#e2f2e7; --bad:#b93a27; --bad-bg:#fbe6e2;
+  --ed-bg:#fbfbfd; --ed-gutter:#a3aab8; --ed-cur:#f1f3f8;
+  --kw:#7a3fb0; --fn:#1f5fbf; --nu:#b5530d; --st:#2e7d4a; --cm:#8a91a0;
+  --f-ui:"IBM Plex Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono","D2Coding",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#111419; --panel:#171b22; --sunk:#0e1116; --ink:#e4e7ed; --muted:#9aa2b2; --faint:#6b7383; --line:#262c37;
+  --accent:#86a2f2; --accent-soft:#1f2840;
+  --coach:#f0b54e; --coach-bg:#2a2214; --coach-line:#5a4420; --coach-dot:#f0b54e;
+  --ok:#66c486; --ok-bg:#16301f; --bad:#f2856f; --bad-bg:#371c17;
+  --ed-bg:#13161c; --ed-gutter:#4c5463; --ed-cur:#1a1e26;
+  --kw:#c99cf3; --fn:#82aaff; --nu:#f3a564; --st:#86d39f; --cm:#646d7e;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#111419; --panel:#171b22; --sunk:#0e1116; --ink:#e4e7ed; --muted:#9aa2b2; --faint:#6b7383; --line:#262c37;
+  --accent:#86a2f2; --accent-soft:#1f2840;
+  --coach:#f0b54e; --coach-bg:#2a2214; --coach-line:#5a4420; --coach-dot:#f0b54e;
+  --ok:#66c486; --ok-bg:#16301f; --bad:#f2856f; --bad-bg:#371c17;
+  --ed-bg:#13161c; --ed-gutter:#4c5463; --ed-cur:#1a1e26;
+  --kw:#c99cf3; --fn:#82aaff; --nu:#f3a564; --st:#86d39f; --cm:#646d7e;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.6 var(--f-ui);display:grid;grid-template-rows:auto minmax(0,1fr)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+/* 윗줄 */
+.top{display:flex;align-items:center;gap:14px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{font-weight:700;letter-spacing:-.01em}
+.crumb{display:flex;align-items:baseline;gap:8px;min-width:0}
+.crumb b{font-size:15px}
+.tag{font-size:11.5px;color:var(--muted);background:var(--sunk);border-radius:4px;padding:1px 6px;white-space:nowrap}
+.sp{flex:1}
+.meta{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;padding:2px;gap:2px;background:var(--sunk)}
+.seg button{border:0;background:none;padding:3px 10px;border-radius:5px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--coach);font-weight:600;box-shadow:0 0 0 1px var(--coach-line)}
+.iconbtn{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:4px 9px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.run{border:0;background:var(--accent);color:#fff;border-radius:7px;padding:5px 14px;font-weight:600;font-size:13px;cursor:pointer}
+:root[data-theme="dark"] .run{color:#0e1116}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .run{color:#0e1116} }
+
+/* 본문 */
+.main{display:grid;grid-template-columns:minmax(300px,30%) minmax(0,1fr);min-height:0}
+.main.collapsed{grid-template-columns:0 minmax(0,1fr)}
+.main.collapsed .prob{visibility:hidden}
+
+/* 문제 칸 */
+.prob{background:var(--panel);border-right:1px solid var(--line);overflow:auto;padding:16px 18px 24px;min-width:0}
+.prob h2{font-size:12px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;margin:18px 0 6px;font-weight:600}
+.prob h2:first-child{margin-top:0}
+.prob p{margin:6px 0;max-width:60ch}
+.limits{margin:4px 0;padding-left:1.1em}
+.io{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+.io th,.io td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertical-align:top}
+.io th{color:var(--faint);font-weight:500}
+.io td{font-family:var(--f-mono);font-size:11.5px;word-break:break-all}
+.ladder{list-style:none;padding:0;margin:6px 0 0;display:flex;flex-direction:column;gap:6px}
+.rung{border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.rung > button{all:unset;box-sizing:border-box;width:100%;display:flex;gap:10px;align-items:center;padding:8px 10px;cursor:pointer;font-size:13px}
+.rung > button:focus-visible{outline:2px solid var(--accent);border-radius:8px}
+.rung .n{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:600;background:var(--sunk);color:var(--muted);flex:none}
+.rung .lock{margin-left:auto;font-size:11.5px;color:var(--faint)}
+.rung.open{border-color:var(--coach-line)}
+.rung.open .n{background:var(--coach-bg);color:var(--coach)}
+.rung .body{padding:0 12px 10px 40px;font-size:13px;color:var(--ink)}
+.rung .body ul{margin:4px 0;padding-left:1.1em}
+.rung.final > button{color:var(--muted)}
+.warn{margin:8px 0 0;padding:8px 10px;border-radius:8px;background:var(--bad-bg);color:var(--bad);font-size:12.5px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.warn button{border:1px solid currentColor;background:none;border-radius:6px;padding:2px 8px;font-size:12px;cursor:pointer;color:inherit}
+.note{font-size:12px;color:var(--faint)}
+
+/* 편집기 열 */
+.work{display:grid;grid-template-rows:minmax(0,1fr) auto;min-height:0;min-width:0}
+.editor{background:var(--ed-bg);overflow:auto;font-family:var(--f-mono);font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-size:13.5px;line-height:1.85;padding:10px 0 40px;min-width:0}
+.ln{display:flex;white-space:pre;padding-right:20px;min-width:max-content}
+.ln > i{font-style:normal;width:52px;flex:none;text-align:right;padding-right:16px;color:var(--ed-gutter);user-select:none;position:relative}
+.ln.cur{background:var(--ed-cur)}
+.ln.flag{background:color-mix(in srgb, var(--coach-bg) 70%, transparent)}
+.ln.flag > i{color:var(--coach)}
+.ln.flag > i::before{content:"";position:absolute;left:10px;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:var(--coach-dot)}
+.ln.flag code{text-decoration:underline wavy var(--coach-dot);text-underline-offset:4px;text-decoration-thickness:1px}
+code{font:inherit}
+.kw{color:var(--kw)}.fn{color:var(--fn)}.nu{color:var(--nu)}.st{color:var(--st)}.cm{color:var(--cm)}
+
+/* 말풍선: 편집기 안, 11번 줄 바로 아래 */
+.bubble{margin:4px 20px 8px 52px;max-width:560px;font-family:var(--f-ui);font-size:13.5px;line-height:1.65;white-space:normal;
+  background:var(--coach-bg);border:1px solid var(--coach-line);border-radius:10px;padding:10px 12px 10px;position:relative}
+.bubble::before{content:"";position:absolute;top:-6px;left:22px;width:10px;height:10px;background:var(--coach-bg);border-left:1px solid var(--coach-line);border-top:1px solid var(--coach-line);transform:rotate(45deg)}
+.bubble .who{display:flex;gap:8px;align-items:center;font-size:11.5px;color:var(--coach);font-weight:600;margin-bottom:3px}
+.bubble .who .x{margin-left:auto;border:0;background:none;color:var(--faint);cursor:pointer;font-size:15px;line-height:1;padding:0 2px}
+.bubble .evid{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin:2px 0 6px}
+.bubble .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1px solid var(--coach-line);background:var(--panel);border-radius:999px;padding:2px 10px;font-size:12px;cursor:pointer;color:var(--ink)}
+.chip.pri{color:var(--coach);font-weight:600}
+.chip.ghost{border-color:transparent;background:none;color:var(--faint)}
+.bubble.mini{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;cursor:pointer;border-radius:999px}
+.bubble.mini::before{display:none}
+.ask{display:flex;gap:6px;margin-top:8px}
+.ask input{flex:1;min-width:0;font:inherit;font-size:13px;border:1px solid var(--coach-line);border-radius:7px;padding:5px 8px;background:var(--panel);color:var(--ink)}
+.thinking{color:var(--muted);font-size:12.5px}
+
+/* 아래 패널 */
+.dock{background:var(--panel);border-top:1px solid var(--line);display:grid;grid-template-rows:auto minmax(0,1fr);height:210px;min-width:0}
+.dock.small{height:auto}
+.dock.small .pbody{display:none}
+.tabs{display:flex;align-items:center;gap:2px;padding:4px 10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tabs button{border:0;background:none;padding:6px 10px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;gap:6px;align-items:center}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.cnt{font-size:11px;border-radius:999px;padding:0 6px;background:var(--sunk);color:var(--muted);font-weight:600}
+.cnt.bad{background:var(--bad-bg);color:var(--bad)}
+.cnt.coach{background:var(--coach-bg);color:var(--coach)}
+.pbody{overflow:auto;padding:8px 14px 12px;min-width:0}
+.trow{display:grid;grid-template-columns:22px 92px minmax(0,1fr) auto;gap:8px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.trow:last-child{border-bottom:0}
+.trow .s{font-weight:700}
+.trow .s.ok{color:var(--ok)}.trow .s.bad{color:var(--bad)}
+.trow .io2{font-family:var(--f-mono);font-variant-ligatures:none;font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trow .io2 b{color:var(--ink);font-weight:600}
+.trow .t{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.log{list-style:none;margin:0;padding:0}
+.log li{display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.8px}
+.log li:last-child{border-bottom:0}
+.log .tm{color:var(--faint);font-variant-numeric:tabular-nums;font-size:11.5px;padding-top:2px}
+.log .src{font-size:11px;font-weight:600;margin-right:6px}
+.log .src.ai{color:var(--coach)} .log .src.sys{color:var(--muted)}
+.statusbar{display:flex;gap:14px;align-items:center;padding:0 10px;font-size:11.5px;color:var(--faint);margin-left:auto}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:5px}
+
+/* 좁은 화면: 문제 칸을 위로 접어 넣는다 */
+@media (max-width: 980px){
+  .main{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .main.collapsed{grid-template-columns:minmax(0,1fr)}
+  .prob{border-right:0;border-bottom:1px solid var(--line);max-height:42vh}
+  .main.collapsed .prob{display:none}
+  .meta.opt{display:none}
+}
+@media (prefers-reduced-motion: no-preference){ .bubble{animation:pop .18s ease-out} @keyframes pop{from{opacity:.4;transform:translateY(-3px)}to{opacity:1;transform:none}} }
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="brand">코테가이드</span>
+  <button class="iconbtn" id="toggleProb" aria-pressed="true" title="문제 칸 열고 닫기">문제 칸</button>
+  <div class="crumb"><b>보석 쇼핑</b><span class="tag">Lv3</span><span class="tag">2020 카카오 인턴십</span></div>
+  <span class="sp"></span>
+  <span class="meta opt">경과 18:42</span>
+  <span class="meta" id="hintMeta">힌트 0 / 4</span>
+  <div class="seg" role="group" aria-label="코치 말수">
+    <button data-mode="quiet" aria-pressed="false" title="내가 힌트를 누르거나 물을 때만 말한다">조용히</button>
+    <button data-mode="normal" aria-pressed="true" title="테스트로 확인된 문제만 먼저 말한다">보통</button>
+    <button data-mode="active" aria-pressed="false" title="느릴 것 같은 방법이나 엉뚱한 방향도 먼저 짚는다">적극</button>
+  </div>
+  <button class="iconbtn" id="theme" title="시안 확인용: 시스템 → 라이트 → 다크">테마: 시스템</button>
+  <button class="run" id="run">실행 ⌘↵</button>
+</header>
+
+<div class="main" id="main">
+  <aside class="prob" aria-label="문제">
+    <h2>문제</h2>
+    <p>진열대에 보석이 한 줄로 놓여 있다. 모든 종류의 보석을 하나 이상 포함하는 가장 짧은 연속 구간을 [시작 번호, 끝 번호]로 돌려준다. 번호는 1부터 센다.</p>
+    <p>가장 짧은 구간이 여럿이면 시작 번호가 가장 작은 것을 고른다. 정확성과 효율성을 따로 채점한다.</p>
+    <h2>제한</h2>
+    <ul class="limits"><li>보석 1~100,000개</li></ul>
+    <h2>입출력 예</h2>
+    <table class="io">
+      <tr><th>gems</th><th>result</th></tr>
+      <tr><td>["DIA","RUBY","RUBY","DIA","DIA","EMERALD","SAPPHIRE","DIA"]</td><td>[3, 7]</td></tr>
+      <tr><td>["AA","AB","AC","AA","AC"]</td><td>[1, 3]</td></tr>
+      <tr><td>["XYZ","XYZ","XYZ"]</td><td>[1, 1]</td></tr>
+      <tr><td>["ZZZ","YYY","NNNN","YYY","BBB"]</td><td>[1, 5]</td></tr>
+    </table>
+    <p class="note">원문은 <a href="https://school.programmers.co.kr/learn/courses/30/lessons/67258" target="_blank" rel="noopener" style="color:var(--accent)">프로그래머스</a>에서 연다.</p>
+
+    <h2>힌트 사다리</h2>
+    <ol class="ladder" id="ladder">
+      <li class="rung" data-step="1"><button><span class="n">1</span>필요한 개념<span class="lock">열기</span></button>
+        <div class="body" hidden><ul><li><b>투 포인터와 슬라이딩 윈도</b>: 창의 오른쪽 끝을 늘리고, 줄일 수 있으면 왼쪽 끝을 줄인다.</li><li><b>딕셔너리와 집합</b>: 창 안의 보석 종류별 개수.</li></ul></div></li>
+      <li class="rung" data-step="2"><button><span class="n">2</span>작은 예로 손으로 풀기<span class="lock">열기</span></button>
+        <div class="body" hidden>진열대 [A, B, A, C, B]. 오른쪽 끝을 늘리다 4번(C)에서 세 종류가 다 들어온다. 왼쪽의 A(1번)는 창 안에 A가 또 있으니 뺀다 → 창 2~4 (길이 3). 5번을 넣으면 2번 B를 뺄 수 있다 → 창 3~5 (길이 3). 가장 짧은 길이는 3이고, 그중 시작이 빠른 [2, 4]가 답이다.</div></li>
+      <li class="rung" data-step="3"><button><span class="n">3</span>핵심 아이디어<span class="lock">열기</span></button>
+        <div class="body" hidden>창 안의 종류 수가 전체 종류 수와 같으면, 지금 창이 "이 오른쪽 끝에서 끝나는 가장 짧은 구간"이다. 지금까지의 최단보다 <b>짧을 때만</b> 바꾼다. 같으면 바꾸지 않으니 먼저 찾은(시작이 빠른) 구간이 남는다.</div></li>
+      <li class="rung" data-step="4"><button><span class="n">4</span>코드 흐름<span class="lock">열기</span></button>
+        <div class="body" hidden>1. 전체 종류 수 K를 센다. 2. 빈 딕셔너리, left = 0, 최단 답 = 무한대. 3. right를 끝까지: 개수 +1 → 맨 왼쪽이 2개 이상인 동안 빼고 left += 1 → 종류 수가 K이고 더 짧으면 [left+1, right+1]. 4. 답을 돌려준다.</div></li>
+      <li class="rung final" data-step="5"><button><span class="n">·</span>풀이 보기<span class="lock">기록에 "풀이 봄"</span></button>
+        <div class="body" hidden>시안에서는 열지 않는다. 앱에서는 풀이 문서 5~7단계(코드, 실행 추적, 복잡도와 흔한 실수)를 보여 준다.</div></li>
+    </ol>
+    <div class="warn" id="warn" hidden><span>두 번째 힌트부터는 이 시도가 <b>오답으로 기록</b>돼요.</span><button id="warnYes">그래도 열기</button><button id="warnNo">조금 더 해 볼게요</button></div>
+  </aside>
+
+  <section class="work">
+    <div class="editor" id="editor" aria-label="코드 편집기">
+<div class="ln"><i>1</i><code><span class="kw">def</span> <span class="fn">solution</span>(gems):</code></div>
+<div class="ln"><i>2</i><code>    kinds = <span class="fn">len</span>(<span class="fn">set</span>(gems))</code></div>
+<div class="ln"><i>3</i><code>    count = {}</code></div>
+<div class="ln"><i>4</i><code>    left = <span class="nu">0</span></code></div>
+<div class="ln"><i>5</i><code>    best = [<span class="nu">1</span>, <span class="fn">len</span>(gems)]</code></div>
+<div class="ln"><i>6</i><code>    <span class="kw">for</span> right, g <span class="kw">in</span> <span class="fn">enumerate</span>(gems):</code></div>
+<div class="ln"><i>7</i><code>        count[g] = count.<span class="fn">get</span>(g, <span class="nu">0</span>) + <span class="nu">1</span></code></div>
+<div class="ln"><i>8</i><code>        <span class="kw">while</span> count[gems[left]] &gt; <span class="nu">1</span>:</code></div>
+<div class="ln"><i>9</i><code>            count[gems[left]] -= <span class="nu">1</span></code></div>
+<div class="ln"><i>10</i><code>            left += <span class="nu">1</span></code></div>
+<div class="ln flag" id="flagLine"><i>11</i><code>        <span class="kw">if</span> <span class="fn">len</span>(count) == kinds <span class="kw">and</span> right - left &lt;= best[<span class="nu">1</span>] - best[<span class="nu">0</span>]:</code></div>
+<div id="bubbleSlot"></div>
+<div class="ln"><i>12</i><code>            best = [left + <span class="nu">1</span>, right + <span class="nu">1</span>]</code></div>
+<div class="ln cur"><i>13</i><code>    <span class="kw">return</span> best</code></div>
+<div class="ln"><i>14</i><code> </code></div>
+    </div>
+
+    <div class="dock" id="dock">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="tests">테스트 <span class="cnt bad">2 / 4</span></button>
+        <button role="tab" aria-selected="false" data-tab="log">코치 기록 <span class="cnt coach" id="logCnt">2</span></button>
+        <button role="tab" aria-selected="false" data-tab="out">출력</button>
+        <div class="statusbar"><span><span class="dot"></span>gemma4 12B 준비됨</span><span>문맥 16K</span><button class="iconbtn" id="dockToggle" style="padding:1px 8px">접기</button></div>
+      </div>
+      <div class="pbody" data-panel="tests">
+        <div class="trow"><span class="s ok">✓</span><span>예시 1</span><span class="io2">["DIA","RUBY",…] → <b>[3, 7]</b></span><span class="t">0.4ms</span></div>
+        <div class="trow"><span class="s bad">✗</span><span>예시 2</span><span class="io2">["AA","AB","AC","AA","AC"] 기대 <b>[1, 3]</b> 내 답 <b>[2, 4]</b></span><span class="t">0.3ms</span></div>
+        <div class="trow"><span class="s bad">✗</span><span>예시 3</span><span class="io2">["XYZ","XYZ","XYZ"] 기대 <b>[1, 1]</b> 내 답 <b>[3, 3]</b></span><span class="t">0.2ms</span></div>
+        <div class="trow"><span class="s ok">✓</span><span>예시 4</span><span class="io2">["ZZZ","YYY",…] → <b>[1, 5]</b></span><span class="t">0.3ms</span></div>
+        <div class="trow"><span class="s bad">✗</span><span>숨은 검사</span><span class="io2">가장 작은 반례 ["C","C"] 기대 <b>[1, 1]</b> 내 답 <b>[2, 2]</b> · 81개 중</span><span class="t">0.02s</span></div>
+      </div>
+      <div class="pbody" data-panel="log" hidden>
+        <ul class="log" id="log">
+          <li><span class="tm">18:40</span><span><span class="src sys">테스트</span>예시 2/4 통과. 무작위 비교에서 가장 작은 반례 ["C","C"]를 찾았다.</span></li>
+          <li><span class="tm">18:41</span><span><span class="src ai">코치</span>보석이 [C, C]뿐이면 [1, 1]과 [2, 2]는 둘 다 길이 1이에요. 길이가 같을 때 문제는 어느 쪽을 고르라고 했나요?</span></li>
+        </ul>
+      </div>
+      <div class="pbody" data-panel="out" hidden><pre style="margin:0;font:12px var(--f-mono);color:var(--muted)">print 출력이 여기에 나온다.</pre></div>
+    </div>
+  </section>
+</div>
+
+<template id="tplFull">
+  <div class="bubble" role="status" aria-live="polite">
+    <div class="who">코치 <span style="font-weight:400;color:var(--faint)">· 11번 줄 · 테스트로 확인됨</span><button class="x" aria-label="말풍선 접기" data-act="fold">×</button></div>
+    <div class="evid">반례 ["C","C"] → 기대 [1, 1], 내 답 [2, 2]</div>
+    <div>보석이 [C, C]뿐이면 [1, 1]과 [2, 2]는 둘 다 길이 1이에요. 길이가 같을 때 문제는 어느 쪽을 고르라고 했나요? 이 줄의 비교가 그 규칙을 지키는지 보세요.</div>
+    <div class="acts">
+      <button class="chip pri" data-act="hint">힌트 1단계 열기</button>
+      <button class="chip" data-act="ask">코치에게 묻기</button>
+      <button class="chip ghost" data-act="good">도움됨</button>
+      <button class="chip ghost" data-act="bad">별로</button>
+    </div>
+  </div>
+</template>
+<template id="tplMini">
+  <button class="bubble mini" data-act="unfold" aria-label="코치 말풍선 펼치기"><span style="width:7px;height:7px;border-radius:50%;background:var(--coach-dot)"></span><span style="color:var(--coach);font-weight:600;font-size:12px">코치가 이 줄에 할 말이 있어요</span></button>
+</template>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const slot = $("#bubbleSlot"), flag = $("#flagLine");
+let mode = "normal", hintsOpened = 0, pendingStep = null, logN = 2;
+
+function showBubble(kind){
+  slot.innerHTML = "";
+  if (kind === "none"){ flag.classList.remove("flag"); return; }
+  flag.classList.add("flag");
+  slot.append($(kind === "full" ? "#tplFull" : "#tplMini").content.cloneNode(true));
+}
+function applyMode(m){
+  mode = m;
+  $$(".seg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m));
+  // 조용히: 줄 표시와 접힌 알림만. 보통·적극: 확인된 문제는 말풍선으로 먼저 말한다.
+  showBubble(m === "quiet" ? "mini" : "full");
+}
+$$(".seg button").forEach(b => b.onclick = () => applyMode(b.dataset.mode));
+
+function addLog(src, text){
+  const li = document.createElement("li");
+  li.innerHTML = `<span class="tm">18:4${Math.min(9, logN)}</span><span><span class="src ${src === "코치" ? "ai" : "sys"}">${src}</span></span>`;
+  li.lastChild.append(text);
+  $("#log").append(li); $("#logCnt").textContent = ++logN;
+}
+
+function openStep(step){
+  const r = $(`.rung[data-step="${step}"]`);
+  if (!r || r.classList.contains("open")) return;
+  r.classList.add("open"); r.querySelector(".body").hidden = false;
+  r.querySelector(".lock").textContent = "열림";
+  if (step <= 4){ hintsOpened = Math.max(hintsOpened, step); $("#hintMeta").textContent = `힌트 ${hintsOpened} / 4`; }
+  addLog("힌트", `${step}단계를 열었다.`);
+  r.scrollIntoView({block: "nearest", behavior: "smooth"});
+}
+function requestStep(step){
+  // 사다리는 순서대로만 열린다.
+  const next = $$(".rung").find(r => !r.classList.contains("open"));
+  if (next && +next.dataset.step < step) step = +next.dataset.step;
+  if (step === 5 || (step >= 2 && hintsOpened < 2)){ pendingStep = step; $("#warn").hidden = false;
+    $("#warn span").innerHTML = step === 5 ? "풀이를 보면 이 시도는 <b>오답·풀이 봄</b>으로 기록돼요." : "두 번째 힌트부터는 이 시도가 <b>오답으로 기록</b>돼요.";
+    return; }
+  openStep(step);
+}
+$$(".rung > button").forEach(b => b.onclick = () => requestStep(+b.parentElement.dataset.step));
+$("#warnYes").onclick = () => { $("#warn").hidden = true; if (pendingStep && pendingStep < 5) openStep(pendingStep); pendingStep = null; };
+$("#warnNo").onclick = () => { $("#warn").hidden = true; pendingStep = null; };
+
+slot.addEventListener("click", e => {
+  const act = e.target.closest("[data-act]")?.dataset.act; if (!act) return;
+  if (act === "fold") showBubble("mini");
+  if (act === "unfold") showBubble("full");
+  if (act === "hint") { if ($("#main").classList.contains("collapsed")) $("#toggleProb").click(); requestStep(1); }
+  if (act === "good" || act === "bad") { e.target.textContent = act === "good" ? "도움됨 ✓" : "별로 ✓"; addLog("평가", act === "good" ? "도움됨" : "별로"); }
+  if (act === "ask") {
+    const b = slot.querySelector(".bubble"); if (b.querySelector(".ask")) return;
+    const f = document.createElement("form"); f.className = "ask";
+    f.innerHTML = `<input id="askInput" placeholder="길이가 같은 구간은 어떻게 비교해야 해?" aria-label="코치에게 물을 말"><button class="chip pri">묻기</button>`;
+    f.onsubmit = ev => { ev.preventDefault(); const q = f.querySelector("input").value.trim() || f.querySelector("input").placeholder;
+      addLog("나", q); const p = document.createElement("div"); p.className = "thinking"; p.style.marginTop = "8px"; p.textContent = "코치가 생각하는 중…"; f.replaceWith(p);
+      setTimeout(() => { p.className = ""; p.textContent = "먼저 찾은 구간과 지금 구간의 길이가 같을 때, 둘 중 시작 번호가 작은 건 어느 쪽인가요? 오른쪽 끝을 늘려 가며 찾으니 먼저 찾은 쪽이에요. 그럼 같을 때 바꿔야 할까요?"; addLog("코치", p.textContent); }, 900); };
+    b.querySelector(".acts").after(f); f.querySelector("input").focus();
+  }
+});
+
+$$(".tabs [role=tab]").forEach(t => t.onclick = () => {
+  $$(".tabs [role=tab]").forEach(x => x.setAttribute("aria-selected", x === t));
+  $$(".pbody").forEach(p => p.hidden = p.dataset.panel !== t.dataset.tab);
+  $("#dock").classList.remove("small"); $("#dockToggle").textContent = "접기";
+});
+$("#dockToggle").onclick = () => { const s = $("#dock").classList.toggle("small"); $("#dockToggle").textContent = s ? "펼치기" : "접기"; };
+$("#toggleProb").onclick = e => { const c = $("#main").classList.toggle("collapsed"); e.currentTarget.setAttribute("aria-pressed", !c); };
+$("#run").onclick = () => { $$(".trow").forEach((r, i) => { r.style.opacity = .35; setTimeout(() => r.style.opacity = 1, 120 + i * 60); }); };
+
+const themes = ["system", "light", "dark"], names = {system: "시스템", light: "라이트", dark: "다크"}; let ti = 0;
+$("#theme").onclick = () => { ti = (ti + 1) % 3; const t = themes[ti];
+  if (t === "system") document.documentElement.removeAttribute("data-theme"); else document.documentElement.dataset.theme = t;
+  $("#theme").textContent = "테마: " + names[t]; };
+
+applyMode("normal");
+</script>
+</body>
+</html>
