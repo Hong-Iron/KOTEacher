@@ -49,9 +49,10 @@ def child_cmd(script, *args):
     묶인 앱에는 python 실행 파일이 없으므로 앱 자신을 '--harness' 같은 인자로 다시 띄운다."""
     if FROZEN:
         return [sys.executable, f"--{script}", *args]
+    # -I(격리)는 PYTHONIOENCODING 같은 환경 변수를 무시하므로, 한글 출력을 위해 -X utf8을 직접 준다 (윈도 기본은 cp1252)
     if script == "run":  # 개념 코드 실행
-        return [sys.executable, "-I", *args]
-    return [sys.executable, "-I", str(ROOT / "koteacher" / f"{script}.py"), *args]
+        return [sys.executable, "-I", "-X", "utf8", *args]
+    return [sys.executable, "-I", "-X", "utf8", str(ROOT / "koteacher" / f"{script}.py"), *args]
 
 
 def _migrate():

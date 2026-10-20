@@ -10,11 +10,14 @@ def _std_streams():
     """윈도의 창 앱(콘솔 없음)은 sys.stdin/stdout이 None이다. 하위 작업으로 불렸을 때는
     부모가 넘긴 파이프(0, 1, 2번)를 직접 연다."""
     for name, fd, mode in (("stdin", 0, "r"), ("stdout", 1, "w"), ("stderr", 2, "w")):
-        if getattr(sys, name) is None:
+        stream = getattr(sys, name)
+        if stream is None:
             try:
                 setattr(sys, name, open(fd, mode, encoding="utf-8", closefd=False))
             except OSError:
                 pass
+        elif hasattr(stream, "reconfigure"):  # 윈도 기본 인코딩(cp1252 등)이면 한글이 깨진다
+            stream.reconfigure(encoding="utf-8", errors="replace")
 
 
 if __name__ == "__main__":
