@@ -76,7 +76,7 @@ $$("#lvSeg button").forEach(b => b.onclick = () => {
 });
 $("#search").oninput = e => { S.q = e.target.value; renderList(); };
 
-function show(id) { for (const v of ["home", "solve", "book", "learn"]) $("#" + v).hidden = v !== id; if (id === "solve") S.editor?.layout(); hideAsk(); }
+function show(id) { for (const v of ["home", "solve", "book", "learn", "history"]) $("#" + v).hidden = v !== id; if (id === "solve") S.editor?.layout(); hideAsk(); }
 
 /* ---------------- Monaco ---------------- */
 let monacoReady;
@@ -427,8 +427,8 @@ document.addEventListener("click", e => {
 $("#bookBack").onclick = () => show("home");
 
 /* ---------------- 문제 열기 ---------------- */
-async function openProblem(pid, withDoc) {
-  const p = await API.open(pid);
+async function openProblem(pid, withDoc, code) {
+  const p = await API.open(pid, code || null);
   S.p = p; S.hints = 0; S.logN = 0; S.lastDiag = null; S.startT = Date.now();
   $("#pTitle").textContent = p.title; $("#pLevel").textContent = `Lv${p.level}`; $("#pSource").textContent = p.source || "연습문제";
   $("#pSource").hidden = !p.source;
@@ -445,9 +445,6 @@ async function openProblem(pid, withDoc) {
   show("solve");
   activateTab("problem");
   decorate($('#dbody > .dpanel[data-tab="problem"]')).then(() => applyNotes($('#dbody > .dpanel[data-tab="problem"]')));
-  // 지난 문제 때 자동으로 연 탭은 닫고, 이 문제의 개념 문서를 탭으로 연다
-  for (const t of S.tabs.filter(t => t.auto && !p.concept_files.includes(t.key.slice(4)))) closeTab(t.key);
-  for (const f of p.concept_files) await openDoc(f, false, true);
   if (withDoc) openDoc(withDoc, false);
   activateTab("problem");
   await makeEditor(p.code);
@@ -455,6 +452,7 @@ async function openProblem(pid, withDoc) {
   monaco.editor.setModelMarkers(S.editor.getModel(), "kg", []);
   S.editor.focus();
   loadMistakes();
+  loadProblemHistory();
 }
 $("#back").onclick = async () => { clearTimeout(S.idleTimer); await API.save_code(S.editor.getValue()); await boot(); show("home"); };
 
@@ -480,8 +478,17 @@ S.list = "problems"; S.concepts = [];
 $$("#homeSeg button").forEach(b => b.onclick = async () => {
   S.list = b.dataset.list; $$("#homeSeg button").forEach(x => x.setAttribute("aria-pressed", x === b));
   $("#plist").hidden = S.list !== "problems"; $("#clist").hidden = S.list !== "concepts"; $("#lvSeg").hidden = S.list !== "problems";
-  if (S.list === "concepts") { S.concepts = await API.concepts(); renderConcepts(); }
+  $("#search").hidden = S.list !== "problems";
+  if (S.list === "concepts") await renderRoadmap();
 });
+// 블로그 로드맵처럼: 단원마다 읽기 전에 · 개념 표 · 떠올려 보기, 끝에 흐름 그림. 문제 옆에는 내 풀이 상태 점
+async function renderRoadmap() {
+  const r = await API.roadmap(), box = $("#clist");
+  box.innerHTML = `<header class="rm-head"><div class="rm-eyebrow">로드맵</div><h1>알고리즘 로드맵</h1>
+    <div class="rm-stats"><span><b>개념</b> ${r.concepts}</span><span><b>문제</b> ${r.problems}</span><span><b>통과</b> ${r.solved}</span><span><b>힌트로 통과</b> ${r.helped}</span></div></header>` + r.html;
+  $$("a[data-problem]", box).forEach(a => { const st = r.status[a.dataset.problem]; if (st) a.dataset.status = st; });
+  await decorate(box);
+}
 function renderConcepts() {
   const q = S.q.trim(), box = $("#clist"); box.innerHTML = "";
   const items = S.concepts.filter(c => !q || c.title.includes(q) || c.aliases.toLowerCase().includes(q.toLowerCase()));
@@ -561,7 +568,7 @@ document.addEventListener("click", e => {
   if (!a || a.closest(".crow")) return;
   e.preventDefault();
   if (a.dataset.problem) openProblem(a.dataset.problem);
-  else if (!$("#learn").hidden) openConcept(a.dataset.doc);
+  else if (!$("#learn").hidden || !$("#home").hidden) openConcept(a.dataset.doc);
   else openDoc(a.dataset.doc);
 });
 
@@ -908,6 +915,78 @@ handlers.pull_done = d => {
   else if ($("#pullText")) { $("#pullText").textContent = `받지 못했습니다: ${d.error}`; const b = $("#setupPull"); if (b) { b.disabled = false; b.textContent = "다시 받기"; } }
 };
 $$(".aistat").forEach(el => el.addEventListener("click", () => openSetup(true)));
+
+
+/* ---------------- 풀이 기록 ---------------- */
+const RES = {solved: "통과", helped: "힌트로 통과", viewed: "풀이 봄", open: "미완"};
+const fmtWhen = t => { const d = new Date(t * 1000); return `${d.getMonth() + 1}월 ${d.getDate()}일 ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`; };
+const fmtDay = t => { const d = new Date(t * 1000); return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`; };
+let histAll = [], histF = "";
+async function openHistory() {
+  histAll = await API.history(null);
+  drawHistory(); show("history");
+}
+function drawHistory() {
+  const rows = histAll.filter(r => !histF || r.res === histF);
+  let html = "", day = "";
+  for (const r of rows) {
+    const d = fmtDay(r.last_t);
+    if (d !== day) { html += `<div class="hday">${d}</div>`; day = d; }
+    html += `<div class="hrow" data-aid="${r.id}" tabindex="0"><span class="ti">${esc(r.title)} <span class="note">Lv${r.level ?? "?"}</span></span><span class="pill ${r.res}">${RES[r.res]}</span>
+      <span class="sub">${fmtWhen(r.last_t).split(" ").slice(2).join(" ")} · ${r.minutes}분 · 실행 ${r.runs}번 · 힌트 ${r.hints_opened || 0}개${r.mistakes ? ` · 오답 ${r.mistakes}` : ""}${r.coach ? ` · 코치 ${r.coach}번` : ""}</span></div>`;
+  }
+  $("#hList").innerHTML = html || `<p class="note" style="padding:14px">아직 기록이 없습니다. 문제를 열고 한 번이라도 실행하면 여기에 남습니다.</p>`;
+}
+$$("#histSeg button").forEach(b => b.onclick = () => { histF = b.dataset.f; $$("#histSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); drawHistory(); });
+$("#hList").addEventListener("click", e => { const r = e.target.closest(".hrow"); if (r) showAttempt(+r.dataset.aid); });
+$("#hList").addEventListener("keydown", e => { const r = e.target.closest(".hrow"); if (r && e.key === "Enter") showAttempt(+r.dataset.aid); });
+const codeHtml = code => `<pre class="hcode">${(code || "").split("\n").map(l => `<span>${esc(l) || " "}</span>`).join("")}</pre>`;
+async function showAttempt(aid) {
+  $$(".hrow").forEach(r => r.setAttribute("aria-selected", +r.dataset.aid === aid));
+  const meta = histAll.find(r => r.id === aid), d = await API.attempt(aid);
+  const snaps = d.snapshots, last = snaps.at(-1);
+  let shown = last;
+  const box = $("#hDetail");
+  const draw = () => {
+    box.innerHTML = `<h1>${esc(meta.title)} <span class="pill ${meta.res}">${RES[meta.res]}</span></h1>
+      <p class="note">${fmtWhen(meta.started)} 시작 · ${meta.minutes}분 · 실행 ${meta.runs}번 · 힌트 ${meta.hints_opened || 0}개</p>
+      <div class="acts"><button class="btn" data-h="open">이 문제 열기</button><button class="run" data-h="code">이 코드로 다시 열기</button></div>
+      <h2>코드 (${shown === last ? "마지막 실행" : fmtWhen(shown.t).split(" ").slice(2).join(" ") + " 실행"})</h2>${codeHtml(shown?.code)}
+      <h2>실행 흐름 · 누르면 그때 코드를 봅니다</h2><ul class="tl">${snaps.map(s => `<li class="pick" data-sid="${s.id}"><span class="tm">${fmtWhen(s.t).split(" ").slice(2).join(" ")}</span>
+        <span class="${s.passed ? "ok" : "bad"}">${s.passed ? "✓" : "✗"}</span><span class="tx">${s.passed ? "모두 통과" : esc(evidence(s.fact) || s.fact.msg || "실패")}</span></li>`).join("")}</ul>
+      ${d.coach.length ? `<h2>코치가 한 말</h2><ul class="log">${d.coach.map(c => `<li><span class="tm">${fmtWhen(c.t).split(" ").slice(2).join(" ")}</span><span>${esc(c.message)}</span><span></span></li>`).join("")}</ul>` : ""}
+      ${d.mistakes.length ? `<h2>오답 기록</h2>${d.mistakes.map(m => mistakeRow({...m, title: meta.title})).join("")}` : ""}`;
+  };
+  draw();
+  box.onclick = e => {
+    const li = e.target.closest("li.pick");
+    if (li) { shown = snaps.find(s => s.id === +li.dataset.sid); draw(); return; }
+    const b = e.target.closest("[data-h]");
+    if (b?.dataset.h === "open") openProblem(meta.problem_id);
+    if (b?.dataset.h === "code") openProblem(meta.problem_id, null, shown.code);
+  };
+  $(".hist").classList.add("detail");
+}
+$("#openHist").onclick = openHistory;
+$("#histBack").onclick = () => { $(".hist").classList.remove("detail"); show("home"); };
+
+// 풀기 화면의 '풀이 기록' 탭: 이 문제의 지난 코드 불러오기 (되돌리기 ⌘Z 가능)
+async function loadProblemHistory() {
+  if (!S.p) return;
+  const rows = (await API.history(S.p.id)).slice(0, 20);
+  $("#histPanel").innerHTML = rows.length ? `<ul class="tl">${rows.map(r => `<li><span class="tm">${fmtWhen(r.last_t).split(" ").slice(0, 2).join(" ")}</span>
+      <span class="pill ${r.res}" style="font-size:10.5px;padding:0 6px">${RES[r.res]}</span><span class="tx">${r.minutes}분 · 실행 ${r.runs}번 · 힌트 ${r.hints_opened || 0}개
+      <button class="chip" data-load="${r.id}" style="margin-left:8px">이 코드 불러오기</button></span></li>`).join("")}</ul>`
+    : `<p class="note" style="margin:4px 0">이 문제의 지난 기록이 없습니다.</p>`;
+}
+$("#histPanel").addEventListener("click", async e => {
+  const b = e.target.closest("[data-load]"); if (!b) return;
+  const d = await API.attempt(+b.dataset.load), code = d.snapshots.at(-1)?.code;
+  if (!code) return;
+  const model = S.editor.getModel();
+  S.editor.executeEdits("history", [{range: model.getFullModelRange(), text: code}]);  // ⌘Z로 되돌릴 수 있게
+  addLog("sys", "기록", "지난 코드를 불러왔습니다. ⌘Z로 되돌릴 수 있습니다.");
+});
 
 /* ---------------- 시작 ---------------- */
 function start() {

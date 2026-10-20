@@ -15,15 +15,17 @@
   <header class="top">
     <span class="brand"><img src="icon.svg" alt="" class="logo">KOTEacher</span>
     <span class="sp"></span>
+    <button class="searchbar" data-search title="전체 검색 (⌘K)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>문제, 개념, 문서 내용 찾기</span><kbd>⌘K</kbd></button>
+    <span class="sp"></span>
     <span class="aistat" id="aiStat"><span class="dot"></span>코치 확인 중</span>
-    <button class="btn searchbtn" data-search>검색 <kbd>⌘K</kbd></button>
+    <button class="btn" id="openHist">풀이 기록</button>
     <button class="btn" id="openBook">오답 노트 <span class="cnt coach" id="bookCnt">0</span></button>
   </header>
   <div class="home">
     <div class="home-inner">
       <div class="homebar">
         <div class="seg plain big" id="homeSeg" role="tablist" aria-label="목록">
-          <button data-list="problems" aria-pressed="true">문제 90</button><button data-list="concepts" aria-pressed="false">개념 42</button>
+          <button data-list="problems" aria-pressed="true">문제 90</button><button data-list="concepts" aria-pressed="false">로드맵</button>
         </div>
         <span class="sp"></span>
         <div class="seg plain" id="lvSeg" role="group" aria-label="레벨">
@@ -32,7 +34,7 @@
         <input id="search" type="search" placeholder="문제나 개념 이름" aria-label="찾기">
       </div>
       <div class="plist" id="plist"></div>
-      <div class="plist" id="clist" hidden></div>
+      <article class="roadmap doc" id="clist" hidden></article>
     </div>
   </div>
 </section>
@@ -42,6 +44,8 @@
   <header class="top">
     <button class="btn" id="back" title="목록">← 목록</button>
     <div class="crumb"><b id="pTitle"></b><span class="tag" id="pLevel"></span><span class="tag" id="pSource"></span></div>
+    <span class="sp"></span>
+    <button class="searchbar" data-search title="전체 검색 (⌘K)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>문제, 개념, 문서 내용 찾기</span><kbd>⌘K</kbd></button>
     <span class="sp"></span>
     <span class="meta" id="clock">0:00</span>
     <span class="meta" id="hintMeta">힌트 0 / 3</span>
@@ -53,7 +57,6 @@
     <div class="seg plain" role="group" aria-label="창">
       <button id="foldLeft" aria-pressed="true" title="문서 창 열고 닫기 (⌘B)">문서</button><button id="foldRight" aria-pressed="true" title="코드 창 열고 닫기 (⌘⇧B)">코드</button>
     </div>
-    <button class="btn searchbtn" data-search title="전체 검색 (⌘K)">검색</button>
   </header>
   <div class="split" id="split">
     <section class="pane docpane" id="leftPane" aria-label="문서 창">
@@ -82,12 +85,14 @@
           <button role="tab" aria-selected="true" data-tab="tests">테스트 <span class="cnt" id="testCnt">–</span></button>
           <button role="tab" aria-selected="false" data-tab="log">코치 기록 <span class="cnt coach" id="logCnt">0</span></button>
           <button role="tab" aria-selected="false" data-tab="mistakes">오답 기록 <span class="cnt" id="misCnt">0</span></button>
+          <button role="tab" aria-selected="false" data-tab="hist">풀이 기록</button>
           <button role="tab" aria-selected="false" data-tab="out">출력</button>
           <div class="statusbar"><span id="edStat"></span><span class="aistat" id="aiStat2"><span class="dot"></span></span><button class="btn" id="dockToggle" style="padding:1px 8px">접기</button><button class="run" id="run" title="예시와 숨은 검사 돌리기">실행 ⌘↵</button></div>
         </div>
         <div class="pbody" data-panel="tests" id="tests"><p class="note">실행(⌘↵)하면 예시와 숨은 검사를 돌립니다.</p></div>
         <div class="pbody" data-panel="log" hidden><ul class="log" id="log"></ul></div>
         <div class="pbody" data-panel="mistakes" hidden id="misPanel"></div>
+        <div class="pbody" data-panel="hist" hidden id="histPanel"></div>
         <div class="pbody" data-panel="out" hidden><pre class="out" id="out">print 출력이 여기에 나옵니다.</pre></div>
       </div>
     </section>
@@ -101,7 +106,8 @@
     <button class="btn" id="learnBack">← 목록</button>
     <div class="crumb"><b id="lTitle"></b><span class="tag" id="lAlias"></span></div>
     <span class="sp"></span>
-    <button class="btn searchbtn" data-search>검색 <kbd>⌘K</kbd></button>
+    <button class="searchbar" data-search title="전체 검색 (⌘K)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>문제, 개념, 문서 내용 찾기</span><kbd>⌘K</kbd></button>
+    <span class="sp"></span>
   </header>
   <div class="learn">
     <article class="ldoc doc" id="lDoc"></article>
@@ -113,11 +119,31 @@
   </div>
 </section>
 
+<!-- 풀이 기록 -->
+<section class="view" id="history" hidden>
+  <header class="top">
+    <button class="btn" id="histBack">← 목록</button>
+    <span class="brand">풀이 기록</span>
+    <span class="sp"></span>
+    <button class="searchbar" data-search title="전체 검색 (⌘K)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>문제, 개념, 문서 내용 찾기</span><kbd>⌘K</kbd></button>
+    <span class="sp"></span>
+    <div class="seg plain" id="histSeg" role="group" aria-label="결과">
+      <button data-f="" aria-pressed="true">전체</button><button data-f="solved" aria-pressed="false">통과</button><button data-f="helped" aria-pressed="false">힌트로 통과</button><button data-f="open" aria-pressed="false">미완</button>
+    </div>
+  </header>
+  <div class="hist">
+    <div class="hlist" id="hList"></div>
+    <div class="hdetail" id="hDetail"><p class="note">왼쪽에서 기록을 고르면 그때의 코드와 실행 흐름이 나옵니다.</p></div>
+  </div>
+</section>
+
 <!-- 오답 노트 -->
 <section class="view" id="book" hidden>
   <header class="top">
     <button class="btn" id="bookBack">← 목록</button>
     <span class="brand">오답 노트</span>
+    <span class="sp"></span>
+    <button class="searchbar" data-search title="전체 검색 (⌘K)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>문제, 개념, 문서 내용 찾기</span><kbd>⌘K</kbd></button>
     <span class="sp"></span>
     <div class="seg plain" id="catSeg" role="group" aria-label="분류"></div>
   </header>

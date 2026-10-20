@@ -4,6 +4,7 @@
 """
 import os
 import plistlib
+import shutil
 import stat
 from pathlib import Path
 
@@ -12,6 +13,7 @@ APP = Path.home() / "Applications" / "KOTEacher.app"
 macos = APP / "Contents" / "MacOS"
 macos.mkdir(parents=True, exist_ok=True)
 (APP / "Contents" / "Resources").mkdir(exist_ok=True)
+shutil.copy2(ROOT / "assets" / "KOTEacher.icns", APP / "Contents" / "Resources" / "KOTEacher.icns")
 
 launcher = macos / "koteacher"
 launcher.write_text(f"""#!/bin/zsh
@@ -25,7 +27,8 @@ with open(APP / "Contents" / "Info.plist", "wb") as f:
         "CFBundleName": "KOTEacher", "CFBundleDisplayName": "KOTEacher",
         "CFBundleIdentifier": "io.github.hong-iron.koteacher", "CFBundleVersion": "0.1.0",
         "CFBundleShortVersionString": "0.1.0", "CFBundlePackageType": "APPL",
-        "CFBundleExecutable": "koteacher", "LSMinimumSystemVersion": "13.0", "NSHighResolutionCapable": True,
+        "CFBundleExecutable": "koteacher", "CFBundleIconFile": "KOTEacher", "LSMinimumSystemVersion": "13.0",
+        "NSHighResolutionCapable": True,
     }, f)
 os.utime(APP, None)
 print(APP)

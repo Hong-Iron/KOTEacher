@@ -108,3 +108,21 @@ class Store:
 
     def delete_note(self, nid):
         self._ex("DELETE FROM doc_notes WHERE id=?", (nid,))
+
+    # 풀이 기록: 한 번이라도 실행한 시도만
+    def history(self, pid=None):
+        where = "WHERE a.problem_id=?" if pid else ""
+        return self.rows(f"""
+            SELECT a.id, a.problem_id, a.started, a.ended, a.result, a.hints_opened, a.solution_viewed,
+                   COUNT(s.id) AS runs, MAX(s.t) AS last_t, SUM(s.passed) AS passes,
+                   (SELECT COUNT(*) FROM mistakes m WHERE m.attempt_id=a.id) AS mistakes,
+                   (SELECT COUNT(*) FROM coach_msgs c WHERE c.attempt_id=a.id) AS coach
+            FROM attempts a JOIN snapshots s ON s.attempt_id=a.id {where}
+            GROUP BY a.id ORDER BY MAX(s.t) DESC LIMIT 500""", (pid,) if pid else ())
+
+    def attempt_detail(self, aid):
+        att = self.rows("SELECT * FROM attempts WHERE id=?", (aid,))
+        snaps = self.rows("SELECT id, t, passed, summary, code FROM snapshots WHERE attempt_id=? ORDER BY t", (aid,))
+        msgs = self.rows("SELECT t, signal, tier, message, line FROM coach_msgs WHERE attempt_id=? ORDER BY t", (aid,))
+        mis = self.rows("SELECT * FROM mistakes WHERE attempt_id=? ORDER BY t", (aid,))
+        return {"attempt": att[0] if att else None, "snapshots": snaps, "coach": msgs, "mistakes": mis}

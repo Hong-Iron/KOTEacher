@@ -59,7 +59,25 @@ def main():
             elif f.suffix in (".py", ".svg"):
                 shutil.copy2(f, DST / sub / f.name)
                 n[f.suffix[1:]] += 1
-    print(f"content/: 문서 {n['md']}, 코드 {n['py']}, 그림 {n['svg']}")
+    # 로드맵: 내부용 '확인할 것' 절과 머리의 진도·시험 줄은 뺀다
+    road = (SRC / "0.로드맵.md").read_text(encoding="utf-8")
+    road = re.sub(r"^## 확인할 것.*?(?=^## |\Z)", "", road, flags=re.S | re.M)
+    road = re.sub(r"^> (시험|진도):.*\n", "", road, flags=re.M)
+    # 표의 '상태' 칸(볼트 주인의 숙련도)은 앱 기록과 맞지 않으므로 뺀다
+    lines, drop = [], False
+    for line in road.split("\n"):
+        if line.startswith("|"):
+            cells = re.split(r"(?<!\\)\|", line)
+            if cells[-2].strip() == "상태":
+                drop = True
+            if drop:
+                line = "|".join(cells[:-2] + [""])
+        else:
+            drop = False
+        lines.append(line)
+    road = "\n".join(lines)
+    (DST / "0.로드맵.md").write_text(clean_md(road), encoding="utf-8")
+    print(f"content/: 문서 {n['md']}, 코드 {n['py']}, 그림 {n['svg']}, 로드맵 1")
     left = [(p.relative_to(DST), l.strip()[:80]) for p in DST.rglob("*.md")
             for l in p.read_text(encoding="utf-8").splitlines() if re.match(r"^\s*\[\^", l) and MENTION.search(l)]
     print("남은 수업 자료 언급:", len(left))

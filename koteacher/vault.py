@@ -187,3 +187,13 @@ def search_index():
     for p in problems():
         items.append({"kind": "pdoc", "key": p["id"], "title": p["title"], "text": plain(problem(p["id"])["statement_md"])})
     return items
+
+
+def roadmap():
+    f = config.CONTENT / "0.로드맵.md"
+    if not f.exists():
+        return None
+    body = f.read_text(encoding="utf-8")
+    body = re.sub(r"^# .*\n", "", body, count=1)
+    body = re.sub(r"\s*\(\[\[[^\]]*\.py\\?\|코드\]\]\)", "", body)  # 연습 칸의 '(코드)' 링크는 앱에서 쓰지 않는다
+    return to_html(body)

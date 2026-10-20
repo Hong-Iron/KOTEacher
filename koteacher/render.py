@@ -66,7 +66,7 @@ def _math(doc, text):
 
 def _links(doc, text):
     def one(m):
-        bang, target, name = m.group(1), m.group(2), m.group(3)
+        bang, target, name = m.group(1), m.group(2).rstrip("\\"), m.group(3)  # 표 안에서는 [[경로\|이름]]으로 쓴다
         p = Path(target)
         if bang:
             f = config.CONTENT / p.parent.name / p.name
@@ -82,8 +82,8 @@ def _links(doc, text):
             return doc.keep(f'<a class="doclink" data-doc="{html.escape(stem)}">{label}</a>')
         if "4.연습문제" in target and stem in doc.problem_ids:
             return doc.keep(f'<a class="doclink prob" data-problem="{doc.problem_ids[stem]}">{label}</a>')
-        if p.suffix == ".py":
-            return doc.keep(f"<code>{label}</code>")
+        if p.suffix in (".py", ".svg"):
+            return doc.keep(f'<span class="codefile" title="{html.escape(p.name)}">{label}</span>')
         return doc.keep(f'<span class="xlink" title="{html.escape(target)}">{label}</span>')
     return WIKI.sub(one, text)
 

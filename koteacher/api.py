@@ -46,13 +46,13 @@ class Api:
         return {"problems": items, "ai": ollama.status(), "mode": self.mode,
                 "mistakes": len(self.store.mistakes(limit=10000))}
 
-    def open(self, pid):
+    def open(self, pid, code_override=None):
         p = vault.problem(pid)
         pk = packs.load(pid)
         aid = self.store.start_attempt(pid)
         self.s = Session(pid, aid)
         ladder = vault.hint_ladder(pid)
-        code = self.store.last_code(pid) or template_code(pk["params"])
+        code = code_override or self.store.last_code(pid) or template_code(pk["params"])
         self.s.code = code
 
         return {
@@ -69,6 +69,34 @@ class Api:
     def concepts(self):
         st = self.store.problem_status()
         return [c | {"solved": sum(st.get(pid) == "solved" for pid in c["problems"])} for c in vault.concepts()]
+
+    def history(self, pid=None):
+        titles = {p["id"]: p for p in vault.problems()}
+        out = []
+        for r in self.store.history(pid):
+            p = titles.get(r["problem_id"], {})
+            if r["result"] == "pass":
+                res = "helped" if (r["hints_opened"] or 0) >= 2 or r["solution_viewed"] else "solved"
+            else:
+                res = "viewed" if r["solution_viewed"] else "open"
+            out.append(r | {"title": p.get("title", r["problem_id"]), "level": p.get("level"), "res": res,
+                            "minutes": round(((r["ended"] or r["last_t"]) - r["started"]) / 60, 1)})
+        return out
+
+    def attempt(self, aid):
+        d = self.store.attempt_detail(int(aid))
+        for s in d["snapshots"]:
+            try:
+                f = (json.loads(s["summary"] or "{}").get("facts") or [{}])[0]
+            except Exception:
+                f = {}
+            s["fact"] = f
+        return d
+
+    def roadmap(self):
+        st = self.store.problem_status()
+        return {"html": vault.roadmap(), "status": st, "concepts": len(vault.concepts()), "problems": len(vault.problems()),
+                "solved": sum(v == "solved" for v in st.values()), "helped": sum(v == "helped" for v in st.values())}
 
     def concept(self, name):
         d = vault.concept_doc(name)
