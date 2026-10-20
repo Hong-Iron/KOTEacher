@@ -1,0 +1,453 @@
+[
+ {
+  "pid": "pg17687",
+  "bug_lines": [
+   21,
+   12
+  ],
+  "labels": [
+   "+ ↔ -",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 12,
+  "diag_line_ok": true,
+  "diag_cat": "기타",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "나머지 r이 0일 때 인덱스 오류",
+  "lesson": "",
+  "message": "12번 줄에서 r의 값과 digits의 인덱스를 비교해 보세요. r이 0일 때 어떤 인덱스를 참조하게 되나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 44.25,
+  "t_say": 0.0,
+  "first_token_say": 20.803519209002843,
+  "first_msg_char": 25.11,
+  "total": 44.25,
+  "len": 61,
+  "hangul": 0.72,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92335",
+  "bug_lines": [
+   18,
+   15
+  ],
+  "labels": [
+   "1 → 2",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 15,
+  "diag_line_ok": true,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "n이 1일 때 반복문 종료",
+  "lesson": "",
+  "message": "예시 3의 실행 추적에서 n이 1이 되었을 때 반복문이 종료되나요? 16번 줄의 n과 r 값을 다시 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 41.14,
+  "t_say": 0.0,
+  "first_token_say": 18.183770042000106,
+  "first_msg_char": 22.38,
+  "total": 41.14,
+  "len": 64,
+  "hangul": 0.81,
+  "question": true,
+  "lines_said": [
+   16
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118666",
+  "bug_lines": [
+   8,
+   9
+  ],
+  "labels": [
+   "4 → 5",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 9,
+  "diag_line_ok": true,
+  "diag_cat": "자료구조",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "문자열에서 인덱스 추출",
+  "lesson": "",
+  "message": "9번 줄에서 s[1]과 1을 뺀 결과가 어떻게 되는지 확인해 보시겠어요? s[1]의 데이터 타입을 다시 한번 살펴봐 주세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 37.51,
+  "t_say": 0.0,
+  "first_token_say": 16.11994254099409,
+  "first_msg_char": 19.8,
+  "total": 37.51,
+  "len": 69,
+  "hangul": 0.77,
+  "question": true,
+  "lines_said": [
+   9
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17677",
+  "bug_lines": [
+   14,
+   13
+  ],
+  "labels": [
+   "65536 → 65535",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": 13,
+  "diag_line_ok": true,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "union이 0일 때의 예외 처리 미흡",
+  "lesson": "",
+  "message": "반례에서 13번 줄의 union 값을 확인해 보세요. 만약 union이 0이라면 15번 줄에서 어떤 일이 발생할까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 35.53,
+  "t_say": 0.0,
+  "first_token_say": 15.665919375001977,
+  "first_msg_char": 19.57,
+  "total": 35.53,
+  "len": 65,
+  "hangul": 0.67,
+  "question": true,
+  "lines_said": [
+   13,
+   15
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "bug_lines": [
+   6,
+   14
+  ],
+  "labels": [
+   "0 → -1",
+   "1 → 0"
+  ],
+  "tier": "llm",
+  "diag_line": 6,
+  "diag_line_ok": true,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "i가 -1로 초기화됨",
+  "lesson": "",
+  "message": "반례 'AA'에서 7번 줄이 실행될 때 i의 초기값을 확인해 보세요. i가 어떤 값으로 시작하면 8번 줄에서 어떤 인덱스를 가리키게 될까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 33.12,
+  "t_say": 0.0,
+  "first_token_say": 13.65794774999813,
+  "first_msg_char": 16.85,
+  "total": 33.12,
+  "len": 78,
+  "hangul": 0.83,
+  "question": true,
+  "lines_said": [
+   7,
+   8
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "bug_lines": [
+   13,
+   21
+  ],
+  "labels": [
+   "1 → 2",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 13,
+  "diag_line_ok": true,
+  "diag_cat": "기타",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "gave[i]에 2를 더함",
+  "lesson": "",
+  "message": "13번 줄에서 gave[i]에 더해지는 값은 문제의 조건과 일치하나요? 14번 줄의 got[j]와 비교해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 41.18,
+  "t_say": 0.0,
+  "first_token_say": 20.878862957993988,
+  "first_msg_char": 24.56,
+  "total": 41.18,
+  "len": 63,
+  "hangul": 0.63,
+  "question": true,
+  "lines_said": [
+   13,
+   14
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg42888",
+  "bug_lines": [
+   15,
+   13
+  ],
+  "labels": [
+   "인덱스 -1",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": false,
+  "diag_cat": "자료구조",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "uid이 문자열임",
+  "lesson": "",
+  "message": "8번 줄에서 uid 변수에 어떤 타입의 값이 담기는지 확인해 보시겠어요? 15번 줄의 연산과 비교해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 36.3,
+  "t_say": 0.0,
+  "first_token_say": 19.60064254199824,
+  "first_msg_char": 23.43,
+  "total": 36.3,
+  "len": 60,
+  "hangul": 0.83,
+  "question": true,
+  "lines_said": [
+   8,
+   15
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17682",
+  "bug_lines": [
+   12,
+   5
+  ],
+  "labels": [
+   "인덱스 +1",
+   "3 → 4"
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": false,
+  "diag_cat": "기타",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "T의 제곱수가 3이 아닌 4로 설정됨",
+  "lesson": "",
+  "message": "반례에서 7T를 처리할 때 8번 줄의 s값이 어떻게 계산되는지 확인해 보시겠어요? 문제에 제시된 T의 점수 계산 방식을 다시 한번 살펴봐 주세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 37.04,
+  "t_say": 0.0,
+  "first_token_say": 16.534699499999988,
+  "first_msg_char": 20.02,
+  "total": 37.04,
+  "len": 81,
+  "hangul": 0.89,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg150370",
+  "bug_lines": [
+   12,
+   16
+  ],
+  "labels": [
+   "인덱스 -1",
+   "+ ↔ -"
+  ],
+  "tier": "llm",
+  "diag_line": 11,
+  "diag_line_ok": false,
+  "diag_cat": "자료구조",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "문자열과 정수 연산",
+  "lesson": "",
+  "message": "11번 줄에서 kind 변수에 어떤 값이 들어오는지 확인해 보시겠어요? 12번 줄에서 계산을 하기 전에 어떤 타입으로 저장되는지 살펴보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 38.46,
+  "t_say": 0.0,
+  "first_token_say": 17.58023383300315,
+  "first_msg_char": 21.31,
+  "total": 38.46,
+  "len": 78,
+  "hangul": 0.84,
+  "question": true,
+  "lines_said": [
+   11,
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg60061",
+  "bug_lines": [
+   9,
+   8
+  ],
+  "labels": [
+   "+ ↔ -",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 12,
+  "diag_line_ok": false,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "조건 검사 전 삽입",
+  "lesson": "",
+  "message": "8번 줄의 ok 함수가 False를 반환했을 때 12번 줄의 S에 값이 추가되는 것을 확인해 보세요. 설치 규칙에 맞는 구조물만 포함되어야 하나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 51.17,
+  "t_say": 0.0,
+  "first_token_say": 26.52291754199541,
+  "first_msg_char": 31.59,
+  "total": 51.17,
+  "len": 82,
+  "hangul": 0.79,
+  "question": true,
+  "lines_said": [
+   8,
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg64061",
+  "bug_lines": [
+   11,
+   6
+  ],
+  "labels": [
+   "인덱스 +1",
+   "0 → -1"
+  ],
+  "tier": "llm",
+  "diag_line": 10,
+  "diag_line_ok": false,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "배열 범위 초과",
+  "lesson": "",
+  "message": "반례에서 10번 줄의 row 값이 0일 때 11번 줄의 인덱스가 어떻게 되는지 확인해 보시겠어요? board의 크기와 비교해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 26.81,
+  "t_say": 0.0,
+  "first_token_say": 10.847858375003852,
+  "first_msg_char": 14.39,
+  "total": 26.81,
+  "len": 74,
+  "hangul": 0.74,
+  "question": true,
+  "lines_said": [
+   10,
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "bug_lines": [
+   19,
+   17
+  ],
+  "labels": [
+   "인덱스 +1",
+   "인덱스 +1"
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": false,
+  "diag_cat": "비교·경계",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "2x2 행렬에서 mid가 빈 deque로 생성됨",
+  "lesson": "",
+  "message": "예시 5에서 8번 줄이 실행된 후 mid의 각 내부 deque에 어떤 값이 들어있는지 확인해 보시겠어요? 행과 열의 크기가 2일 때의 결과가 의도와 같은지 살펴보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 42.14,
+  "t_say": 0.0,
+  "first_token_say": 17.60995095800172,
+  "first_msg_char": 21.03,
+  "total": 42.14,
+  "len": 93,
+  "hangul": 0.81,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]
