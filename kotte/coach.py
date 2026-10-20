@@ -63,14 +63,24 @@ def is_stub(code):
 
 # ---------------------------------------------------------------- 복잡도 어림 (AST)
 
+SIZE_WORD = re.compile(r"(개|명|글자|칸|줄|쌍|길이|개수|크기|원소)")
+
+
 def limits_n(statement_md):
-    """문제 제한에서 가장 큰 크기를 어림한다 (예: '보석 1~100,000개' → 100000)."""
-    nums = [int(x.replace(",", "")) for x in re.findall(r"~\s*([\d,]{4,})", statement_md)]
-    nums += [10 ** int(x) for x in re.findall(r"10\^(\d+)", statement_md)]
-    return max(nums) if nums else None
+    """문제 제한에서 입력 '크기'의 최댓값을 어림한다 (예: '보석 1~100,000개' → 100000).
+    '숫자 1~200,000,000'처럼 값의 범위는 크기가 아니므로 뺀다."""
+    best = None
+    for line in statement_md.splitlines():
+        for m in re.finditer(r"~\s*([\d,]{2,})\s*(\S{0,3})", line):
+            n = int(m.group(1).replace(",", ""))
+            before = re.split(r"[,·/(;]", line[:m.start()])[-1]  # 같은 줄의 앞 제한은 보지 않는다
+            if SIZE_WORD.search(m.group(2)) or SIZE_WORD.search(before):
+                best = max(best or 0, n)
+    return best
 
 
 def loop_depth(code):
+    """for와 내포(comprehension)만 센다. while은 이분 탐색·두 포인터처럼 n번보다 적게 도는 일이 많다."""
     try:
         tree = ast.parse(code)
     except SyntaxError:
@@ -80,7 +90,7 @@ def loop_depth(code):
         best = 0
         for c in ast.iter_child_nodes(node):
             d = depth(c)
-            if isinstance(c, (ast.For, ast.While, ast.comprehension)):
+            if isinstance(c, (ast.For, ast.comprehension)):
                 d += 1
             best = max(best, d)
         return best
@@ -130,8 +140,14 @@ def diagnose(pid, code, result, fs):
         return {"tier": "repair", "category": fx["category"], "line": fx["line"], "lesson": "",
                 "secret": fx["label"], "confidence": "확인됨", "fact": f, "fix": fx}
     if f["kind"] == "timeout":
-        return {"tier": "rule", "category": "복잡도", "line": None, "lesson": "", "secret": None,
-                "confidence": "확인됨", "fact": f}
+        # 한 군데 수정으로 안 고쳐지는 시간 초과: 실행 추적표(같은 값이 되풀이되는지)를 보고 AI가 줄을 찾는다
+        d = llm_diagnose(pid, code, f, result)
+        if d["tier"] == "none":
+            return {"tier": "rule", "category": "복잡도", "line": None, "lesson": "", "secret": None,
+                    "confidence": "확인됨", "fact": f}
+        if d["category"] not in ("복잡도", "조건 놓침", "비교·경계", "초기값"):
+            d["category"] = "복잡도"
+        return d
     if f["kind"] == "error" and f.get("line"):
         return {"tier": "rule", "category": "예외", "line": f["line"], "lesson": "", "secret": None,
                 "confidence": "확인됨", "fact": f}

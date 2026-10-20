@@ -123,7 +123,7 @@ class Api:
             return out
 
         # 실패: 진단은 빠른 단계(규칙·수리)만 여기서 하고, AI 진단과 말하기는 뒤에서
-        quick = res.get("repair", {}) and res["repair"].get("fixes") or fs[0]["kind"] in ("timeout", "error")
+        quick = bool((res.get("repair") or {}).get("fixes")) or (fs[0]["kind"] == "error" and fs[0].get("line"))
         diag = coach.diagnose(s.pid, code, res, fs) if quick else None
         if diag:
             s.diag = diag
