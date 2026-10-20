@@ -895,6 +895,14 @@ async function openSetup(force) {
         <span class="d">${info.model ? `${esc(info.name)}이(가) 준비되어 있습니다.` : `이 컴퓨터 메모리 ${r.ram}GB → <code>${esc(r.model)}</code> (${r.size}) 를 추천합니다. 한 번만 받으면 됩니다.`}</span>
         <div class="bar" id="pullBar" hidden><i></i></div><span class="d" id="pullText"></span></div>
     </div>
+    ${info.server ? `<h3 class="ch">코치 모델</h3><div class="choices" id="modelChoices">
+      ${[["auto", "자동", `이 컴퓨터(메모리 ${r.ram}GB)에 맞춰 고릅니다 → ${r.choice === "accurate" ? "정확도 우선" : "속도 우선"}`],
+         ["accurate", "정확도 우선", "gemma4 12B · 7.2GB. 버그 줄을 더 잘 찾지만 느립니다"],
+         ["fast", "속도 우선", "gemma4 e4b · 6.1GB. 답이 2배쯤 빠르고 메모리를 덜 씁니다"]].map(([k, t, d]) => {
+        const need = k === "auto" ? r.choice : k, have = info.have?.[need];
+        return `<button class="choice" data-choice="${k}" aria-pressed="${info.choice === k}"><b>${t}</b><span class="d">${esc(d)}</span>
+          <span class="st">${have ? "받아 둠" : `받아야 함 · ${k === "fast" || (k === "auto" && r.choice === "fast") ? "6.1GB" : "7.2GB"}`}</span></button>`; }).join("")}
+    </div>` : ""}
     <div class="acts">
       <button class="btn" id="setupLater">나중에</button>
       ${!info.server ? `<button class="btn" id="setupRetry">다시 확인</button>` : ""}
@@ -902,6 +910,15 @@ async function openSetup(force) {
       ${info.server && info.model ? `<button class="run" id="setupOk">시작하기</button>` : ""}
     </div>`;
   $("#setup").hidden = false;
+  $$("#modelChoices .choice").forEach(b => b.onclick = async () => {
+    await API.set_coach_model(b.dataset.choice);
+    const want = b.dataset.choice === "auto" ? r.choice : b.dataset.choice;
+    if (!info.have?.[want]) {  // 아직 없으면 받기
+      $("#pullBar").hidden = false; $("#pullText").textContent = "받기 시작";
+      API.pull_model(want === "fast" ? "gemma4:e4b-it-qat" : "gemma4:12b-it-qat");
+    }
+    openSetup(true);
+  });
   $("#setupLater").onclick = () => { $("#setup").hidden = true; try { localStorage.setItem("kt-setup-later", "1"); } catch (_) {} };
   $("#setupRetry") && ($("#setupRetry").onclick = () => openSetup(true));
   $("#setupOk") && ($("#setupOk").onclick = () => { $("#setup").hidden = true; });
@@ -916,6 +933,7 @@ handlers.pull = d => {
   if (d.total) $("#pullBar i").style.width = `${Math.round(d.done / d.total * 100)}%`;
   $("#pullText").textContent = d.total ? `${fmtGB(d.done)} / ${fmtGB(d.total)} GB · ${d.status}` : d.status;
 };
+handlers.model_ready = st => setAi(st);
 handlers.pull_done = d => {
   if (d.ok) { setAi(d.status); openSetup(true); }
   else if ($("#pullText")) { $("#pullText").textContent = `받지 못했습니다: ${d.error}`; const b = $("#setupPull"); if (b) { b.disabled = false; b.textContent = "다시 받기"; } }

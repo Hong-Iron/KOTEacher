@@ -126,10 +126,12 @@ SYSTEM = (
 
 def context(pid, code):
     p = vault.problem(pid)
-    return f"[문제]\n{vault.plain(p['statement_md'])[:420]}\n\n[학생 코드]\n{numbered(code)}"
+    n = 260 if "short" in EXP else 420
+    return f"[문제]\n{vault.plain(p['statement_md'])[:n]}\n\n[학생 코드]\n{numbered(code)}"
 
 
 ACK = "문제와 코드를 읽었습니다."
+EXP = set(os.environ.get("KOTEACHER_EXP", "").split(","))  # 속도 실험: textfmt, lean, short
 
 
 def messages(pid, code, dynamic, task):
@@ -179,7 +181,8 @@ def _hint_context(pid, hint_level):
     return "\n".join(f"- {l['title']}: {l['text'][:500]}" for l in lad[:min(hint_level, vault.HINTS)])
 
 
-def trace_text(result, limit=16):
+def trace_text(result, limit=None):
+    limit = limit or (10 if "short" in EXP else 16)
     """짧은 형식: 'L12 s='F'' (12번 줄을 실행한 뒤 바뀐 변수). 프롬프트를 짧게 해 읽는 시간을 줄인다."""
     rows = (result or {}).get("trace") or []
     out = []
@@ -271,15 +274,66 @@ DIAG_TASK = ("버그 줄을 찾아 JSON으로: line, message(학생에게, 규�
              "line은 오류가 난 줄이 아니라 잘못된 값이 처음 만들어진 줄이다. 실행 추적에서 값이 처음 어긋나는 곳을 찾는다. 모르면 null.")
 
 
+TEXT_TASK = ("버그 줄을 찾아 아래 세 줄로만 답한다.\n줄: 버그가 있는 줄 번호 (모르면 없음)\n말: 학생에게 할 말 (규칙 3)\n"
+             "분류: " + " / ".join(CATEGORIES) + " 중 하나\n"
+             "줄은 오류가 난 줄이 아니라 잘못된 값이 처음 만들어진 줄이다.")
+
+
+class TextStream:
+    """'말: …' 줄만 글자 단위로 넘긴다 (JSON 형식을 쓰지 않을 때)."""
+
+    def __init__(self, emit):
+        self.emit, self.buf, self.pos, self.done = emit, "", None, False
+
+    def feed(self, piece):
+        if self.done:
+            return
+        self.buf += piece
+        if self.pos is None:
+            m = re.search(r"(^|\n)\s*말\s*[:：]\s*", self.buf)
+            if not m:
+                return
+            self.pos = m.end()
+        end = self.buf.find("\n", self.pos)
+        chunk = self.buf[self.pos:end if end >= 0 else len(self.buf)]
+        if end >= 0:
+            self.done = True
+        self.pos += len(chunk)
+        if not getattr(self, "started", False):
+            chunk = chunk.lstrip()
+            self.started = bool(chunk)
+        if chunk:
+            self.emit(chunk)
+
+
+def parse_text(text):
+    g = lambda k: (re.search(rf"(^|\n)\s*{k}\s*[:：]\s*(.*)", text) or [None, None, ""])[2].strip()
+    ln = re.search(r"\d+", g("줄"))
+    cat = g("분류")
+    return {"line": int(ln.group()) if ln else None, "message": g("말"),
+            "category": next((c for c in CATEGORIES if c in cat), "기타"), "cause": ""}
+
+
 def diagnose_and_say(pid, code, f, result, hint_level=0, history=(), weak=(), on_message=None):
     dyn = evidence(f, result)
     ex = extras(pid, hint_level, history, weak)
-    msgs = messages(pid, code, dyn + ("\n\n" + ex if ex else ""), DIAG_TASK)
-    stream = MessageStream(on_message) if on_message else None
+    textfmt = "textfmt" in EXP
+    msgs = messages(pid, code, dyn + ("\n\n" + ex if ex else ""), TEXT_TASK if textfmt else DIAG_TASK)
     try:
-        text, meta = ollama.chat(msgs, schema=DIAG_SAY_SCHEMA, max_tokens=170, temperature=0.3,
-                                 on_token=stream.feed if stream else None)
-        d = json.loads(text)
+        if textfmt:
+            stream = TextStream(on_message) if on_message else None
+            text, meta = ollama.chat(msgs, max_tokens=120, temperature=0.3, on_token=stream.feed if stream else None,
+                                     stop=None)
+            d = parse_text(text)
+        else:
+            stream = MessageStream(on_message) if on_message else None
+            schema = DIAG_SAY_SCHEMA
+            if "lean" in EXP:  # 원인 칸을 빼서 생성 토큰을 줄인다
+                schema = {**DIAG_SAY_SCHEMA, "properties": {k: v for k, v in DIAG_SAY_SCHEMA["properties"].items() if k != "cause"},
+                          "required": ["line", "message", "category"]}
+            text, meta = ollama.chat(msgs, schema=schema, max_tokens=170, temperature=0.3,
+                                     on_token=stream.feed if stream else None)
+            d = json.loads(text)
     except Exception as e:
         return {"tier": "none", "fact": f, "error": str(e)[:200]}
     n = len(code.splitlines())

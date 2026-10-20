@@ -21,11 +21,26 @@ def status():
             names = [m["name"] for m in json.load(r).get("models", [])]
     except Exception:
         return {"server": False, "model": False, "name": config.MODEL}
-    pick = next((m for m in config.MODELS if m in names), None)
+    pick = next((m for m in candidates() if m in names), None)
     if pick:
         config.MODEL = pick
+    have = {k: next((m for m in v["models"] if m in names), None) for k, v in config.CHOICES.items()}
     return {"server": True, "model": bool(pick), "name": config.MODEL, "loaded": bool(pick) and is_loaded(),
-            "loading": _loading}
+            "loading": _loading, "choice": config.settings().get("coach_model", "auto"), "have": have}
+
+
+def candidates():
+    """쓸 모델 후보 순서: 환경 변수 → 사용자 선택(정확도/속도) → 자동(메모리에 맞춘 추천 먼저)."""
+    import os
+    if os.environ.get("KOTEACHER_MODEL"):
+        return [os.environ["KOTEACHER_MODEL"]]
+    choice = config.settings().get("coach_model", "auto")
+    if choice in config.CHOICES:
+        other = "fast" if choice == "accurate" else "accurate"
+        return config.CHOICES[choice]["models"] + config.CHOICES[other]["models"]
+    first = recommend()["choice"]
+    other = "fast" if first == "accurate" else "accurate"
+    return config.CHOICES[first]["models"] + config.CHOICES[other]["models"]
 
 
 _loading = False
@@ -60,7 +75,7 @@ def unload():
         pass
 
 
-def chat(messages, schema=None, think=False, max_tokens=300, temperature=0.4, on_token=None, timeout=120):
+def chat(messages, schema=None, think=False, max_tokens=300, temperature=0.4, on_token=None, timeout=120, stop=None):
     """답 전체 문자열과 측정값을 돌려준다. on_token이 있으면 조각마다 부른다."""
     body = {
         "model": config.MODEL, "messages": messages, "stream": True, "think": think,
@@ -69,6 +84,8 @@ def chat(messages, schema=None, think=False, max_tokens=300, temperature=0.4, on
     }
     if schema:
         body["format"] = schema
+    if stop:
+        body["options"]["stop"] = stop
     t0 = time.perf_counter()
     first = None
     parts, meta = [], {}
@@ -114,12 +131,15 @@ def ram_gb():
         return 0
 
 
+AUTO_ACCURATE_GB = 15  # 이 이상이면 자동 선택이 12B (속도 실험 뒤 정한다)
+
+
 def recommend():
-    """메모리 16GB 이상이면 12B, 그보다 작으면 e4b."""
+    """자동 선택: 메모리가 넉넉하면 정확도 우선(12B), 아니면 속도 우선(e4b)."""
     gb = ram_gb()
-    if gb >= 15:
-        return {"model": "gemma4:12b-it-qat", "size": "7.2GB", "ram": round(gb)}
-    return {"model": "gemma4:e4b-it-qat", "size": "6.1GB", "ram": round(gb)}
+    choice = "accurate" if gb >= AUTO_ACCURATE_GB else "fast"
+    c = config.CHOICES[choice]
+    return {"model": c["models"][0], "size": c["size"], "ram": round(gb), "choice": choice}
 
 
 def pull(model, on_progress):

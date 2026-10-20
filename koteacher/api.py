@@ -147,6 +147,22 @@ class Api:
     def setup_info(self):
         return {**ollama.status(), "recommend": ollama.recommend(), "download": "https://ollama.com/download"}
 
+    def set_coach_model(self, choice):
+        """'auto' | 'accurate' | 'fast'. 바꾸면 지금 모델을 내리고 새 모델을 뒤에서 올린다."""
+        from . import config
+        before = config.MODEL
+        config.save_settings(coach_model=choice)
+        st = ollama.status()
+        if st["model"] and config.MODEL != before:
+            def swap():
+                config.MODEL, cur = before, config.MODEL
+                ollama.unload()
+                config.MODEL = cur
+                ollama.load()
+                self._push("model_ready", ollama.status())
+            threading.Thread(target=swap, daemon=True).start()
+        return st
+
     def pull_model(self, model):
         """모델을 받는다. 진행은 'pull' 이벤트로, 끝나면 'pull_done'."""
         def work():

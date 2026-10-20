@@ -73,3 +73,27 @@ def child_kw():
         import subprocess
         kw["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     return kw
+
+
+# 사용자 설정 (앱 데이터 폴더의 settings.json)
+CHOICES = {
+    "accurate": {"label": "정확도 우선", "models": ["gemma4:12b-it-qat", "gemma4:12b-mlx", "gemma4:12b"], "size": "7.2GB"},
+    "fast": {"label": "속도 우선", "models": ["gemma4:e4b-it-qat", "gemma4:e4b"], "size": "6.1GB"},
+}
+
+
+def settings():
+    import json
+    f = DATA / "settings.json"
+    try:
+        return json.loads(f.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def save_settings(**kw):
+    import json
+    s = settings() | kw
+    DATA.mkdir(parents=True, exist_ok=True)
+    (DATA / "settings.json").write_text(json.dumps(s, ensure_ascii=False, indent=1), encoding="utf-8")
+    return s
