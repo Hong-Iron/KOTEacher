@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 STAGE = ROOT / "build" / "stage"
 DIST = ROOT / "dist"
 
