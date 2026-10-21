@@ -25,8 +25,8 @@ launcher.chmod(launcher.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IX
 with open(APP / "Contents" / "Info.plist", "wb") as f:
     plistlib.dump({
         "CFBundleName": "KOTEacher", "CFBundleDisplayName": "KOTEacher",
-        "CFBundleIdentifier": "io.github.hong-iron.koteacher", "CFBundleVersion": "0.2.2",
-        "CFBundleShortVersionString": "0.2.2", "CFBundlePackageType": "APPL",
+        "CFBundleIdentifier": "io.github.hong-iron.koteacher", "CFBundleVersion": "0.2.3",
+        "CFBundleShortVersionString": "0.2.3", "CFBundlePackageType": "APPL",
         "CFBundleExecutable": "koteacher", "CFBundleIconFile": "KOTEacher", "LSMinimumSystemVersion": "13.0",
         "NSHighResolutionCapable": True,
     }, f)
