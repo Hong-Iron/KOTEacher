@@ -69,8 +69,11 @@ async function boot() {
   setAi(b.ai);
   renderList();
   // 불러오는 동안은 자주, 준비되면 가끔 확인한다
-  const tick = async () => { const st = await API.ai_status(); setAi(st); setTimeout(tick, st.loaded ? 15000 : 2000); };
-  setTimeout(tick, 2000);
+  if (!S.ticking) {
+    S.ticking = true;
+    const tick = async () => { try { setAi(await API.ai_status()); } finally { setTimeout(tick, $("#aiStat").querySelector(".dot.on") ? 15000 : 2000); } };
+    setTimeout(tick, 2000);
+  }
 }
 $$("#lvSeg button").forEach(b => b.onclick = () => {
   S.lv = +b.dataset.lv; $$("#lvSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); renderList();
@@ -677,7 +680,8 @@ renderTabs();
 // 문서 속 링크: 개념은 탭으로, 문제는 그 문제를 연다
 document.addEventListener("click", e => {
   const a = e.target.closest("[data-doc], [data-problem], [data-code]");
-  if (!a || a.closest(".crow")) return;
+  // 문서 본문 상자(#lDoc, 문서 탭)도 data-doc을 갖는다. 본문을 누르거나 드래그한 것은 링크가 아니다
+  if (!a || a.closest(".crow") || a.id === "lDoc" || a.classList.contains("dpanel")) return;
   e.preventDefault();
   if (a.dataset.code) openCode(a.dataset.code);
   else if (a.dataset.problem) openProblem(a.dataset.problem);
