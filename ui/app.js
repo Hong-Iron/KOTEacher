@@ -773,6 +773,22 @@ function docKeyOf(host) {
   if (host.dataset.tab === "problem" && S.p) return "problem:" + S.p.id;
   return null;
 }
+// 코드 블록의 글: 줄바꿈(<br>)을 살리고 질문 기록은 뺀다
+function codeText(pre, upTo) {
+  const r = document.createRange(); r.selectNodeContents(pre);
+  if (upTo) r.setEnd(upTo.startContainer, upTo.startOffset);
+  const frag = r.cloneContents();
+  frag.querySelectorAll(".qa-note").forEach(n => n.remove());
+  frag.querySelectorAll("br").forEach(b => b.replaceWith("\n"));
+  return frag.textContent;
+}
+// 고른 줄 앞뒤 12줄을 줄 번호와 함께 (코드 파일 전체를 보내지 않는다)
+function codeContext(pre, range) {
+  const lines = codeText(pre).split("\n"), at = codeText(pre, range).split("\n").length - 1;
+  const a = Math.max(0, at - 12), b = Math.min(lines.length, at + 13);
+  return `(코드 ${lines.length}줄 가운데 ${a + 1}~${b}번 줄, 고른 곳은 ${at + 1}번 줄)\n` +
+    lines.slice(a, b).map((l, i) => `${String(a + i + 1).padStart(3)}| ${l}`).join("\n");
+}
 function selectionInDoc() {
   const sel = getSelection();
   if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
@@ -786,7 +802,8 @@ function selectionInDoc() {
   const {str, pos} = textMap(host);
   const start = pos.findIndex(([n, o]) => range.comparePoint(n, o) >= 0);
   const block = el(range.startContainer).closest("p, li, td, .cbody, pre, h2, h3") || host;
-  return {text: text.slice(0, 1200), context: block.innerText.slice(0, 1500), doc, host,
+  const context = block.tagName === "PRE" ? codeContext(block, range) : block.innerText.slice(0, 1500);
+  return {text: text.slice(0, 1200), context, doc, host,
           prefix: start > 0 ? str.slice(Math.max(0, start - 30), start) : "", rect: range.getBoundingClientRect()};
 }
 document.addEventListener("mouseup", e => {
@@ -855,6 +872,8 @@ function placeNote(host, note, fresh = false) {
   box.innerHTML = `<div class="qh"><span class="q">${esc(note.question)}</span><button class="qx" title="이 기록 지우기">지우기</button></div><div class="qa">${esc(note.answer)}</div>`;
   // 기록 상자는 고른 글이 있는 문단 바로 아래에 둔다
   const anchor = last, inHost = e => e && host.contains(e) && e !== host;
+  const codeBlock = anchor.closest("pre");
+  if (inHost(codeBlock)) { box.classList.add("in-code"); afterLine(codeBlock, anchor, box); return box; }
   const sum = anchor.closest("summary");                    // 접힌 상자(확인 문제 등)의 제목: 상자 바로 아래
   const li = anchor.closest("li");
   const cell = anchor.closest("td, th");
@@ -871,6 +890,24 @@ function placeNote(host, note, fresh = false) {
     top.parentElement === host ? top.after(box) : host.append(box);
   }
   return box;
+}
+// 코드 블록에서 node가 있는 줄의 끝(줄바꿈 글자나 <br>) 바로 뒤에 box를 넣는다. 마지막 줄이면 블록 끝에
+function afterLine(pre, node, box) {
+  const w = document.createTreeWalker(pre, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {acceptNode: n =>
+    n.nodeType === 1 && n.closest(".qa-note") || n.nodeType === 3 && n.parentElement.closest(".qa-note") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT});
+  w.currentNode = node;
+  // node(표시한 <mark>) 안쪽은 건너뛰고 그 뒤부터 찾는다
+  let n = node; while (n && !n.nextSibling && n !== pre) n = n.parentNode;
+  if (!n || n === pre) { (pre.querySelector("code") || pre).append(box); return; }
+  w.currentNode = n.nextSibling;
+  for (let c = w.currentNode; c; c = w.nextNode()) {
+    if (c.nodeType === 1 && c.tagName === "BR") { c.after(box); return; }
+    if (c.nodeType === 3) {
+      const i = c.nodeValue.indexOf("\n");
+      if (i >= 0) { const rest = c.splitText(i + 1); rest.parentNode.insertBefore(box, rest); return; }
+    }
+  }
+  (pre.querySelector("code") || pre).append(box);
 }
 async function applyNotes(host) {
   const doc = docKeyOf(host); if (!doc) return;
@@ -978,6 +1015,10 @@ async function goResult(x) {
   if (x.t === "note") {
     let host;
     if (x.doc.startsWith("problem:")) { await openProblem(x.doc.split(":")[1]); host = $('#dbody > .dpanel[data-tab="problem"]'); }
+    else if (x.doc.startsWith("code:")) {
+      const rel = x.doc.slice(5); await openCode(rel);
+      host = $("#solve").hidden ? $("#lDoc") : $(`#dbody > .dpanel[data-tab="${CSS.escape("code:" + rel)}"]`);
+    }
     else host = await showDoc(x.doc);
     setTimeout(() => { const b = $(`.qa-note[data-note="${x.id}"]`, host); if (b) { b.classList.remove("folded"); b.scrollIntoView({block: "center"}); b.classList.add("flash"); setTimeout(() => b.classList.remove("flash"), 1200); } }, 500);
   }
@@ -1226,16 +1267,19 @@ async function openCode(rel) {
     const key = "code:" + rel;
     if (!S.tabs.find(t => t.key === key)) {
       S.tabs.push({key, title: d.name.replace(/^\d+_/, ""), num: ROLE[d.role] || d.kind});
-      const panel = h("div", "dpanel doc codeview"); panel.dataset.tab = key; panel.hidden = true; panel.innerHTML = html;
+      const panel = h("div", "dpanel doc codeview"); panel.dataset.tab = key; panel.dataset.doc = "code:" + rel; panel.hidden = true; panel.innerHTML = html;
       $("#dbody").append(panel);
+      applyNotes(panel);
     }
     setPanes(true, S.rightOn ?? true); activateTab(key);
     return;
   }
   // 홈·학습 화면: 학습 화면에 코드만 펼친다
   $("#lTitle").textContent = d.name; $("#lAlias").textContent = ROLE[d.role] || d.kind; $("#lAlias").hidden = false;
-  $("#lDoc").innerHTML = html; $("#lDoc").dataset.doc = ""; $("#lProblems").innerHTML = `<p class="note">개념 문서의 '개념 코드'에서 열었습니다.</p>`;
+  $("#lDoc").innerHTML = html; $("#lDoc").dataset.doc = "code:" + rel; $("#lDoc").scrollTop = 0;
+  $("#lProblems").innerHTML = `<p class="note">개념 문서의 '개념 코드'에서 열었습니다. 코드를 드래그하면 그 부분을 코치에게 물을 수 있습니다.</p>`;
   show("learn");
+  applyNotes($("#lDoc"));
 }
 async function codePanelHtml(d) {
   if (d.kind === "svg") return `<h1>${esc(d.name)}</h1><figure class="fig">${d.text.replace(/^<\?xml[^>]*>\s*/, "")}</figure>`;
@@ -1258,7 +1302,7 @@ document.addEventListener("click", async e => {
   }
   const cp = e.target.closest("[data-copycode]");
   if (cp) {
-    const code = cp.closest(".codeview, #lDoc").querySelector("pre.colored").innerText;
+    const code = codeText(cp.closest(".codeview, #lDoc").querySelector("pre.colored"));
     try { await navigator.clipboard.writeText(code); cp.textContent = "복사했습니다"; } catch (_) { cp.textContent = "복사하지 못했습니다"; }
     setTimeout(() => cp.textContent = "코드 복사", 1500);
   }

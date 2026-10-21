@@ -495,7 +495,8 @@ class Api:
     DOC_SYSTEM = ("너는 알고리즘을 쉽게 설명하는 선배다. 부드러운 존댓말. 학생이 문서에서 고른 부분과 그 문단을 보고 질문에 답한다.\n"
                   "- 인사말이나 칭찬 없이 바로 답한다. 쉬운 한국어로 3~5문장. 필요하면 작은 숫자 예를 하나 든다.\n"
                   "- 문서에 있는 내용과 어긋나는 말을 지어내지 않는다.\n"
-                  "- 학생이 지금 풀고 있는 문제의 정답 코드는 쓰지 않는다.")
+                  "- 학생이 지금 풀고 있는 문제의 정답 코드는 쓰지 않는다.\n"
+                  "- 고른 부분이 코드면, 그 줄이 무엇을 하는지와 왜 그렇게 쓰는지를 설명한다. 필요하면 작은 입력으로 값이 어떻게 바뀌는지 보여 준다.")
 
     def ask_doc(self, rid, quote, context, doc, question, prefix="", code=""):
         """고른 부분에 대해 묻는다. 답은 doc_stream으로 흘려 보내고, 끝나면 기록해 doc_answer로 알린다."""
@@ -503,9 +504,12 @@ class Api:
             title = ""
             if doc and doc.startswith("problem:"):
                 title = "문제 " + vault.problem(doc.split(":", 1)[1])["title"]
+            elif doc and doc.startswith("code:"):
+                title = "개념 코드 " + doc.split("/")[-1]
             elif doc:
                 title = "개념 문서 " + doc.split(".", 1)[-1]
-            user = f"[{title}]\n[고른 부분] {quote}\n\n[그 문단]\n{context}\n\n[질문] {question}"
+            where = "그 부분의 코드" if (doc or "").startswith("code:") or context.startswith("(코드 ") else "그 문단"
+            user = f"[{title}]\n[고른 부분] {quote}\n\n[{where}]\n{context}\n\n[질문] {question}"
             if code.strip() and self.s:
                 user += f"\n\n[학생이 지금 쓰는 코드, 참고만]\n{code[:1500]}"
             pieces = []
@@ -564,6 +568,7 @@ class Api:
         for n in self.store.rows("SELECT * FROM doc_notes ORDER BY t DESC"):
             if hit(n["quote"], n["question"], n["answer"]):
                 title = (vault.problem(n["doc"].split(":", 1)[1])["title"] if n["doc"].startswith("problem:")
+                         else n["doc"].split("/")[-1] if n["doc"].startswith("code:")
                          else n["doc"].split(".", 1)[-1])
                 out["notes"].append({"id": n["id"], "doc": n["doc"], "title": title, "question": n["question"],
                                      "snippet": snip(n["answer"]) or n["answer"][:100]})
