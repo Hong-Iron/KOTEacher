@@ -289,6 +289,33 @@ class Api:
                 self._record_mistake(fixed=False, code_after=None)
         return {"step": step, "html": lad[step - 1]["html"], "hints": s.hints}
 
+    # ------------------------------------------------------------ 정보 창
+    REPO = "Hong-Iron/KOTEacher"
+
+    def about(self):
+        import platform
+        from . import __version__, config
+        st = ollama.status()
+        return {"version": __version__, "problems": len(vault.problems()), "concepts": len(vault.concepts()),
+                "coach": (f"{st['external']} · {st['name']}" if st.get("external") else st.get("name")) if st.get("model") else None,
+                "data": str(config.DATA), "os": f"{ {'Darwin': 'macOS', 'Windows': 'Windows'}.get(platform.system(), platform.system())} {platform.machine()}",
+                "python": platform.python_version(), "repo": f"https://github.com/{self.REPO}"}
+
+    def check_update(self):
+        """GitHub의 최신 릴리스와 견준다 (누를 때만 인터넷에 묻는다)."""
+        import urllib.request
+        from . import __version__, config
+        try:
+            req = urllib.request.Request(f"https://api.github.com/repos/{self.REPO}/releases/latest",
+                                         headers={"Accept": "application/vnd.github+json", "User-Agent": "KOTEacher"})
+            with urllib.request.urlopen(req, timeout=8, context=config.ssl_context()) as r:
+                d = json.load(r)
+        except Exception as e:
+            return {"ok": False, "error": str(e)[:160]}
+        latest = d.get("tag_name", "").lstrip("v")
+        num = lambda v: tuple(int(x) for x in v.split(".") if x.isdigit())
+        return {"ok": True, "latest": latest, "newer": num(latest) > num(__version__), "url": d.get("html_url")}
+
     # ------------------------------------------------------------ 실전 모드
     def set_exam(self, on):
         """실전 모드: 자동 검사·코치·힌트를 끄고, 예시 실행과 제출(통과 개수만)만 쓴다. 다음에 켤 때도 유지한다."""

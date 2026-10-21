@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-VERSION = "0.2.5"
+from koteacher import __version__ as VERSION  # noqa: E402  (버전은 koteacher/__init__.py 한 곳에서)
 STAGE = ROOT / "build" / "stage"
 DIST = ROOT / "dist"
 

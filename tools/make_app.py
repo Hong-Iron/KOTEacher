@@ -6,9 +6,12 @@ import os
 import plistlib
 import shutil
 import stat
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from koteacher import __version__ as VERSION  # noqa: E402
 APP = Path.home() / "Applications" / "KOTEacher.app"
 macos = APP / "Contents" / "MacOS"
 macos.mkdir(parents=True, exist_ok=True)
@@ -25,8 +28,8 @@ launcher.chmod(launcher.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IX
 with open(APP / "Contents" / "Info.plist", "wb") as f:
     plistlib.dump({
         "CFBundleName": "KOTEacher", "CFBundleDisplayName": "KOTEacher",
-        "CFBundleIdentifier": "io.github.hong-iron.koteacher", "CFBundleVersion": "0.2.5",
-        "CFBundleShortVersionString": "0.2.5", "CFBundlePackageType": "APPL",
+        "CFBundleIdentifier": "io.github.hong-iron.koteacher", "CFBundleVersion": VERSION,
+        "CFBundleShortVersionString": VERSION, "CFBundlePackageType": "APPL",
         "CFBundleExecutable": "koteacher", "CFBundleIconFile": "KOTEacher", "LSMinimumSystemVersion": "13.0",
         "NSHighResolutionCapable": True,
     }, f)

@@ -17,9 +17,11 @@ MIN_TOKENS = 2048
 
 
 def _headers(c):
+    from . import __version__
+    ua = f"KOTEacher/{__version__}"  # 기본 파이썬 User-Agent는 일부 회사(Groq 등)의 방화벽이 막는다
     if c["kind"] == "anthropic":
-        return {"x-api-key": c["key"], "anthropic-version": "2023-06-01", "content-type": "application/json"}
-    h = {"Content-Type": "application/json", "X-Title": "KOTEacher"}
+        return {"x-api-key": c["key"], "anthropic-version": "2023-06-01", "content-type": "application/json", "User-Agent": ua}
+    h = {"Content-Type": "application/json", "X-Title": "KOTEacher", "User-Agent": ua}
     if c["key"]:
         h["Authorization"] = f"Bearer {c['key']}"
     return h
@@ -28,7 +30,7 @@ def _headers(c):
 def _explain(code, msg):
     """HTTP 오류를 사람이 읽을 말로."""
     low = msg.lower()
-    if code in (401, 403):
+    if code in (401, 403) or "api key" in low or "api_key" in low:
         return "API 키가 맞지 않거나 권한이 없습니다"
     if code == 404 or "model" in low and ("not found" in low or "does not exist" in low):
         return "모델 이름이나 주소를 찾지 못했습니다"
@@ -40,7 +42,7 @@ def _explain(code, msg):
 def _open(url, body, c, timeout):
     req = urllib.request.Request(url, data=json.dumps(body).encode() if body is not None else None, headers=_headers(c),
                                  method="POST" if body is not None else "GET")
-    return urllib.request.urlopen(req, timeout=timeout)
+    return urllib.request.urlopen(req, timeout=timeout, context=config.ssl_context())
 
 
 def _sse(resp):

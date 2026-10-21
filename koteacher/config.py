@@ -134,3 +134,19 @@ def api_conf(p=None):
     key = saved.get("key") or (os.environ.get(d["env"]) if d["env"] else None) or ""
     return {"provider": p, "label": d["label"], "kind": d["kind"], "base": (saved.get("base") or d["base"]).rstrip("/"),
             "key": key, "model": saved.get("model") or os.environ.get("KOTEACHER_API_MODEL", ""), "key_url": d["key_url"]}
+
+
+_SSL = None
+
+
+def ssl_context():
+    """HTTPS 인증서 확인용. python.org 파이썬과 묶인 앱은 맥에서 인증서 묶음이 없어 외부 API가 실패하므로
+    맥의 시스템 묶음(/etc/ssl/cert.pem)을 쓴다. 윈도는 파이썬이 시스템 저장소를 읽는다."""
+    global _SSL
+    if _SSL is None:
+        import ssl
+        ctx = ssl.create_default_context()
+        if not ctx.get_ca_certs() and sys.platform == "darwin" and Path("/etc/ssl/cert.pem").exists():
+            ctx.load_verify_locations("/etc/ssl/cert.pem")
+        _SSL = ctx
+    return _SSL

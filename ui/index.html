@@ -13,7 +13,7 @@
 <!-- 홈: 문제 목록과 개념 목록 -->
 <section class="view" id="home">
   <header class="top">
-    <span class="brand"><img src="icon.svg" alt="" class="logo">KOTEacher</span>
+    <button class="brand brandbtn" id="openAbout" title="KOTEacher 정보"><img src="icon.svg" alt="" class="logo">KOTEacher</button>
     <span class="sp"></span>
     <button class="searchbar" data-search title="전체 검색 (⌘K)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>문제, 개념, 문서 내용 찾기</span><kbd>⌘K</kbd></button>
     <span class="sp"></span>
@@ -157,6 +157,11 @@
   <div class="pal setup" role="dialog" aria-label="코치 준비">
     <div class="sbody" id="setupBody"></div>
   </div>
+</div>
+
+<!-- 정보 (로고를 누르면) -->
+<div class="palette" id="about" hidden>
+  <div class="pal setup about" role="dialog" aria-label="KOTEacher 정보" id="aboutBody"></div>
 </div>
 
 <!-- 전체 검색 (⌘K) -->

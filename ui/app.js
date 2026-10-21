@@ -1184,6 +1184,39 @@ handlers.pull_done = d => {
 $$(".aistat").forEach(el => el.addEventListener("click", () => openSetup(true)));
 
 
+/* ---------------- 정보 창 ---------------- */
+const BLOG_ABOUT = "https://hong-iron.github.io/Hongs_Blog/about/";
+async function openAbout() {
+  const a = await API.about();
+  $("#aboutBody").innerHTML = `
+    <button class="x close" id="aboutClose" aria-label="닫기">×</button>
+    <div class="ahead"><img src="icon.svg" alt="" class="alogo"><div><h2>KOTEacher</h2>
+      <p class="asub">KOTE(코테) + Teacher · 버전 ${esc(a.version)}</p></div></div>
+    <p>내 컴퓨터에서 도는 AI 코치와 함께 푸는 코딩 테스트 연습 프로그램입니다. 판정은 테스트가 하고, 코치는 정답 대신 질문으로 스스로 찾게 돕습니다.</p>
+    <dl class="facts">
+      <dt>들어 있는 것</dt><dd>프로그래머스 ${a.problems}문제 · 알고리즘 개념 문서 ${a.concepts}개</dd>
+      <dt>코치</dt><dd>${a.coach ? esc(a.coach) : "아직 준비되지 않았습니다"}</dd>
+      <dt>내 기록</dt><dd><code>${esc(a.data)}</code></dd>
+      <dt>이 컴퓨터</dt><dd>${esc(a.os)} · Python ${esc(a.python)}</dd>
+    </dl>
+    <div class="arow"><button class="btn" id="aboutUpd">새 버전 확인</button><span class="d" id="aboutUpdMsg"></span></div>
+    <p class="fine">문제의 저작권은 프로그래머스와 출제처에 있습니다. 편집기 Monaco, 수식 KaTeX, 그림 Mermaid, 창 pywebview, 코치 Ollama·gemma4를 씁니다. 프로그램은 MIT 라이선스로 공개되어 있습니다.</p>
+    <div class="afoot"><a href="${esc(a.repo)}" target="_blank" rel="noopener">GitHub</a><a href="${esc(a.repo)}/releases" target="_blank" rel="noopener">릴리스</a>
+      <span class="sp"></span><span class="made">made by <a href="${BLOG_ABOUT}" target="_blank" rel="noopener">Hong-Iron</a></span></div>`;
+  $("#about").hidden = false;
+  $("#aboutClose").onclick = closeAbout;
+  $("#aboutUpd").onclick = async e => {
+    const m = $("#aboutUpdMsg"); e.target.disabled = true; m.innerHTML = waiting("확인하고 있습니다");
+    const r = await API.check_update(); e.target.disabled = false;
+    m.innerHTML = !r.ok ? `확인하지 못했습니다 (${esc(r.error)})`
+      : r.newer ? `새 버전 ${esc(r.latest)}이 있습니다. <a href="${esc(r.url)}" target="_blank" rel="noopener">받으러 가기</a>` : "최신 버전을 쓰고 있습니다.";
+  };
+}
+const closeAbout = () => { $("#about").hidden = true; };
+$("#openAbout").onclick = openAbout;
+$("#about").addEventListener("click", e => { if (e.target.id === "about") closeAbout(); });  // 바깥을 누르면 닫는다
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#about").hidden) closeAbout(); });
+
 /* ---------------- 풀이 기록 ---------------- */
 const RES = {solved: "통과", exam: "실전 통과", helped: "힌트로 통과", viewed: "풀이 봄", open: "미완"};
 const fmtWhen = t => { const d = new Date(t * 1000); return `${d.getMonth() + 1}월 ${d.getDate()}일 ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`; };
