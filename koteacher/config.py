@@ -77,7 +77,7 @@ def child_kw():
 
 # 사용자 설정 (앱 데이터 폴더의 settings.json)
 CHOICES = {
-    "accurate": {"label": "정확도 우선", "models": ["gemma4:12b-it-qat", "gemma4:12b-mlx", "gemma4:12b"], "size": "7.2GB"},
+    "accurate": {"label": "정확도 우선", "models": ["gemma4:12b-it-qat", "gemma4:12b"], "size": "7.2GB"},
     "fast": {"label": "속도 우선", "models": ["gemma4:e4b-it-qat", "gemma4:e4b"], "size": "6.1GB"},
 }
 
