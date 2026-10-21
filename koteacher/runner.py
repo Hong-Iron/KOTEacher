@@ -9,9 +9,9 @@ from . import config
 HARNESS = Path(__file__).with_name("harness.py")
 
 
-def check(code: str, pid: str, repair=True, timeout=20):
+def check(code: str, pid: str, repair=True, timeout=20, only=None):
     pack_path = config.PACKS / f"{pid}.json"
-    req = json.dumps({"code": code, "pack": str(pack_path), "repair": repair})
+    req = json.dumps({"code": code, "pack": str(pack_path), "repair": repair and not only, "only": only})
     try:
         proc = subprocess.run(config.child_cmd("harness"), input=req, capture_output=True, timeout=timeout, cwd=str(config.DATA),
                               **config.child_kw())

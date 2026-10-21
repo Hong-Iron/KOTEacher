@@ -23,6 +23,7 @@ class Session:
         self.diag = None           # 마지막 진단
         self.code = ""
         self.gen = 0
+        self.practiced = False     # 연습 검사(반례·코치)를 한 번이라도 봤나. 봤으면 실전 통과로 치지 않는다
 
 
 class Api:
@@ -43,7 +44,8 @@ class Api:
         st = self.store.problem_status()
         items = [{k: p[k] for k in ("id", "title", "level", "source", "concepts", "num")} | {"status": st.get(p["id"], "new")}
                  for p in vault.problems()]
-        return {"problems": items, "ai": ollama.status(), "mode": self.mode,
+        from . import config
+        return {"problems": items, "ai": ollama.status(), "mode": self.mode, "exam": bool(config.settings().get("exam")),
                 "mistakes": len(self.store.mistakes(limit=10000))}
 
     def open(self, pid, code_override=None):
@@ -78,6 +80,8 @@ class Api:
             p = titles.get(r["problem_id"], {})
             if r["result"] == "pass":
                 res = "helped" if (r["hints_opened"] or 0) >= 2 or r["solution_viewed"] else "solved"
+                if res == "solved" and r.get("mode") == "exam" and not r["hints_opened"]:
+                    res = "exam"
             else:
                 res = "viewed" if r["solution_viewed"] else "open"
             out.append(r | {"title": p.get("title", r["problem_id"]), "level": p.get("level"), "res": res,
@@ -88,10 +92,11 @@ class Api:
         d = self.store.attempt_detail(int(aid))
         for s in d["snapshots"]:
             try:
-                f = (json.loads(s["summary"] or "{}").get("facts") or [{}])[0]
+                sm = json.loads(s["summary"] or "{}")
             except Exception:
-                f = {}
-            s["fact"] = f
+                sm = {}
+            s["fact"] = (sm.get("facts") or [{}])[0]
+            s["exam"], s["submit"] = sm.get("exam"), sm.get("submit")
         return d
 
     def _content_file(self, rel):
@@ -205,6 +210,30 @@ class Api:
                 self._record_mistake(fixed=False, code_after=None)
         return {"step": step, "html": lad[step - 1]["html"], "hints": s.hints}
 
+    # ------------------------------------------------------------ 실전 모드
+    def set_exam(self, on):
+        """실전 모드: 자동 검사·코치·힌트를 끄고, 예시 실행과 제출(통과 개수만)만 쓴다. 다음에 켤 때도 유지한다."""
+        from . import config
+        config.save_settings(exam=bool(on))
+        return bool(on)
+
+    def exam_run(self, code, kind):
+        """kind='examples'면 예시만, 'submit'이면 숨은 검사를 끝까지 돌려 개수만 낸다. 코치·오답 기록은 쓰지 않는다."""
+        s = self.s
+        with self.lock:
+            s.gen += 1  # 뒤에서 돌던 코치 응답은 버린다
+            s.code = code
+        only = "submit" if kind == "submit" else "examples"
+        res = runner.check(code, s.pid, only=only)
+        sub = res.get("submit")
+        ex_ok = bool(res.get("examples")) and all(e["ok"] for e in res["examples"])
+        ok = bool(sub) and ex_ok and sub["passed"] == sub["total"]
+        self.store.snapshot(s.aid, code, {"exam": only, "submit": sub}, ok)
+        if ok:
+            self.store.update_attempt(s.aid, result="pass", ended=time.time(), code=code,
+                                      mode="practice" if s.practiced else "exam")
+        return {"result": res, "passed": ok, "kind": only}
+
     # ------------------------------------------------------------ 검사와 코치
     def check(self, code, trigger="run"):
         s = self.s
@@ -213,6 +242,7 @@ class Api:
             gen = s.gen
             s.code = code
         res = runner.check(code, s.pid)
+        s.practiced = True
         fs = coach.facts(res)
         ok = coach.passed(res)
         self.store.snapshot(s.aid, code, {"facts": fs[:3]}, ok)

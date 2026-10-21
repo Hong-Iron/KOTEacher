@@ -113,7 +113,7 @@ class Store:
     def history(self, pid=None):
         where = "WHERE a.problem_id=?" if pid else ""
         return self.rows(f"""
-            SELECT a.id, a.problem_id, a.started, a.ended, a.result, a.hints_opened, a.solution_viewed,
+            SELECT a.id, a.problem_id, a.mode, a.started, a.ended, a.result, a.hints_opened, a.solution_viewed,
                    COUNT(s.id) AS runs, MAX(s.t) AS last_t, SUM(s.passed) AS passes,
                    (SELECT COUNT(*) FROM mistakes m WHERE m.attempt_id=a.id) AS mistakes,
                    (SELECT COUNT(*) FROM coach_msgs c WHERE c.attempt_id=a.id) AS coach

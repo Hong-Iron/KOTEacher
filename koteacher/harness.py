@@ -1,6 +1,9 @@
 """사용자 코드를 문제 팩으로 검사하는 별도 프로세스.
 
-    python -I harness.py  < {"code": ..., "pack": 경로, "repair": bool}
+    python -I harness.py  < {"code": ..., "pack": 경로, "repair": bool, "only": None | "examples" | "submit"}
+
+only="examples"는 예시만 돌린다 (실전 모드의 예시 실행). only="submit"은 숨은 검사를 실패해도 끝까지 돌리고
+통과 개수만 낸다 (실전 모드의 제출: 반례·수리·실행 추적 없음).
 
 표준 출력 마지막 줄에 결과 JSON을 쓴다. 이 파일은 koteacher 패키지를 import하지 않는다.
 """
@@ -17,6 +20,7 @@ import traceback
 
 PER_TEST = 2.0        # 테스트 하나의 시간 제한(초)
 HIDDEN_BUDGET = 3.0   # 숨은 검사 전체 시간
+SUBMIT_BUDGET = 12.0  # 실전 제출에서 숨은 검사 전체 시간
 REPAIR_BUDGET = 1.5   # 수리 검색 전체 시간
 REPAIR_PER_TEST = 0.2
 MAX_OUT = 4000
@@ -276,6 +280,37 @@ def main():
         out["examples"].append(item)
     for args, exp_repr, _ in ex_tests[len(ex_res):]:
         out["examples"].append({"args": short(repr(args)[1:-1].rstrip(",")), "expected": short(exp_repr), "ok": False, "skipped": True, "ms": 0})
+
+    only = req.get("only")
+    if only == "examples":
+        out["stdout"] = buf.getvalue()[:MAX_OUT]
+        print(json.dumps(out, ensure_ascii=False))
+        return
+    if only == "submit":
+        # 실전 제출: 틀려도 멈추지 않고 끝까지 돌려 개수만 센다. 검사는 작은 입력부터라서
+        # 시간 초과가 두 번 나면 남은(더 큰) 검사도 넘을 것으로 보고 멈춘다
+        sub = {"total": len(hid_tests), "passed": 0, "wrong": 0, "timeout": 0, "error": 0, "not_run": 0, "stopped": None}
+        start = time.perf_counter()
+        with contextlib.redirect_stdout(buf):
+            for i, (args, _, exp) in enumerate(hid_tests):
+                if sub["timeout"] >= 2 or time.perf_counter() - start > SUBMIT_BUDGET:
+                    sub["not_run"] = len(hid_tests) - i
+                    sub["stopped"] = "timeout" if sub["timeout"] >= 2 else "budget"
+                    break
+                r = call(fn, args, PER_TEST)
+                if r.get("timeout"):
+                    sub["timeout"] += 1
+                elif "error" in r:
+                    sub["error"] += 1
+                elif norm(r["out"]) == norm(exp):
+                    sub["passed"] += 1
+                else:
+                    sub["wrong"] += 1
+        sub["sec"] = round(time.perf_counter() - start, 2)
+        out["submit"] = sub
+        out["stdout"] = buf.getvalue()[:MAX_OUT]
+        print(json.dumps(out, ensure_ascii=False))
+        return
 
     hid = {"total": len(hid_tests), "run": 0, "passed": 0, "first_fail": None}
     timed_out = any(r.get("timeout") for r in ex_res)

@@ -266,7 +266,7 @@ mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);co
 .mrow[data-pid]:hover{background:var(--sunk)}
 .mcard .mrow{border-bottom:0;padding:0}
 .mcard:hover{border-color:var(--accent)}
-.statusbar .run{padding:3px 12px;font-size:12.5px;margin-left:4px}
+.statusbar .run{padding:3px 12px;font-size:12.5px;margin-left:4px;white-space:nowrap;flex:none}
 
 /* 풀이 기록 */
 .hist{display:grid;grid-template-columns:minmax(300px,38%) minmax(0,1fr);min-height:0;overflow:hidden}
@@ -328,3 +328,19 @@ mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);co
 .autostat .bounce i{background:var(--accent)}
 .cnt.flash{animation:flash .9s ease-out}
 @keyframes flash{0%{box-shadow:0 0 0 0 var(--accent)}30%{box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent)}100%{box-shadow:0 0 0 0 transparent}}
+
+/* 실전 모드: 자동 검사·코치·힌트를 끄고 예시 실행과 제출만 */
+.examtog{border:1px solid var(--line);background:var(--sunk);color:var(--muted);border-radius:7px;padding:3px 11px;font-size:12.5px;cursor:pointer}
+.examtog[aria-pressed="true"]{background:var(--bad-bg);color:var(--bad);border-color:currentColor;font-weight:600}
+.exam-only{display:none !important}
+#solve.exam .exam-only{display:revert !important}
+#solve.exam .exam-hide{display:none !important}
+.statusbar .run.submit{background:var(--bad);color:var(--on-accent)}
+.statusbar .run.submit[aria-busy="true"]{display:inline-flex !important;align-items:center}
+.pill.exam{background:var(--bad-bg);color:var(--bad)}
+.examres{display:flex;flex-direction:column;gap:6px;padding:8px 2px}
+.examres .big{font-size:15px;font-weight:600}
+.examres .big.ok{color:var(--ok)} .examres .big.bad{color:var(--bad)}
+.examres .bar{height:6px;border-radius:3px;background:var(--sunk);overflow:hidden}
+.examres .bar i{display:block;height:100%;background:var(--ok)}
+.examres .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
