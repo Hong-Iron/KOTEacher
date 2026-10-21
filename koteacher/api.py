@@ -150,13 +150,15 @@ class Api:
         return ollama.status()
 
     def setup_info(self):
-        return {**ollama.status(), "recommend": ollama.recommend(), "download": "https://ollama.com/download"}
+        st = ollama.status()
+        return {**st, "recommend": ollama.recommend(), "download": "https://ollama.com/download",
+                "local": ollama.local_status() if st.get("external") else None}
 
     def set_coach_model(self, choice):
-        """'auto' | 'accurate' | 'fast'. 바꾸면 지금 모델을 내리고 새 모델을 뒤에서 올린다."""
+        """'auto' | 'accurate' | 'fast' | 'custom'. 바꾸면 지금 모델을 내리고 새 모델을 뒤에서 올린다."""
         from . import config
         before = config.MODEL
-        config.save_settings(coach_model=choice)
+        config.save_settings(coach_model=choice, provider="ollama")
         st = ollama.status()
         if st["model"] and config.MODEL != before:
             def swap():
@@ -167,6 +169,83 @@ class Api:
                 self._push("model_ready", ollama.status())
             threading.Thread(target=swap, daemon=True).start()
         return st
+
+    # ------------------------------------------------------------ 외부 API와 다른 Ollama 모델
+    def api_settings(self):
+        """회사별 설정. 키는 끝 네 글자만 보여 준다."""
+        from . import config
+        out = {}
+        for p, d in config.PROVIDERS.items():
+            c = config.api_conf(p)
+            out[p] = {"label": d["label"], "base": c["base"], "default_base": d["base"], "model": c["model"],
+                      "key_url": d["key_url"], "key": ("••••" + c["key"][-4:]) if c["key"] else ""}
+        return {"provider": config.provider(), "providers": out}
+
+    def _conf(self, provider, base=None, key=None, model=None):
+        from . import config
+        c = config.api_conf(provider)
+        if base:
+            c["base"] = base.strip().rstrip("/")
+        if key and not key.startswith("••••"):
+            c["key"] = key.strip()
+        if model:
+            c["model"] = model.strip()
+        return c
+
+    def api_models(self, provider, base=None, key=None):
+        from . import remote
+        try:
+            return {"ok": True, "models": remote.models(self._conf(provider, base, key))}
+        except Exception as e:
+            return {"ok": False, "error": str(e)[:300]}
+
+    def api_test(self, provider, base=None, key=None, model=None):
+        from . import remote
+        try:
+            return remote.test(self._conf(provider, base, key, model))
+        except Exception as e:
+            return {"ok": False, "error": str(e)[:300]}
+
+    def save_api(self, provider, base=None, key=None, model=None):
+        """외부 API를 코치로 쓴다. 키를 비워 두면 저장된 키를 그대로 쓴다."""
+        from . import config
+        c = self._conf(provider, base, key, model)
+        api = dict(config.settings().get("api") or {})
+        saved = dict(api.get(provider) or {})
+        saved.update(base=c["base"], model=c["model"])
+        if key and not key.startswith("••••"):
+            saved["key"] = key.strip()
+        api[provider] = saved
+        was_local = not ollama.external()
+        config.save_settings(api=api, provider=provider)
+        if was_local:  # 내 컴퓨터 모델은 이제 안 쓰므로 메모리를 비운다
+            threading.Thread(target=ollama.unload, daemon=True).start()
+        return ollama.status()
+
+    def use_local(self):
+        """코치를 다시 내 컴퓨터의 Ollama로."""
+        from . import config
+        config.save_settings(provider="ollama")
+        st = ollama.status()
+        if st["model"] and not st["loaded"]:
+            threading.Thread(target=lambda: (ollama.load(), self._push("model_ready", ollama.status())), daemon=True).start()
+        return st
+
+    def set_ollama_model(self, name):
+        """받아 둔 다른 Ollama 모델(또는 받을 모델)을 이름으로 고른다. 없으면 받는다."""
+        from . import config
+        name = name.strip()
+        if ":" not in name:
+            name += ":latest"
+        config.save_settings(provider="ollama")
+        installed = ollama.status().get("installed") or []  # 지금 쓰는 모델(config.MODEL)도 여기서 정해진다
+        config.save_settings(ollama_model=name)
+        if name not in installed:
+            config.save_settings(coach_model="custom")
+            self.pull_model(name)
+            return {"pulling": True, "name": name}
+        self.set_coach_model("custom")
+        return ollama.status()
 
     def pull_model(self, model):
         """모델을 받는다. 진행은 'pull' 이벤트로, 끝나면 'pull_done'."""

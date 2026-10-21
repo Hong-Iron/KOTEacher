@@ -95,5 +95,42 @@ def save_settings(**kw):
     import json
     s = settings() | kw
     DATA.mkdir(parents=True, exist_ok=True)
-    (DATA / "settings.json").write_text(json.dumps(s, ensure_ascii=False, indent=1), encoding="utf-8")
+    f = DATA / "settings.json"
+    f.write_text(json.dumps(s, ensure_ascii=False, indent=1), encoding="utf-8")
+    try:  # API 키가 들어 있으므로 내 계정만 읽게 한다
+        os.chmod(f, 0o600)
+    except OSError:
+        pass
     return s
+
+
+# 외부 API. kind는 요청 형식: openai(OpenAI 호환 /chat/completions) 또는 anthropic(/messages)
+PROVIDERS = {
+    "openai": {"label": "OpenAI", "kind": "openai", "base": "https://api.openai.com/v1",
+               "key_url": "https://platform.openai.com/api-keys", "env": "OPENAI_API_KEY"},
+    "anthropic": {"label": "Anthropic (Claude)", "kind": "anthropic", "base": "https://api.anthropic.com/v1",
+                  "key_url": "https://console.anthropic.com/settings/keys", "env": "ANTHROPIC_API_KEY"},
+    "gemini": {"label": "Google Gemini", "kind": "openai", "base": "https://generativelanguage.googleapis.com/v1beta/openai",
+               "key_url": "https://aistudio.google.com/apikey", "env": "GEMINI_API_KEY"},
+    "openrouter": {"label": "OpenRouter", "kind": "openai", "base": "https://openrouter.ai/api/v1",
+                   "key_url": "https://openrouter.ai/keys", "env": "OPENROUTER_API_KEY"},
+    "groq": {"label": "Groq", "kind": "openai", "base": "https://api.groq.com/openai/v1",
+             "key_url": "https://console.groq.com/keys", "env": "GROQ_API_KEY"},
+    "custom": {"label": "OpenAI 호환 서버", "kind": "openai", "base": "", "key_url": "", "env": None},
+}
+
+
+def provider():
+    """코치가 쓸 곳: 'ollama'(내 컴퓨터) 또는 PROVIDERS의 이름."""
+    p = os.environ.get("KOTEACHER_PROVIDER") or settings().get("provider", "ollama")
+    return p if p in PROVIDERS else "ollama"
+
+
+def api_conf(p=None):
+    """외부 API 설정: 주소, 키, 모델. 키는 설정 파일 → 환경 변수 순으로 찾는다."""
+    p = p or provider()
+    d = PROVIDERS[p]
+    saved = (settings().get("api") or {}).get(p, {})
+    key = saved.get("key") or (os.environ.get(d["env"]) if d["env"] else None) or ""
+    return {"provider": p, "label": d["label"], "kind": d["kind"], "base": (saved.get("base") or d["base"]).rstrip("/"),
+            "key": key, "model": saved.get("model") or os.environ.get("KOTEACHER_API_MODEL", ""), "key_url": d["key_url"]}

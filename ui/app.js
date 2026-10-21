@@ -55,7 +55,8 @@ function setAi(st) {
   for (const el of [$("#aiStat"), $("#aiStat2")]) {
     const ready = st.server && st.model && st.loaded;
     const dot = ready ? "on" : st.server && st.model ? "wait" : "";
-    const txt = ready ? `코치(${st.name.replace(":", " ")})가 준비되어 있습니다`
+    const txt = st.external ? (ready ? `코치(${st.external} · ${st.name})가 준비되어 있습니다` : "외부 API 설정이 끝나지 않았습니다 · 눌러서 설정합니다")
+      : ready ? `코치(${st.name.replace(":", " ")})가 준비되어 있습니다`
       : st.server && st.model ? "코치 모델을 불러오고 있습니다 · 테스트는 지금도 쓸 수 있습니다"
       : st.server ? "코치 모델이 없습니다 · 테스트와 수리 검색은 쓸 수 있습니다" : "Ollama가 꺼져 있습니다 · 테스트와 수리 검색은 쓸 수 있습니다";
     el.innerHTML = `<span class="dot ${dot}"></span>${esc(txt)}`;
@@ -986,52 +987,134 @@ function flashTerm(host, term) {
 
 
 /* ---------------- 코치(AI) 준비 안내 ---------------- */
-async function openSetup(force) {
+async function openSetup(force, tab) {
   const info = await API.setup_info();
   if (!force && info.server && info.model) return;
   try { if (!force && localStorage.getItem("kt-setup-later") === "1") return; } catch (_) {}
-  const r = info.recommend;
+  S.setupTab = tab || S.setupTab || (info.provider && info.provider !== "ollama" ? "api" : "local");
+  const seg = `<div class="seg plain big stabs" role="tablist">${[["local", "내 컴퓨터 (Ollama)"], ["api", "외부 API"]].map(([k, t]) =>
+    `<button data-stab="${k}" aria-pressed="${S.setupTab === k}">${t}${(k === "api") === !!info.external ? " · 사용 중" : ""}</button>`).join("")}</div>`;
+  if (S.setupTab === "api") await setupApi(info, seg); else setupLocal(info, seg);
+  $("#setup").hidden = false;
+  $$("#setupBody [data-stab]").forEach(b => b.onclick = () => openSetup(true, b.dataset.stab));
+  $("#setupLater").onclick = () => { $("#setup").hidden = true; try { localStorage.setItem("kt-setup-later", "1"); } catch (_) {} };
+}
+
+function setupLocal(outer, seg) {
+  // 외부 API를 쓰는 중이면 내 컴퓨터 Ollama의 상태(local)를 보여 준다
+  const local = !outer.external, info = local ? outer : {...outer.local, recommend: outer.recommend, download: outer.download};
+  const r = info.recommend, installed = info.installed || [];
   $("#setupBody").innerHTML = `
-    <h2>코치(AI)를 준비해요</h2>
-    <p>문제 풀기, 테스트, 반례 찾기는 지금도 쓸 수 있습니다. 코치의 말과 문서 질문에는 내 컴퓨터에서 도는 AI(Ollama + gemma4)가 필요합니다. 코드와 질문은 인터넷으로 보내지 않습니다.</p>
+    <h2>코치(AI)를 준비해요</h2>${seg}
+    <p>문제 풀기, 테스트, 반례 찾기는 지금도 쓸 수 있습니다. 코치의 말과 문서 질문에는 AI가 필요합니다. 내 컴퓨터에서 도는 AI(Ollama)를 쓰면 코드와 질문을 인터넷으로 보내지 않습니다.</p>
     <div class="steps">
-      <div class="step ${info.server ? "done" : ""}"><span class="n">${info.server ? "✓" : "1"}</span><b>Ollama 설치</b>
-        <span class="d">${info.server ? "켜져 있습니다." : `<a href="${info.download}" target="_blank" rel="noopener">ollama.com/download</a>에서 받아 설치하고 실행해 주세요. 메뉴 막대에 라마 아이콘이 뜨면 됩니다.`}</span></div>
-      <div class="step ${info.model ? "done" : ""}" id="stepModel"><span class="n">${info.model ? "✓" : "2"}</span><b>코치 모델 받기</b>
-        <span class="d">${info.model ? `${esc(info.name)}이(가) 준비되어 있습니다.` : `이 컴퓨터 메모리 ${r.ram}GB → <code>${esc(r.model)}</code> (${r.size}) 를 추천합니다. 한 번만 받으면 됩니다.`}</span>
+      <div class="step ${info.server && local || installed.length ? "done" : ""}"><span class="n">${installed.length ? "✓" : "1"}</span><b>Ollama 설치</b>
+        <span class="d">${installed.length || (info.server && local) ? "켜져 있습니다." : `<a href="${info.download}" target="_blank" rel="noopener">ollama.com/download</a>에서 받아 설치하고 실행해 주세요. 메뉴 막대에 라마 아이콘이 뜨면 됩니다.`}</span></div>
+      <div class="step ${local && info.model ? "done" : ""}" id="stepModel"><span class="n">${local && info.model ? "✓" : "2"}</span><b>코치 모델 받기</b>
+        <span class="d">${local && info.model ? `${esc(info.name)}이(가) 준비되어 있습니다.` : `이 컴퓨터 메모리 ${r.ram}GB → <code>${esc(r.model)}</code> (${r.size}) 를 추천합니다. 한 번만 받으면 됩니다.`}</span>
         <div class="bar" id="pullBar" hidden><i></i></div><span class="d" id="pullText"></span></div>
     </div>
-    ${info.server ? `<h3 class="ch">코치 모델</h3><div class="choices" id="modelChoices">
+    ${installed.length || (info.server && local) ? `<h3 class="ch">코치 모델</h3><div class="choices" id="modelChoices">
       ${[["auto", "자동 (추천)", "속도 우선(gemma4 e4b)을 씁니다"],
          ["accurate", "정확도 우선", "gemma4 12B · 7.2GB. 더 크고 느립니다. 메모리 16GB 이상에서 쓰세요"],
          ["fast", "속도 우선", "gemma4 e4b · 6.1GB. 응답이 약 2배 빠르고 메모리를 덜 씁니다"]].map(([k, t, d]) => {
         const need = k === "auto" ? r.choice : k, have = info.have?.[need];
-        return `<button class="choice" data-choice="${k}" aria-pressed="${info.choice === k}"><b>${t}</b><span class="d">${esc(d)}</span>
+        return `<button class="choice" data-choice="${k}" aria-pressed="${local && info.choice === k}"><b>${t}</b><span class="d">${esc(d)}</span>
           <span class="st">${have ? "받아 둠" : `받아야 함 · ${k === "fast" || (k === "auto" && r.choice === "fast") ? "6.1GB" : "7.2GB"}`}</span></button>`; }).join("")}
+      <div class="choice custom ${local && info.choice === "custom" ? "on" : ""}"><b>다른 모델</b>
+        <span class="d">Ollama에 있는 모델을 이름으로 고릅니다. 없으면 받습니다. 코치 말은 gemma4에 맞춰 다듬었으므로 다른 모델은 말투나 정확도가 다를 수 있습니다.</span>
+        <div class="row"><input id="olName" list="olList" placeholder="예: qwen3:8b" value="${esc(info.choice === "custom" ? info.name : "")}" spellcheck="false" autocomplete="off">
+        <datalist id="olList">${installed.map(n => `<option value="${esc(n)}">`).join("")}</datalist><button class="btn" id="olUse">이 모델 쓰기</button></div></div>
     </div>` : ""}
     <div class="acts">
       <button class="btn" id="setupLater">나중에</button>
-      ${!info.server ? `<button class="btn" id="setupRetry">다시 확인</button>` : ""}
-      ${info.server && !info.model ? `<button class="run" id="setupPull">모델 받기 (${r.size})</button>` : ""}
-      ${info.server && info.model ? `<button class="run" id="setupOk">시작하기</button>` : ""}
+      ${!installed.length && !(info.server && local) ? `<button class="btn" id="setupRetry">다시 확인</button>` : ""}
+      ${local && info.server && !info.model ? `<button class="run" id="setupPull">모델 받기 (${r.size})</button>` : ""}
+      ${local && info.server && info.model ? `<button class="run" id="setupOk">시작하기</button>` : ""}
     </div>`;
-  $("#setup").hidden = false;
-  $$("#modelChoices .choice").forEach(b => b.onclick = async () => {
+  $$("#modelChoices .choice[data-choice]").forEach(b => b.onclick = async () => {
     await API.set_coach_model(b.dataset.choice);
     const want = b.dataset.choice === "auto" ? r.choice : b.dataset.choice;
     if (!info.have?.[want]) {  // 아직 없으면 받기
       $("#pullBar").hidden = false; $("#pullText").textContent = "받기 시작";
       API.pull_model(want === "fast" ? "gemma4:e4b-it-qat" : "gemma4:12b-it-qat");
     }
-    openSetup(true);
+    setAi(await API.ai_status());
+    openSetup(true, "local");
   });
-  $("#setupLater").onclick = () => { $("#setup").hidden = true; try { localStorage.setItem("kt-setup-later", "1"); } catch (_) {} };
-  $("#setupRetry") && ($("#setupRetry").onclick = () => openSetup(true));
+  $("#olUse") && ($("#olUse").onclick = async () => {
+    const name = $("#olName").value.trim(); if (!name) { $("#olName").focus(); return; }
+    const res = await API.set_ollama_model(name);
+    if (res.pulling) { $("#pullBar").hidden = false; $("#pullText").textContent = `${res.name} 받기 시작`; return; }
+    setAi(res); openSetup(true, "local");
+  });
+  $("#setupRetry") && ($("#setupRetry").onclick = () => openSetup(true, "local"));
   $("#setupOk") && ($("#setupOk").onclick = () => { $("#setup").hidden = true; });
   $("#setupPull") && ($("#setupPull").onclick = e => {
     e.target.disabled = true; e.target.innerHTML = waiting("받고 있습니다");
     $("#pullBar").hidden = false; API.pull_model(r.model);
   });
+}
+
+async function setupApi(info, seg) {
+  const cfg = await API.api_settings();
+  let cur = S.apiPick || (cfg.provider !== "ollama" ? cfg.provider : "openai");
+  const draw = () => {
+    const p = cfg.providers[cur], using = info.external && cfg.provider === cur;
+    $("#setupBody").innerHTML = `
+      <h2>코치(AI)를 준비해요</h2>${seg}
+      <p>내 컴퓨터가 AI를 돌리기 버거우면 외부 회사의 AI를 쓸 수 있습니다. 내 API 키로 요청하므로 요금은 그 회사 계정에 나옵니다.</p>
+      <p class="warnline">외부 API를 쓰면 지금 푸는 문제, 내 코드, 테스트 결과, 질문이 그 회사 서버로 보내집니다.</p>
+      <div class="provs">${Object.entries(cfg.providers).map(([k, v]) =>
+        `<button data-prov="${k}" aria-pressed="${k === cur}">${esc(v.label)}${info.external && cfg.provider === k ? " ✓" : ""}</button>`).join("")}</div>
+      <div class="form">
+        <label>주소 <input id="apBase" value="${esc(p.base)}" placeholder="${cur === "custom" ? "예: http://127.0.0.1:1234/v1" : esc(p.default_base)}" spellcheck="false" autocomplete="off"></label>
+        <label>API 키 <input id="apKey" type="password" value="${esc(p.key)}" placeholder="${cur === "custom" ? "필요 없으면 비워 둡니다" : "붙여 넣기"}" spellcheck="false" autocomplete="off">
+          ${p.key_url ? `<a class="d" href="${p.key_url}" target="_blank" rel="noopener">키 받는 곳</a>` : ""}</label>
+        <label>모델 <span class="row"><input id="apModel" list="apList" value="${esc(p.model)}" placeholder="이름을 쓰거나 목록에서 고릅니다" spellcheck="false" autocomplete="off">
+          <datalist id="apList"></datalist><button class="btn" id="apList2">목록 불러오기</button></span></label>
+        <p class="d">키는 이 컴퓨터의 앱 설정 파일에만 저장되고, 화면에는 끝 네 글자만 보입니다. 생각(추론)하는 모델은 느리므로 빠르고 작은 모델을 추천합니다.</p>
+        <p class="d" id="apMsg" role="status"></p>
+      </div>
+      <div class="acts">
+        <button class="btn" id="setupLater">나중에</button>
+        ${info.external ? `<button class="btn" id="apLocal">내 컴퓨터로 돌아가기</button>` : ""}
+        <button class="btn" id="apTest">연결 확인</button>
+        <button class="run" id="apSave">${using ? "저장" : "저장하고 이 API 쓰기"}</button>
+      </div>`;
+    $$("#setupBody [data-stab]").forEach(b => b.onclick = () => openSetup(true, b.dataset.stab));
+    $("#setupLater").onclick = () => { $("#setup").hidden = true; try { localStorage.setItem("kt-setup-later", "1"); } catch (_) {} };
+    $$(".provs button").forEach(b => b.onclick = () => { cur = S.apiPick = b.dataset.prov; draw(); });
+    const vals = () => [cur, $("#apBase").value, $("#apKey").value, $("#apModel").value];
+    const msg = (t, bad) => { const m = $("#apMsg"); m.innerHTML = t; m.className = "d" + (bad ? " bad" : " good"); };
+    $("#apList2").onclick = async e => {
+      e.target.disabled = true; msg(waiting("모델 목록을 받고 있습니다"));
+      const r = await API.api_models(...vals().slice(0, 3));
+      e.target.disabled = false;
+      if (!r.ok) return msg(esc(r.error), true);
+      $("#apList").innerHTML = r.models.map(m => `<option value="${esc(m)}">`).join("");
+      msg(`모델 ${r.models.length}개를 찾았습니다. 모델 칸을 눌러 고르세요.`);
+      $("#apModel").focus();
+    };
+    $("#apTest").onclick = async e => {
+      if (!$("#apModel").value.trim()) { msg("모델 이름을 먼저 정해 주세요.", true); return $("#apModel").focus(); }
+      e.target.disabled = true; msg(waiting("짧은 질문을 보내 보고 있습니다"));
+      const r = await API.api_test(...vals());
+      e.target.disabled = false;
+      r.ok ? msg(`연결되었습니다. “${esc(r.text)}” · ${r.sec}초`) : msg(esc(r.error), true);
+    };
+    $("#apSave").onclick = async () => {
+      if (!$("#apModel").value.trim()) { msg("모델 이름을 먼저 정해 주세요.", true); return $("#apModel").focus(); }
+      if (cur === "custom" && !$("#apBase").value.trim()) { msg("서버 주소를 넣어 주세요.", true); return $("#apBase").focus(); }
+      if (cur !== "custom" && !$("#apKey").value.trim()) { msg("API 키를 넣어 주세요.", true); return $("#apKey").focus(); }
+      const st = await API.save_api(...vals());
+      setAi(st);
+      await openSetup(true, "api");
+      const m = $("#apMsg"); m.textContent = "저장했습니다. 이제 코치가 이 API를 씁니다."; m.className = "d good";
+    };
+    $("#apLocal") && ($("#apLocal").onclick = async () => { setAi(await API.use_local()); openSetup(true, "local"); });
+  };
+  draw();
 }
 const fmtGB = b => (b / 2 ** 30).toFixed(1);
 handlers.pull = d => {

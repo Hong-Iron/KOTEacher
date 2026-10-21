@@ -247,7 +247,7 @@ kbd{font:11px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px
 mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);color:inherit;border-radius:2px;transition:background 1s}
 
 /* 코치 준비 안내 */
-.pal.setup{display:block;padding:22px 24px;max-height:none}
+.pal.setup{display:block;padding:22px 24px;max-height:calc(91vh - 24px);overflow:auto}
 .setup h2{font-size:18px;margin:0 0 6px}
 .setup p{margin:6px 0;color:var(--muted);font-size:13.5px}
 .setup .steps{display:grid;gap:10px;margin:14px 0}
@@ -344,3 +344,20 @@ mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);co
 .examres .bar{height:6px;border-radius:3px;background:var(--sunk);overflow:hidden}
 .examres .bar i{display:block;height:100%;background:var(--ok)}
 .examres .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+
+/* 코치 설정: 내 컴퓨터 / 외부 API */
+.setup .stabs{margin:8px 0 4px;display:flex;width:max-content;max-width:100%}
+.setup .warnline{color:var(--bad);font-size:12.5px;background:var(--bad-bg);border-radius:8px;padding:7px 10px}
+.setup .provs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.setup .provs button{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer}
+.setup .provs button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--accent-soft)}
+.setup .form{display:grid;gap:9px}
+.setup .form label{display:grid;gap:4px;font-size:12.5px;color:var(--muted)}
+.setup input{font:13px var(--f-mono);padding:6px 9px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--ink);min-width:0;width:100%;box-sizing:border-box}
+.setup input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.setup .row{display:flex;gap:6px;align-items:center}
+.setup .row .btn{flex:none;white-space:nowrap}
+.setup .d.bad{color:var(--bad)} .setup .d.good{color:var(--ok)}
+.setup .choice.custom{cursor:default;grid-template-columns:minmax(0,1fr)}
+.setup .choice.custom.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--accent-soft)}
+.setup .choice.custom .row{margin-top:6px}

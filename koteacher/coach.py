@@ -408,6 +408,8 @@ def say(pid, code, diag, hint_level=0, history=(), weak=(), on_message=None):
 
 def warm(pid, code):
     """문제를 열 때 공통 앞부분(규칙·문제·코드)을 미리 읽혀 둔다. 첫 코치 응답이 빨라진다."""
+    if ollama.external():  # 외부 API에서는 요청 한 번이 요금이므로 미리 읽히지 않는다
+        return
     try:
         # messages()의 앞 두 말까지만 읽힌다. 코치의 답 자리에서 끝나므로 실제 호출이 여기서 이어 쓴다
         ollama.chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": context(pid, code)}], max_tokens=1)

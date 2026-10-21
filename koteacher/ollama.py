@@ -1,4 +1,7 @@
-"""Ollama /api/chat 클라이언트 (표준 라이브러리만)."""
+"""Ollama /api/chat 클라이언트 (표준 라이브러리만).
+
+설정에서 외부 API를 고르면 chat·status가 remote.py로 넘긴다. 부르는 쪽은 어느 쪽인지 몰라도 된다.
+"""
 import json
 import os
 import time
@@ -14,8 +17,22 @@ def _post(path, body, timeout):
     return urllib.request.urlopen(req, timeout=timeout)
 
 
+def external():
+    return config.provider() != "ollama"
+
+
 def status():
     """서버가 떠 있는지, 쓸 모델이 받아져 있는지. 후보 가운데 받아져 있는 첫 모델을 고른다."""
+    if external():  # 외부 API는 키와 모델 이름이 있으면 준비된 것으로 본다 (자주 불리므로 요청은 보내지 않는다)
+        c = config.api_conf()
+        ready = bool(c["model"]) and (bool(c["key"]) or c["provider"] == "custom")
+        return {"server": ready, "model": ready, "name": c["model"], "loaded": ready, "loading": False,
+                "choice": config.settings().get("coach_model", "auto"), "have": {}, "external": c["label"], "provider": c["provider"]}
+    return local_status()
+
+
+def local_status():
+    """내 컴퓨터 Ollama의 상태 (외부 API를 쓰는 중에도 설정 화면에서 보여 준다)."""
     try:
         with urllib.request.urlopen(config.OLLAMA + "/api/tags", timeout=2) as r:
             names = [m["name"] for m in json.load(r).get("models", [])]
@@ -26,7 +43,8 @@ def status():
         config.MODEL = pick
     have = {k: next((m for m in v["models"] if m in names), None) for k, v in config.CHOICES.items()}
     return {"server": True, "model": bool(pick), "name": config.MODEL, "loaded": bool(pick) and is_loaded(),
-            "loading": _loading, "choice": config.settings().get("coach_model", "auto"), "have": have}
+            "loading": _loading, "choice": config.settings().get("coach_model", "auto"), "have": have,
+            "installed": names, "provider": "ollama"}
 
 
 def candidates():
@@ -35,6 +53,8 @@ def candidates():
     if os.environ.get("KOTEACHER_MODEL"):
         return [os.environ["KOTEACHER_MODEL"]]
     choice = config.settings().get("coach_model", "auto")
+    if choice == "custom" and config.settings().get("ollama_model"):  # 사용자가 이름으로 고른 Ollama 모델
+        return [config.settings()["ollama_model"]]
     if choice in config.CHOICES:
         other = "fast" if choice == "accurate" else "accurate"
         return config.CHOICES[choice]["models"] + config.CHOICES[other]["models"]
@@ -58,6 +78,8 @@ def is_loaded():
 def load():
     """프롬프트 없이 요청하면 모델만 올린다. 앱이 켜져 있는 동안 내려가지 않게 keep_alive를 길게 준다."""
     global _loading
+    if external():
+        return
     _loading = True
     try:
         body = {"model": config.MODEL, "keep_alive": "30m", "options": {"num_ctx": config.NUM_CTX}}
@@ -77,6 +99,10 @@ def unload():
 
 def chat(messages, schema=None, think=False, max_tokens=300, temperature=0.4, on_token=None, timeout=120, stop=None):
     """답 전체 문자열과 측정값을 돌려준다. on_token이 있으면 조각마다 부른다."""
+    if external():
+        from . import remote
+        return remote.chat(messages, schema=schema, max_tokens=max_tokens, temperature=temperature, on_token=on_token,
+                           timeout=timeout, stop=stop)
     body = {
         "model": config.MODEL, "messages": messages, "stream": True, "think": think,
         "keep_alive": "30m",
