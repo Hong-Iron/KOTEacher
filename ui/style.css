@@ -315,3 +315,16 @@ mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);co
 .setup .choice b{font-size:13.5px}
 .setup .choice .d{grid-column:1;font-size:12px;color:var(--muted)}
 .setup .choice .st{grid-row:1/3;grid-column:2;align-self:center;font-size:11.5px;color:var(--faint)}
+
+/* 실행 중 표시 */
+.running{display:flex;align-items:center;gap:10px;padding:8px 10px;margin:4px 0 6px;border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius:8px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:600}
+.running .el{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:500;color:var(--muted);font-size:12px}
+.running .bounce i{background:var(--accent)}
+.trow.stale{opacity:.35}
+.run[aria-busy="true"]{opacity:1;cursor:progress;display:inline-flex;align-items:center}
+.run[aria-busy="true"] .bounce i{background:var(--on-accent)}
+.autostat{color:var(--accent);font-weight:600;display:inline-flex;align-items:center}
+.autostat .bounce i{background:var(--accent)}
+.cnt.flash{animation:flash .9s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 0 var(--accent)}30%{box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent)}100%{box-shadow:0 0 0 0 transparent}}

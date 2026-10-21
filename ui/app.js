@@ -248,13 +248,36 @@ $("#edwrap").addEventListener("submit", async e => {
 });
 
 /* ---------------- 검사 ---------------- */
+// 실행 중이라는 것을 분명히 보여 준다. 직접 실행하면 버튼·테스트 탭에, 자동 검사는 아래 상태 줄에만 작게
+function showRunning(trigger) {
+  const btn = $("#run"), t0 = performance.now();
+  S.runLabel = S.runLabel || btn.textContent;
+  if (trigger === "run") {
+    btn.setAttribute("aria-busy", "true"); btn.disabled = true; btn.innerHTML = `실행 중${DOTS}`;
+    $$(".tabs [role=tab]").find(t => t.dataset.tab === "tests")?.click();  // 테스트 탭을 펼쳐 보여 준다
+    const n = S.p?.examples.length ?? 0, m = S.p?.hidden_total ?? 0;
+    const box = $("#tests"), row = h("div", "running", `${waiting(`예시 ${n}개와 숨은 검사 ${m}개를 돌리고 있습니다`)}<span class="el">0.0초</span>`);
+    box.prepend(row); box.querySelectorAll(".trow").forEach(r => r.classList.add("stale"));
+    const tick = setInterval(() => { const el = row.querySelector(".el"); if (el) el.textContent = `${((performance.now() - t0) / 1000).toFixed(1)}초`; }, 100);
+    return () => {
+      clearInterval(tick); row.remove();
+      btn.removeAttribute("aria-busy"); btn.disabled = false; btn.textContent = S.runLabel;
+      const c = $("#testCnt"); c.classList.remove("flash"); void c.offsetWidth; c.classList.add("flash");
+    };
+  }
+  const st = $("#autoStat"); st.hidden = false; st.innerHTML = waiting("자동 검사 중");
+  return () => { st.hidden = true; const c = $("#testCnt"); c.classList.remove("flash"); void c.offsetWidth; c.classList.add("flash"); };
+}
+
 async function runCheck(trigger) {
   const code = S.editor.getValue();
   if (S.checking || (trigger === "idle" && code === S.lastChecked)) return;
-  S.checking = true; $("#run").setAttribute("aria-busy", "true");
+  S.checking = true;
   S.lastChecked = code;
+  const stop = showRunning(trigger);
   try {
-    const r = await API.check(code, trigger);
+    // 검사가 0.1초 만에 끝나도 '실행 중'이 눈에 보이도록 직접 실행은 최소 0.45초 보여 준다
+    const [r] = await Promise.all([API.check(code, trigger), trigger === "run" ? new Promise(ok => setTimeout(ok, 450)) : null]);
     renderTests(r);
     monaco.editor.setModelMarkers(S.editor.getModel(), "kg", r.result.syntax ? [{
       startLineNumber: r.result.syntax.line, endLineNumber: r.result.syntax.line, startColumn: 1, endColumn: 200,
@@ -279,7 +302,7 @@ async function runCheck(trigger) {
   } catch (err) {
     addLog("sys", "오류", String(err));
   } finally {
-    S.checking = false; $("#run").removeAttribute("aria-busy");
+    S.checking = false; stop();
   }
 }
 
