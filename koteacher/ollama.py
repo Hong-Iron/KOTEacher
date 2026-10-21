@@ -131,13 +131,11 @@ def ram_gb():
         return 0
 
 
-AUTO_ACCURATE_GB = 15  # 이 이상이면 자동 선택이 12B (속도 실험 뒤 정한다)
-
-
 def recommend():
-    """자동 선택: 메모리가 넉넉하면 정확도 우선(12B), 아니면 속도 우선(e4b)."""
+    """자동 선택은 속도 우선(e4b)이다. 12B와 견주어 응답이 약 2배 빠르고(첫 글자 약 3배),
+    버그 줄 적중은 같은 12문제에서 9/12로 12B(6/12)보다 낮지 않았다 (eval/ab_model.sh, 2026-10-21)."""
     gb = ram_gb()
-    choice = "accurate" if gb >= AUTO_ACCURATE_GB else "fast"
+    choice = "fast"
     c = config.CHOICES[choice]
     return {"model": c["models"][0], "size": c["size"], "ram": round(gb), "choice": choice}
 

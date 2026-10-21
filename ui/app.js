@@ -919,9 +919,9 @@ async function openSetup(force) {
         <div class="bar" id="pullBar" hidden><i></i></div><span class="d" id="pullText"></span></div>
     </div>
     ${info.server ? `<h3 class="ch">코치 모델</h3><div class="choices" id="modelChoices">
-      ${[["auto", "자동", `이 컴퓨터(메모리 ${r.ram}GB)에 맞춰 고릅니다 → ${r.choice === "accurate" ? "정확도 우선" : "속도 우선"}`],
-         ["accurate", "정확도 우선", "gemma4 12B · 7.2GB. 버그 줄을 더 잘 찾지만 느립니다"],
-         ["fast", "속도 우선", "gemma4 e4b · 6.1GB. 더 작은 모델이라 빠르고 메모리를 덜 씁니다"]].map(([k, t, d]) => {
+      ${[["auto", "자동 (추천)", "속도 우선(gemma4 e4b)을 씁니다"],
+         ["accurate", "정확도 우선", "gemma4 12B · 7.2GB. 더 크고 느립니다. 메모리 16GB 이상에서 쓰세요"],
+         ["fast", "속도 우선", "gemma4 e4b · 6.1GB. 응답이 약 2배 빠르고 메모리를 덜 씁니다"]].map(([k, t, d]) => {
         const need = k === "auto" ? r.choice : k, have = info.have?.[need];
         return `<button class="choice" data-choice="${k}" aria-pressed="${info.choice === k}"><b>${t}</b><span class="d">${esc(d)}</span>
           <span class="st">${have ? "받아 둠" : `받아야 함 · ${k === "fast" || (k === "auto" && r.choice === "fast") ? "6.1GB" : "7.2GB"}`}</span></button>`; }).join("")}
