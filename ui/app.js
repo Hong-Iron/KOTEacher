@@ -853,14 +853,23 @@ function placeNote(host, note, fresh = false) {
   const box = h("div", "qa-note" + (fresh ? "" : " folded"));
   box.dataset.note = note.id;
   box.innerHTML = `<div class="qh"><span class="q">${esc(note.question)}</span><button class="qx" title="이 기록 지우기">지우기</button></div><div class="qa">${esc(note.answer)}</div>`;
-  const anchor = last;
+  // 기록 상자는 고른 글이 있는 문단 바로 아래에 둔다
+  const anchor = last, inHost = e => e && host.contains(e) && e !== host;
+  const sum = anchor.closest("summary");                    // 접힌 상자(확인 문제 등)의 제목: 상자 바로 아래
   const li = anchor.closest("li");
   const cell = anchor.closest("td, th");
-  const blk = anchor.closest("p, pre, h2, h3, h4, figure, blockquote, .math[data-display]");
-  if (li && host.contains(li)) li.append(box);
-  else if (cell) cell.closest("table").after(box);
-  else if (blk && host.contains(blk)) blk.after(box);
-  else host.append(box);
+  const blk = anchor.closest("p, pre, h1, h2, h3, h4, figure, blockquote, .math[data-display], .ctitle");
+  const cbody = anchor.closest(".cbody");
+  if (inHost(sum)) sum.parentElement.after(box);
+  else if (inHost(li)) li.append(box);
+  else if (inHost(cell)) cell.closest("table").after(box);
+  else if (inHost(blk)) blk.after(box);
+  else if (inHost(cbody)) cbody.append(box);               // 문단 없이 글만 있는 상자 본문
+  else {                                                   // 그 밖에는 문서 바로 밑 덩어리 다음
+    let top = anchor;
+    while (top.parentElement && top.parentElement !== host) top = top.parentElement;
+    top.parentElement === host ? top.after(box) : host.append(box);
+  }
   return box;
 }
 async function applyNotes(host) {

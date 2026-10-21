@@ -130,7 +130,9 @@ def _render_block(doc, s):
     s = _callouts(doc, s)
     s = _protect_code_and_math(doc, s)
     s = _links(doc, s)
-    h = md.markdown(s, extensions=["tables", "sane_lists", "footnotes"])
+    # 문서에 직접 쓴 <details> 안의 마크다운(표 등)도 그린다
+    s = re.sub(r"^<details>", '<details markdown="1">', s, flags=re.M)
+    h = md.markdown(s, extensions=["tables", "sane_lists", "footnotes", "md_in_html"])
     return re.sub(r"<p>\s*(KTPH\d{5}X)\s*</p>", r"\1", h)  # 상자·그림이 <p> 안에 들어가지 않게
 
 
