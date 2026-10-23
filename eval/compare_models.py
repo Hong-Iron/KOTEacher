@@ -23,7 +23,8 @@ RES = ROOT / "eval/results"
 
 
 def slug(m):
-    return re.sub(r"[^a-z0-9]+", "_", m.lower()).strip("_")
+    """결과 파일 이름. CMP_TAG를 주면 뒤에 붙여 지난 결과를 덮지 않는다."""
+    return re.sub(r"[^a-z0-9]+", "_", m.lower()).strip("_") + os.environ.get("CMP_TAG", "")
 
 
 def unload(m):

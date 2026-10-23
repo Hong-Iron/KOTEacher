@@ -147,7 +147,7 @@ function onEdit() {
   if (S.mode !== "quiet" && !S.exam) {
     clearTimeout(S.warmTimer);
     S.warmTimer = setTimeout(() => API.prewarm(S.editor.getValue()), 1200);  // 코치가 읽을 앞부분을 미리 읽혀 둔다
-    S.idleTimer = setTimeout(() => runCheck("idle"), 3500);
+    S.idleTimer = setTimeout(() => runCheck("idle"), 2700);  // 손을 멈춘 뒤 자동 검사까지
   }
 }
 
