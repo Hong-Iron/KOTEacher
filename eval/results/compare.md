@@ -21,5 +21,5 @@
 | gemma4:e4b-it-qat · t1 (16:56) | 9/12 | 11.8초 | 8.5초 | 0 | 19/20 | 0/20 | 3% | 50자 |
 | gemma4:e4b-it-qat-text · t1 (16:56) | 9/12 | 12.0초 | 8.2초 | 0 | 13/21 | 0/21 | 2% | 54자 |
 
-- `-text`는 `ollama show --modelfile`에서 프로젝터 FROM 줄만 지우고 `ollama create`로 만든 것이다(5.2GB, 배포 이름 `hong-iron/gemma4-e4b-text`).
+- `-text`는 `ollama show --modelfile`에서 프로젝터 FROM 줄만 지우고 `ollama create`로 만든 것이다(5.2GB, 배포 이름 `ghcr.io/hong-iron/gemma4-e4b-text`).
 - 온도 0·같은 시드로 코칭 질문 4개를 물으면 두 모델의 답이 글자까지 같았다. 12문제에서 맞힌 문제도 같다. '질문으로 끝남'의 차이는 앱의 무작위 고르기에서 생긴 흔들림이다.

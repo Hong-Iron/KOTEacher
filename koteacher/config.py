@@ -31,8 +31,8 @@ DB = DATA / "koteacher.db"
 
 OLLAMA = os.environ.get("KOTEACHER_OLLAMA", "http://127.0.0.1:11434")
 # 그림을 읽는 부분(프로젝터, 약 1GB)을 뺀 gemma4:e4b-it-qat. 코치는 그림을 보내지 않으므로 글자 답은 원래 판과 같다
-# (온도 0에서 글자까지 같고 견주기 9/12로 같음, eval/results/compare.md). 못 받으면 원래 판을 받는다(api.pull_model).
-E4B_TEXT = "hong-iron/gemma4-e4b-text:latest"
+# (온도 0에서 글자까지 같고 견주기 9/12로 같음, eval/results/compare.md). 못 받으면 Ollama 저장소의 원래 판을 받는다(api.pull_model).
+E4B_TEXT = "ghcr.io/hong-iron/gemma4-e4b-text:latest"  # GitHub 패키지: 계정 없이 받는다 (tools/push_ghcr.py)
 E4B_FALLBACK = "gemma4:e4b-it-qat"
 # 앞에서부터 받아져 있는 첫 모델을 쓴다(ollama.status가 고른다). 메모리 8GB 기기는 e4b로 내려간다.
 MODELS = [m for m in [os.environ.get("KOTEACHER_MODEL"), "gemma4:12b-it-qat", "gemma4:12b",

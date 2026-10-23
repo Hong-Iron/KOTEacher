@@ -268,8 +268,8 @@ class Api:
                 name = model
                 try:
                     ollama.pull(name, prog)
-                except RuntimeError as e:  # 텍스트 전용 e4b가 저장소에 없으면 원래 e4b를 받는다
-                    if name != cfg.E4B_TEXT or "does not exist" not in str(e) and "not found" not in str(e):
+                except RuntimeError:  # 텍스트 전용 e4b(ghcr.io)를 못 받으면 Ollama 저장소의 원래 e4b를 받는다
+                    if name != cfg.E4B_TEXT:
                         raise
                     name = cfg.E4B_FALLBACK
                     self._push("pull", {"status": f"{name} 받기", "done": 0, "total": 0})
