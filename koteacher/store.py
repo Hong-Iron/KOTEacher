@@ -116,7 +116,9 @@ class Store:
             SELECT a.id, a.problem_id, a.mode, a.started, a.ended, a.result, a.hints_opened, a.solution_viewed,
                    COUNT(s.id) AS runs, MAX(s.t) AS last_t, SUM(s.passed) AS passes,
                    (SELECT COUNT(*) FROM mistakes m WHERE m.attempt_id=a.id) AS mistakes,
-                   (SELECT COUNT(*) FROM coach_msgs c WHERE c.attempt_id=a.id) AS coach
+                   (SELECT COUNT(*) FROM coach_msgs c WHERE c.attempt_id=a.id) AS coach,
+                   (SELECT substr(code, 1, 600) FROM snapshots x WHERE x.attempt_id=a.id ORDER BY x.t DESC LIMIT 1) AS last_code,
+                   (SELECT summary LIKE '%"reset": true%' FROM snapshots x WHERE x.attempt_id=a.id ORDER BY x.t DESC LIMIT 1) AS was_reset
             FROM attempts a JOIN snapshots s ON s.attempt_id=a.id {where}
             GROUP BY a.id ORDER BY MAX(s.t) DESC LIMIT 500""", (pid,) if pid else ())
 

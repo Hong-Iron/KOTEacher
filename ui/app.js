@@ -172,8 +172,10 @@ function clearBubble() {
   S.bubble?.remove(); S.bubble = null;
 }
 function flagLine(line) {
-  S.decos = S.editor.deltaDecorations(S.decos, line ? [{range: new monaco.Range(line, 1, line, 1),
-    options: {isWholeLine: true, className: "kg-flag-line", glyphMarginClassName: "kg-flag-glyph"}}] : []);
+  const ok = line && line <= S.editor.getModel().getLineCount();
+  S.decos = S.editor.deltaDecorations(S.decos, ok ? [{range: new monaco.Range(line, 1, line, 1),
+    options: {isWholeLine: true, className: "kg-flag-line", glyphMarginClassName: "kg-flag-glyph",
+              stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges}}] : []);
 }
 function placeBubble(line, el) {
   clearBubble();
@@ -517,19 +519,34 @@ function renderExam(r) {
 }
 
 /* ---------------- 코치 이벤트 ---------------- */
-handlers.thinking = () => {
+// 코치가 살펴보는 동안: 줄을 아직 모르면 말풍선을 띄우지 않고 아래 상태줄에만 알린다.
+// AI가 맨 앞에 줄 번호를 쓰는 즉시(line) 그 줄에 띄운다. 말을 아껴 둘 경우(live=false)는 끝까지 상태줄에만
+function coachBusy(on) {
+  const st = $("#autoStat");
+  if (on) { st.hidden = false; st.innerHTML = waiting("코치가 살펴보고 있습니다"); }
+  else if (st.textContent.includes("코치")) st.hidden = true;
+}
+handlers.thinking = d => {
   // 바로 보여 준 문장이 있으면 그대로 두고 AI 문장을 기다린다
   if (S.bubble?.querySelector(".msgtext[data-instant]")) return;
-  if (S.lastDiag && !S.bubble?.classList.contains("done")) bubbleThinking(S.lastDiag);
+  S.liveThinking = d?.live !== false;
+  if (S.lastDiag?.line && S.liveThinking && !S.bubble?.classList.contains("done")) { coachBusy(false); bubbleThinking(S.lastDiag); }
+  else coachBusy(true);
 };
-handlers.diag = d => { S.lastDiag = d.diag; flagLine(d.diag?.line); };
-handlers.chip = d => { S.lastDiag = d.diag; flagLine(d.diag?.line); bubbleChip(d.diag); };
+handlers.line = d => {
+  S.lastDiag = {...(S.lastDiag || {}), line: d.line};
+  flagLine(d.line);
+  if (S.liveThinking && !S.bubble?.querySelector(".msgtext[data-instant]")) { coachBusy(false); bubbleThinking(S.lastDiag); }
+};
+handlers.diag = d => { coachBusy(false); S.lastDiag = d.diag; flagLine(d.diag?.line); };
+handlers.chip = d => { coachBusy(false); S.lastDiag = d.diag; flagLine(d.diag?.line); bubbleChip(d.diag); };
 // AI가 줄 칸은 비우고 말에만 "11번 줄"이라고 쓴 경우 그 줄을 쓴다 (코드 안의 줄 번호일 때만)
 function lineFromText(t) {
   const m = /(\d+)\s*번\s*줄/.exec(t || ""), n = m && +m[1];
   return n && S.editor && n <= S.editor.getModel().getLineCount() ? n : null;
 }
 handlers.say = d => {
+  coachBusy(false);
   if (!d.line) d.line = lineFromText(d.message);
   S.lastDiag = d.diag ? {...d.diag, line: d.diag.line || d.line} : d.diag;
   flagLine(d.line); bubbleSay(d); addLog("ai", "코치", d.message);
@@ -537,6 +554,7 @@ handlers.say = d => {
 handlers.stream = d => {
   // 코치 말이 생성되는 대로 말풍선에 흘려 쓴다
   let el = S.bubble;
+  coachBusy(false);
   if (!el || el.classList.contains("done") || el.classList.contains("mini")) { bubbleThinking(S.lastDiag); el = S.bubble; }
   const inst = el.querySelector(".msgtext[data-instant]");
   if (inst) { inst.removeAttribute("data-instant"); inst.textContent = ""; inst.classList.add("live"); }
@@ -552,7 +570,7 @@ handlers.answer = d => {
   if (t) { t.className = ""; t.textContent = d.message; }  // 흘려 쓰던 점(.live)도 같이 사라진다
   else { const el = h("div", "bubble"); el.innerHTML = bubbleHead("코치", "질문에 답") + `<div>${esc(d.message)}</div>`; placeBubble(S.lastDiag?.line, el); }
 };
-handlers.coach_error = d => addLog("sys", "코치 오류", d.error);
+handlers.coach_error = d => { coachBusy(false); addLog("sys", "코치 오류", d.error); };
 handlers.mistake_named = d => { $$(`.mname[data-id="${d.id}"]`).forEach(e => e.textContent = d.name); loadMistakes(); };
 
 function addLog(kind, who, text) {
@@ -669,6 +687,7 @@ async function openProblem(pid, withDoc, code, fresh = false) {
   decorate($('#dbody > .dpanel[data-tab="problem"]')).then(() => applyNotes($('#dbody > .dpanel[data-tab="problem"]')));
   if (withDoc) openDoc(withDoc, false);
   activateTab("problem");
+  if (S.editor) { clearBubble(); flagLine(null); coachBusy(false); }
   await makeEditor(p.code);
   startExamTimer();
   runLint();
@@ -1404,10 +1423,18 @@ $("#histBack").onclick = () => { $(".hist").classList.remove("detail"); show("ho
 // 풀기 화면의 '풀이 기록' 탭: 이 문제의 지난 코드 불러오기 (되돌리기 ⌘Z 가능)
 async function loadProblemHistory() {
   if (!S.p) return;
-  const rows = (await API.history(S.p.id)).slice(0, 20);
-  $("#histPanel").innerHTML = rows.length ? `<ul class="tl">${rows.map(r => `<li><span class="tm">${fmtWhen(r.last_t).split(" ").slice(0, 2).join(" ")}</span>
-      <span class="pill ${r.res}" style="font-size:10.5px;padding:0 6px">${RES[r.res]}</span><span class="tx">${r.minutes}분 · 실행 ${r.runs}번 · 힌트 ${r.hints_opened || 0}개
-      <button class="chip" data-load="${r.id}" style="margin-left:8px">이 코드 불러오기</button></span></li>`).join("")}</ul>`
+  // 지금 시도와, 빈 틀 그대로 끝난 시도는 빼고 보여 준다
+  const blank = (S.p.template || "").trim();
+  const rows = (await API.history(S.p.id)).filter(r => r.id !== S.p.aid && (r.last_code || "").trim() && (r.last_code || "").trim() !== blank).slice(0, 20);
+  const preview = code => {
+    const ls = (code || "").split("\n"), body = ls.filter(l => l.trim() && !/^\s*(def solution|import |from |#)/.test(l));
+    return `${ls.filter(l => l.trim()).length}줄 · ${esc((body[0] || ls[0] || "").trim().slice(0, 60))}`;
+  };
+  $("#histPanel").innerHTML = rows.length ? `<ul class="phist">${rows.map(r => `<li>
+      <span class="when">${fmtWhen(r.last_t)}</span>
+      <span class="pill ${r.res}">${RES[r.res]}</span>
+      <span class="meta">${r.was_reset ? "처음부터 전에 저장 · " : ""}${r.minutes}분 · 실행 ${r.runs}번 · 힌트 ${r.hints_opened || 0}개<code>${preview(r.last_code)}</code></span>
+      <button class="chip" data-load="${r.id}">이 코드 불러오기</button></li>`).join("")}</ul>`
     : `<p class="note" style="margin:4px 0">이 문제의 지난 기록이 없습니다.</p>`;
 }
 $("#histPanel").addEventListener("click", async e => {

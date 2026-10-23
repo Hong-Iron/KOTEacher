@@ -61,7 +61,7 @@ class Api:
         if ollama.status()["model"]:  # 공통 앞부분(규칙·문제·코드)을 미리 읽혀 두어 첫 코치 응답을 빠르게
             threading.Thread(target=coach.warm, args=(pid, code), daemon=True).start()
         return {
-            "id": pid, "title": p["title"], "level": p["level"], "source": p["source"], "url": p["url"],
+            "id": pid, "aid": aid, "title": p["title"], "level": p["level"], "source": p["source"], "url": p["url"],
             "concepts": p["concepts"], "concept_files": p["concept_files"], "statement": vault.to_html(p["statement_md"]),
             "params": pk["params"],
             "examples": [{"args": a[1:-1].rstrip(","), "expected": o} for a, o in pk["examples"]],
@@ -487,11 +487,26 @@ class Api:
             s.open_fail = {"t": time.time(), "hints": s.hints}
         s.open_fail.update(code=code, diag=diag)
 
+    def _current(self, s, gen):
+        """이 응답이 아직 지금 화면의 것인가: 다른 문제를 열었거나 '처음부터'를 눌렀으면(새 시도) 버린다."""
+        return self.s is s and gen == s.gen
+
     def _streamer(self, gen):
+        s = self.s
+
         def emit(piece):
-            if gen == self.s.gen:
+            if self._current(s, gen):
                 self._push("stream", {"gen": gen, "text": piece})
         return emit
+
+    def _liner(self, gen, code):
+        """AI가 맨 앞에 쓴 줄 번호를 받는 즉시 화면에 알린다 (말풍선·표시를 처음부터 그 줄에)."""
+        s, n = self.s, len(code.splitlines())
+
+        def on_line(line):
+            if self._current(s, gen) and 1 <= line <= n:
+                self._push("line", {"gen": gen, "line": line})
+        return on_line
 
     def _coach_bg(self, gen, code, res, fs, trigger, diag, decision=None):
         s = self.s
@@ -499,17 +514,19 @@ class Api:
             if diag is None:
                 # 한 군데 수정으로 안 고쳐짐 → AI가 진단과 말하기를 한 번에. 먼저 말해도 되는 상황이면 글자를 흘려 보낸다
                 live = self.mode != "quiet" and (trigger == "run" or self.mode == "active")
-                self._push("thinking", {"gen": gen})
+                self._push("thinking", {"gen": gen, "live": live})
                 diag = coach.diagnose(s.pid, code, res, fs, llm=self.mode != "quiet", hint_level=s.hints,
                                       history=s.history, weak=self.store.weak_categories(),
-                                      on_message=self._streamer(gen) if live else None)
-                if gen != s.gen:
+                                      on_message=self._streamer(gen) if live else None, on_line=self._liner(gen, code))
+                if not self._current(s, gen):
                     return
                 s.diag = diag
                 self._open_fail(code, diag)
                 self._push("diag", {"gen": gen, "diag": self._diag_public(diag)})
             if decision is None:
                 decision = s.policy.decide(self.mode, trigger, diag)
+            if not self._current(s, gen):
+                return
             if decision != "speak":
                 self._push("chip", {"gen": gen, "diag": self._diag_public(diag)})
                 return
@@ -520,10 +537,10 @@ class Api:
     def _speak(self, gen, code, diag, trigger):
         s = self.s
         if not diag.get("said"):
-            self._push("thinking", {"gen": gen})
+            self._push("thinking", {"gen": gen, "live": True})
         t = time.time()
         u = coach.say(s.pid, code, diag, s.hints, s.history, self.store.weak_categories(), on_message=self._streamer(gen))
-        if gen != s.gen:
+        if not self._current(s, gen):
             return
         diag.pop("said", None)  # 같은 말을 두 번 쓰지 않는다
         s.policy.spoke(trigger, diag)

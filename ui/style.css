@@ -406,3 +406,14 @@ mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);co
 
 /* 줄을 모르는 말풍선: 편집기 안 오른쪽 위 */
 .bubble.floating{top:10px;right:22px;left:auto;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+
+/* 풀기 화면의 '풀이 기록' 탭 */
+.phist{list-style:none;margin:0;padding:0}
+.phist li{display:grid;grid-template-columns:max-content max-content minmax(0,1fr) max-content;gap:4px 12px;align-items:center;
+  padding:7px 2px;border-bottom:1px solid var(--line);font-size:12.5px}
+.phist .when{color:var(--faint);white-space:nowrap;font-variant-numeric:tabular-nums}
+.phist .pill{font-size:11px;padding:1px 8px;white-space:nowrap;align-self:center}
+.phist .meta{color:var(--muted);min-width:0;display:flex;flex-direction:column;gap:2px}
+.phist .meta code{font:11.5px var(--f-mono);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phist .chip{white-space:nowrap}
+@media (max-width: 760px){ .phist li{grid-template-columns:max-content minmax(0,1fr)} .phist .meta{grid-column:1/-1} }

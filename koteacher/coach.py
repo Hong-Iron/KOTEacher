@@ -280,13 +280,24 @@ TEXT_TASK = ("버그 줄을 찾아 아래 세 줄로만 답한다.\n줄: 버그�
 
 
 class TextStream:
-    """'말: …' 줄만 글자 단위로 넘긴다 (JSON 형식을 쓰지 않을 때)."""
+    """'말: …' 줄만 글자 단위로 넘긴다 (JSON 형식을 쓰지 않을 때).
+    on_line이 있으면 맨 앞의 '줄: 12'가 끝나는 즉시 줄 번호를 알린다 (말풍선을 처음부터 그 줄에 띄우려고)."""
 
-    def __init__(self, emit):
-        self.emit, self.buf, self.pos, self.done = emit, "", None, False
+    LINE = re.compile(r"^\s*(?:줄\s*[:：]\s*)?L?(\d+)\s*(?:번\s*줄|번)?\s*\n")
+
+    def __init__(self, emit=None, on_line=None):
+        self.emit, self.on_line, self.buf, self.pos, self.done = emit, on_line, "", None, False
+        self.line_sent = on_line is None
 
     def feed(self, piece):
-        if self.done:
+        if not self.line_sent:
+            m = self.LINE.match(self.buf + piece)
+            if m or "\n" in self.buf + piece:  # 첫 줄이 끝났다: 줄 번호면 알리고, 아니면 그만 본다
+                self.line_sent = True
+                if m:
+                    self.on_line(int(m.group(1)))
+        if self.done or not self.emit:
+            self.buf += piece
             return
         self.buf += piece
         if self.pos is None:
@@ -321,14 +332,14 @@ def parse_text(text):
             "category": next((c for c in CATEGORIES if c in cat), "기타"), "cause": ""}
 
 
-def diagnose_and_say(pid, code, f, result, hint_level=0, history=(), weak=(), on_message=None):
+def diagnose_and_say(pid, code, f, result, hint_level=0, history=(), weak=(), on_message=None, on_line=None):
     dyn = evidence(f, result)
     ex = extras(pid, hint_level, history, weak)
     textfmt = "json" not in EXP  # 기본은 글 형식: JSON 문법 기호와 원인 칸을 안 써서 응답이 약 13% 빨리 끝난다
     msgs = messages(pid, code, dyn + ("\n\n" + ex if ex else ""), TEXT_TASK if textfmt else DIAG_TASK)
     try:
         if textfmt:
-            stream = TextStream(on_message) if on_message else None
+            stream = TextStream(on_message, on_line) if on_message or on_line else None
             text, meta = ollama.chat(msgs, max_tokens=120, temperature=0.3, on_token=stream.feed if stream else None,
                                      stop=None)
             d = parse_text(text)
