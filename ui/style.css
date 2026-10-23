@@ -61,7 +61,8 @@ input,textarea{font:inherit;color:inherit}
 .pill.helped{background:var(--coach-bg);color:var(--coach)}
 .pill.tried{background:var(--bad-bg);color:var(--bad)}
 .pill.new{background:var(--sunk);color:var(--faint)}
-.aistat{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.aistat{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;min-width:0}
+.aistat .dot{flex:none} .aistat .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--faint)}
 .dot.on{background:var(--ok)} .dot.wait{background:var(--coach-dot)}
 

@@ -19,7 +19,7 @@ function devBridge() {
     return r.json();
   };
   const poll = async () => {
-    try { const evs = await (await fetch("/events", {method: "POST", cache: "no-store"})).json(); evs.forEach(([e, d]) => KG.on(e, d)); } catch (_) {}
+    try { const evs = await (await fetch("/events", {method: "POST", cache: "no-store"})).json(); evs.forEach(([e, d]) => { try { KG.on(e, d); } catch (err) { console.error("KG.on", e, err); } }); } catch (_) {}
     setTimeout(poll, 250);
   };
   poll();
@@ -62,15 +62,18 @@ async function renderRecs() {
 }
 $("#recs").addEventListener("click", e => { const b = e.target.closest("[data-rec]"); if (b) openProblem(b.dataset.rec, null, null, !!b.dataset.fresh); });
 
+// 코치 상태에 보일 짧은 모델 이름: 저장소 주소와 :latest를 뗀다 (ghcr.io/hong-iron/gemma4-e4b-text:latest → gemma4-e4b-text)
+const modelLabel = n => (n || "").split("/").pop().replace(/:latest$/, "").replace(":", " ");
 function setAi(st) {
   for (const el of [$("#aiStat"), $("#aiStat2")]) {
     const ready = st.server && st.model && st.loaded;
     const dot = ready ? "on" : st.server && st.model ? "wait" : "";
     const txt = st.external ? (ready ? `코치(${st.external} · ${st.name})가 준비되어 있습니다` : "외부 API 설정이 끝나지 않았습니다 · 눌러서 설정합니다")
-      : ready ? `코치(${st.name.replace(":", " ")})가 준비되어 있습니다`
+      : ready ? `코치(${modelLabel(st.name)})가 준비되어 있습니다`
       : st.server && st.model ? "코치 모델을 불러오고 있습니다 · 테스트는 지금도 쓸 수 있습니다"
       : st.server ? "코치 모델이 없습니다 · 테스트와 수리 검색은 쓸 수 있습니다" : "Ollama가 꺼져 있습니다 · 테스트와 수리 검색은 쓸 수 있습니다";
-    el.innerHTML = `<span class="dot ${dot}"></span>${esc(txt)}`;
+    el.innerHTML = `<span class="dot ${dot}"></span><span class="t">${esc(txt)}</span>`;
+    el.title = st.name ? `코치 모델: ${st.name}` : "";
   }
 }
 async function boot() {
@@ -779,7 +782,7 @@ async function openProblem(pid, withDoc, code, fresh = false) {
   $("#tests").innerHTML = S.exam ? examIntro() : `<p class="note">실행(⌘↵)하면 예시 ${p.examples.length}개와 숨은 검사 ${p.hidden_total}개를 돌립니다.</p>`;
   $("#testCnt").className = "cnt"; $("#testCnt").textContent = "–";
   show("solve");
-  activateTab("problem");
+  activateTab("problem"); $("#dbody").scrollTop = 0;  // 새로 연 문제는 맨 위부터
   decorate($('#dbody > .dpanel[data-tab="problem"]')).then(() => applyNotes($('#dbody > .dpanel[data-tab="problem"]')));
   if (withDoc) openDoc(withDoc, false);
   activateTab("problem");
@@ -894,8 +897,13 @@ function renderTabs() {
   $(`.dtab[aria-selected="true"]`)?.scrollIntoView({block: "nearest", inline: "nearest"});
 }
 function activateTab(key) {
+  // 탭들이 스크롤 상자(#dbody) 하나를 같이 쓰므로, 탭마다 읽던 위치를 따로 기억한다 (새 탭은 맨 위에서)
+  const body = $("#dbody");
+  S.tabScroll = S.tabScroll || {};
+  if (S.active) S.tabScroll[S.active] = body.scrollTop;
   S.active = key;
   $$("#dbody > .dpanel").forEach(p => p.hidden = p.dataset.tab !== key);
+  body.scrollTop = S.tabScroll[key] || 0;
   renderTabs();
 }
 async function openDoc(name, activate = true, auto = false) {
@@ -917,6 +925,7 @@ function closeTab(key) {
   const i = S.tabs.findIndex(t => t.key === key);
   if (i <= 0) return;
   S.tabs.splice(i, 1);
+  delete S.tabScroll?.[key];
   $(`#dbody > .dpanel[data-tab="${CSS.escape(key)}"]`)?.remove();
   if (S.active === key) activateTab(S.tabs[Math.max(0, i - 1)].key); else renderTabs();
 }
@@ -1310,7 +1319,7 @@ function setupLocal(outer, seg) {
       <div class="step ${info.server && local || installed.length ? "done" : ""}"><span class="n">${installed.length ? "✓" : "1"}</span><b>Ollama 설치</b>
         <span class="d">${installed.length || (info.server && local) ? "켜져 있습니다." : `<a href="${info.download}" target="_blank" rel="noopener">ollama.com/download</a>에서 받아 설치하고 실행해 주세요. 메뉴 막대에 라마 아이콘이 뜨면 됩니다.`}</span></div>
       <div class="step ${local && info.model ? "done" : ""}" id="stepModel"><span class="n">${local && info.model ? "✓" : "2"}</span><b>코치 모델 받기</b>
-        <span class="d">${local && info.model ? `${esc(info.name)}이(가) 준비되어 있습니다.` : `이 컴퓨터 메모리 ${r.ram}GB → <code>${esc(r.model)}</code> (${r.size}) 를 추천합니다. 한 번만 받으면 됩니다.`}</span>
+        <span class="d">${local && info.model ? `${esc(modelLabel(info.name))}이(가) 준비되어 있습니다.` : `이 컴퓨터 메모리 ${r.ram}GB → <code>${esc(r.model)}</code> (${r.size}) 를 추천합니다. 한 번만 받으면 됩니다.`}</span>
         <div class="bar" id="pullBar" hidden><i></i></div><span class="d" id="pullText"></span></div>
     </div>
     ${installed.length || (info.server && local) ? `<h3 class="ch">코치 모델</h3><div class="choices" id="modelChoices">
