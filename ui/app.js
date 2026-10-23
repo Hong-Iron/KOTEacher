@@ -1301,7 +1301,7 @@ async function openSetup(force, tab) {
 
 function setupLocal(outer, seg) {
   // 외부 API를 쓰는 중이면 내 컴퓨터 Ollama의 상태(local)를 보여 준다
-  const local = !outer.external, info = local ? outer : {...outer.local, recommend: outer.recommend, download: outer.download};
+  const local = !outer.external, info = local ? outer : {...outer.local, recommend: outer.recommend, download: outer.download, pull: outer.pull};
   const r = info.recommend, installed = info.installed || [];
   $("#setupBody").innerHTML = `
     <h2>코치(AI)를 준비해요</h2>${seg}
@@ -1316,10 +1316,10 @@ function setupLocal(outer, seg) {
     ${installed.length || (info.server && local) ? `<h3 class="ch">코치 모델</h3><div class="choices" id="modelChoices">
       ${[["auto", "자동 (추천)", "속도 우선(gemma4 e4b)을 씁니다"],
          ["accurate", "정확도 우선", "gemma4 12B · 7.2GB. 더 크고 느립니다. 메모리 16GB 이상에서 쓰세요"],
-         ["fast", "속도 우선", "gemma4 e4b · 6.1GB. 응답이 약 2배 빠르고 메모리를 덜 씁니다"]].map(([k, t, d]) => {
+         ["fast", "속도 우선", "gemma4 e4b · 5.2GB. 응답이 약 2배 빠르고 메모리를 덜 씁니다"]].map(([k, t, d]) => {
         const need = k === "auto" ? r.choice : k, have = info.have?.[need];
         return `<button class="choice" data-choice="${k}" aria-pressed="${local && info.choice === k}"><b>${t}</b><span class="d">${esc(d)}</span>
-          <span class="st">${have ? "받아 둠" : `받아야 함 · ${k === "fast" || (k === "auto" && r.choice === "fast") ? "6.1GB" : "7.2GB"}`}</span></button>`; }).join("")}
+          <span class="st">${have ? "받아 둠" : `받아야 함 · ${k === "fast" || (k === "auto" && r.choice === "fast") ? "5.2GB" : "7.2GB"}`}</span></button>`; }).join("")}
       <div class="choice custom ${local && info.choice === "custom" ? "on" : ""}"><b>다른 모델</b>
         <span class="d">Ollama에 있는 모델을 이름으로 고릅니다. 없으면 받습니다. 코치 말은 gemma4에 맞춰 다듬었으므로 다른 모델은 말투나 정확도가 다를 수 있습니다.</span>
         <div class="row"><input id="olName" list="olList" placeholder="예: qwen3:8b" value="${esc(info.choice === "custom" ? info.name : "")}" spellcheck="false" autocomplete="off">
@@ -1336,7 +1336,7 @@ function setupLocal(outer, seg) {
     const want = b.dataset.choice === "auto" ? r.choice : b.dataset.choice;
     if (!info.have?.[want]) {  // 아직 없으면 받기
       $("#pullBar").hidden = false; $("#pullText").textContent = "받기 시작";
-      API.pull_model(want === "fast" ? "gemma4:e4b-it-qat" : "gemma4:12b-it-qat");
+      API.pull_model(info.pull[want]);
     }
     setAi(await API.ai_status());
     openSetup(true, "local");

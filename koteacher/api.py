@@ -155,7 +155,9 @@ class Api:
 
     def setup_info(self):
         st = ollama.status()
+        from . import config
         return {**st, "recommend": ollama.recommend(), "download": "https://ollama.com/download",
+                "pull": {k: v["models"][0] for k, v in config.CHOICES.items()},  # 선택마다 받을 모델
                 "local": ollama.local_status() if st.get("external") else None}
 
     def set_coach_model(self, choice):
@@ -262,10 +264,18 @@ class Api:
                     last[0] = now
                     self._push("pull", {"status": status, "done": done, "total": total})
             try:
-                ollama.pull(model, prog)
                 import koteacher.config as cfg
-                if model not in cfg.MODELS:
-                    cfg.MODELS.insert(0, model)
+                name = model
+                try:
+                    ollama.pull(name, prog)
+                except RuntimeError as e:  # 텍스트 전용 e4b가 저장소에 없으면 원래 e4b를 받는다
+                    if name != cfg.E4B_TEXT or "does not exist" not in str(e) and "not found" not in str(e):
+                        raise
+                    name = cfg.E4B_FALLBACK
+                    self._push("pull", {"status": f"{name} 받기", "done": 0, "total": 0})
+                    ollama.pull(name, prog)
+                if name not in cfg.MODELS:
+                    cfg.MODELS.insert(0, name)
                 st = ollama.status()
                 if st["model"]:
                     ollama.load()

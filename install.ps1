@@ -36,7 +36,9 @@ Say "문제 팩 만들기 (약 20초)"
 Say "코치 모델 받기"
 for ($i = 0; $i -lt 30; $i++) { try { Invoke-RestMethod http://127.0.0.1:11434/api/version | Out-Null; break } catch { Start-Sleep 1 } }
 $Model = if ($env:KOTEACHER_MODEL) { $env:KOTEACHER_MODEL } else { .\.venv\Scripts\python.exe -c "from koteacher import ollama; print(ollama.recommend()['model'])" }
-try { ollama pull $Model; Ok "모델 $Model 을 받았습니다" } catch { Write-Host "  모델을 받지 못했습니다. 앱을 연 뒤 안내에 따라 받으면 됩니다." }
+ollama pull $Model
+if ($LASTEXITCODE -ne 0 -and -not $env:KOTEACHER_MODEL) { $Model = "gemma4:e4b-it-qat"; ollama pull $Model }  # 텍스트 전용 판을 못 받으면 원래 판
+if ($LASTEXITCODE -eq 0) { Ok "모델 $Model 을 받았습니다" } else { Write-Host "  모델을 받지 못했습니다. 앱을 연 뒤 안내에 따라 받으면 됩니다." }
 
 Say "시작 메뉴 바로가기 만들기"
 $Lnk = Join-Path ([Environment]::GetFolderPath("Programs")) "KOTEacher.lnk"

@@ -82,7 +82,10 @@ if [ "${KOTEACHER_SKIP_MODEL:-}" != "1" ] && curl -fsS http://127.0.0.1:11434/ap
   MODEL="${KOTEACHER_MODEL:-$(.venv/bin/python -c 'from koteacher import ollama; print(ollama.recommend()["model"])')}"
   say "코치 모델 받기: $MODEL (메모리에 맞춰 골랐습니다)"
   OLLAMA_BIN="$(command -v ollama || echo /Applications/Ollama.app/Contents/Resources/ollama)"
-  "$OLLAMA_BIN" pull "$MODEL" && ok "모델을 받았습니다"
+  if "$OLLAMA_BIN" pull "$MODEL"; then ok "모델을 받았습니다"
+  elif [ -z "${KOTEACHER_MODEL:-}" ]; then  # 텍스트 전용 판을 못 받으면 원래 판
+    "$OLLAMA_BIN" pull gemma4:e4b-it-qat && ok "모델을 받았습니다"
+  fi
 fi
 
 # ---------------------------------------------------------------- 7. 앱 아이콘

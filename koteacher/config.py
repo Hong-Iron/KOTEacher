@@ -30,9 +30,13 @@ PACKS = ROOT / "packs" if FROZEN and (ROOT / "packs").exists() else DATA / "pack
 DB = DATA / "koteacher.db"
 
 OLLAMA = os.environ.get("KOTEACHER_OLLAMA", "http://127.0.0.1:11434")
+# 그림을 읽는 부분(프로젝터, 약 1GB)을 뺀 gemma4:e4b-it-qat. 코치는 그림을 보내지 않으므로 글자 답은 원래 판과 같다
+# (온도 0에서 글자까지 같고 견주기 9/12로 같음, eval/results/compare.md). 못 받으면 원래 판을 받는다(api.pull_model).
+E4B_TEXT = "hong-iron/gemma4-e4b-text:latest"
+E4B_FALLBACK = "gemma4:e4b-it-qat"
 # 앞에서부터 받아져 있는 첫 모델을 쓴다(ollama.status가 고른다). 메모리 8GB 기기는 e4b로 내려간다.
 MODELS = [m for m in [os.environ.get("KOTEACHER_MODEL"), "gemma4:12b-it-qat", "gemma4:12b",
-                      "gemma4:e4b-it-qat", "gemma4:e4b"] if m]
+                      E4B_TEXT, E4B_FALLBACK, "gemma4:e4b"] if m]
 MODEL = MODELS[0]
 NUM_CTX = int(os.environ.get("KOTEACHER_NUM_CTX", "8192"))
 
@@ -78,7 +82,7 @@ def child_kw():
 # 사용자 설정 (앱 데이터 폴더의 settings.json)
 CHOICES = {
     "accurate": {"label": "정확도 우선", "models": ["gemma4:12b-it-qat", "gemma4:12b"], "size": "7.2GB"},
-    "fast": {"label": "속도 우선", "models": ["gemma4:e4b-it-qat", "gemma4:e4b"], "size": "6.1GB"},
+    "fast": {"label": "속도 우선", "models": [E4B_TEXT, E4B_FALLBACK, "gemma4:e4b"], "size": "5.2GB"},
 }
 
 
