@@ -139,7 +139,7 @@ input,textarea{font:inherit;color:inherit}
 a{color:var(--accent)}
 
 .work{display:grid;grid-template-rows:minmax(0,1fr) auto;min-height:0;min-width:0;flex:1}
-.edwrap{position:relative;min-height:0;background:var(--ed-bg)}
+.edwrap{position:relative;min-height:0;background:var(--ed-bg);overflow:hidden}
 #editor{position:absolute;inset:0}
 .kg-flag-line{background:color-mix(in srgb, var(--coach-bg) 75%, transparent)}
 .kg-flag-glyph{background:var(--coach-dot);border-radius:50%;width:7px!important;height:7px!important;margin:7px 0 0 6px}
@@ -403,3 +403,6 @@ mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);co
 #clock.warn{color:var(--bad)}
 .examover{border:1px solid var(--bad);background:var(--bad-bg);border-radius:8px;padding:9px 12px;margin:6px 0 8px;font-size:13px}
 .examover .acts{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+
+/* 줄을 모르는 말풍선: 편집기 안 오른쪽 위 */
+.bubble.floating{top:10px;right:22px;left:auto;box-shadow:0 4px 14px rgba(0,0,0,.12)}

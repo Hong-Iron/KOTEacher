@@ -373,6 +373,15 @@ class Api:
         num = lambda v: tuple(int(x) for x in v.split(".") if x.isdigit())
         return {"ok": True, "latest": latest, "newer": num(latest) > num(__version__), "url": d.get("html_url")}
 
+    # ------------------------------------------------------------ 타이핑 중 정적 검사
+    def lint(self, code):
+        """정의되지 않은 이름, 쓰지 않는 import 같은 것을 실행 없이 찾는다 (실전 모드에서는 화면이 부르지 않는다)."""
+        from . import lint
+        try:
+            return lint.lint(code)
+        except Exception as e:  # 검사기가 실패해도 편집은 계속된다
+            return [{"line": 1, "col": 1, "end": 2, "severity": "info", "msg": f"검사기 오류: {e}"[:200]}]
+
     # ------------------------------------------------------------ 실전 모드
     def set_exam(self, on):
         """실전 모드: 자동 검사·코치·힌트를 끄고, 예시 실행과 제출(통과 개수만)만 쓴다. 다음에 켤 때도 유지한다."""

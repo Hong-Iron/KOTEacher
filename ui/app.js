@@ -139,8 +139,20 @@ async function makeEditor(code) {
   S.lastChecked = "";
 }
 
+// 타이핑 중 정적 검사: 정의되지 않은 이름(빨간 밑줄), 쓰지 않는 import·변수(노란 밑줄). 실전에서는 끈다
+async function runLint() {
+  if (!S.editor || !S.p) return;
+  const model = S.editor.getModel(), code = model.getValue();
+  if (S.exam) { monaco.editor.setModelMarkers(model, "lint", []); return; }
+  const xs = await API.lint(code);
+  if (S.exam || model.getValue() !== code) return;  // 그 사이에 바뀌었으면 버린다
+  const sev = {error: monaco.MarkerSeverity.Error, warning: monaco.MarkerSeverity.Warning, info: monaco.MarkerSeverity.Info};
+  monaco.editor.setModelMarkers(model, "lint", xs.map(x => ({startLineNumber: x.line, endLineNumber: x.line,
+    startColumn: x.col, endColumn: x.end, message: x.msg, severity: sev[x.severity] ?? sev.info, source: "검사"})));
+}
 function onEdit() {
   clearTimeout(S.idleTimer); clearTimeout(S.saveTimer);
+  clearTimeout(S.lintTimer); S.lintTimer = setTimeout(runLint, 400);
   if (S.chip) S.editor.layoutContentWidget(S.chip);  // 줄 끝이 바뀌면 따라간다
   // 고치기 시작하면 줄 표시는 흐리게 남겨 두고 말풍선은 그대로 둔다
   S.saveTimer = setTimeout(() => API.save_code(S.editor.getValue()), 1500);
@@ -153,6 +165,7 @@ function onEdit() {
 
 /* ---------------- 말풍선 ---------------- */
 function clearBubble() {
+  (S.bubbleSubs || []).forEach(d => d.dispose()); S.bubbleSubs = null;
   if (S.chip) { S.editor.removeContentWidget(S.chip); S.chip = null; }
   if (S.zoneId != null) S.editor.changeViewZones(a => a.removeZone(S.zoneId));
   S.zoneId = null; S.zone = null;
@@ -168,16 +181,34 @@ function placeBubble(line, el) {
   const lines = ed.getModel().getLineCount();
   const after = Math.min(line || 0, lines);
   const info = ed.getLayoutInfo();
-  el.style.left = `${info.contentLeft + 8}px`;
   el.style.maxWidth = `${Math.min(580, info.contentWidth - 40)}px`;
   $("#edwrap").append(el);
   S.bubble = el;
+  if (!after) {
+    // 줄을 모르면 편집기 안 오른쪽 위에 띄운다. 맨 위에 공간을 끼우면 스크롤된 편집기가 그 공간을 화면 위로
+    // 밀어내 말풍선이 편집기 밖(상단바 위)으로 나가므로 공간을 끼우지 않는다
+    el.classList.add("floating");
+    return;
+  }
+  el.style.left = `${info.contentLeft + 8}px`;
   const height = () => el.offsetHeight + 14;
+  // 위치는 스크롤·레이아웃이 바뀔 때마다 직접 계산한다 (Monaco는 스크롤 때 onDomNodeTop을 부르지 않는다).
+  // 붙은 줄(과 그 아래 공간)이 화면 밖이면 숨긴다: 상단바·아래 패널 위로 겹치지 않게
+  // 붙은 줄은 줄 표시 장식(flagLine)을 따라간다: 위에 줄을 넣거나 지워도 같은 코드 줄에 붙어 있다
+  const place = () => {
+    if (S.bubble !== el || !S.zone) return;
+    const m = ed.getModel(), r = S.decos[0] && m.getDecorationRange(S.decos[0]);
+    const ln = Math.min(r ? r.startLineNumber : after, m.getLineCount());
+    const y = ed.getBottomForLineNumber(ln) - ed.getScrollTop();
+    el.style.top = `${y + 6}px`;
+    el.style.visibility = y > -2 && y < ed.getLayoutInfo().height - 24 ? "visible" : "hidden";
+  };
   ed.changeViewZones(a => {
-    S.zone = {afterLineNumber: after, heightInPx: height(), domNode: document.createElement("div"),
-      onDomNodeTop: top => { el.style.top = `${top + 6}px`; }};
+    S.zone = {afterLineNumber: after, heightInPx: height(), domNode: document.createElement("div"), onDomNodeTop: place};
     S.zoneId = a.addZone(S.zone);
   });
+  S.bubbleSubs = [ed.onDidScrollChange(place), ed.onDidLayoutChange(place), ed.onDidContentSizeChange(place)];
+  place();
   new ResizeObserver(() => {
     if (!S.zone || S.bubble !== el) return;
     S.zone.heightInPx = height();
@@ -318,7 +349,7 @@ async function runCheck(trigger) {
     // 검사가 0.1초 만에 끝나도 '실행 중'이 눈에 보이도록 직접 실행은 최소 0.45초 보여 준다
     const [r] = await Promise.all([API.check(code, trigger), trigger === "run" ? new Promise(ok => setTimeout(ok, 450)) : null]);
     renderTests(r);
-    monaco.editor.setModelMarkers(S.editor.getModel(), "kg", r.result.syntax ? [{
+    monaco.editor.setModelMarkers(S.editor.getModel(), "kg", r.result.syntax && S.exam ? [{
       startLineNumber: r.result.syntax.line, endLineNumber: r.result.syntax.line, startColumn: 1, endColumn: 200,
       message: r.result.syntax.msg, severity: monaco.MarkerSeverity.Error}] : []);
     $("#out").textContent = r.result.stdout || "print 출력이 없습니다.";
@@ -386,6 +417,7 @@ function setExam(on, save = true) {
   if (save) API.set_exam(on);
   if (!S.p || !S.editor) return;
   startExamTimer();
+  runLint();
   if (on) {
     clearTimeout(S.idleTimer); clearTimeout(S.warmTimer);
     clearBubble(); flagLine(null); S.lastDiag = null;
@@ -492,7 +524,16 @@ handlers.thinking = () => {
 };
 handlers.diag = d => { S.lastDiag = d.diag; flagLine(d.diag?.line); };
 handlers.chip = d => { S.lastDiag = d.diag; flagLine(d.diag?.line); bubbleChip(d.diag); };
-handlers.say = d => { S.lastDiag = d.diag; flagLine(d.line); bubbleSay(d); addLog("ai", "코치", d.message); };
+// AI가 줄 칸은 비우고 말에만 "11번 줄"이라고 쓴 경우 그 줄을 쓴다 (코드 안의 줄 번호일 때만)
+function lineFromText(t) {
+  const m = /(\d+)\s*번\s*줄/.exec(t || ""), n = m && +m[1];
+  return n && S.editor && n <= S.editor.getModel().getLineCount() ? n : null;
+}
+handlers.say = d => {
+  if (!d.line) d.line = lineFromText(d.message);
+  S.lastDiag = d.diag ? {...d.diag, line: d.diag.line || d.line} : d.diag;
+  flagLine(d.line); bubbleSay(d); addLog("ai", "코치", d.message);
+};
 handlers.stream = d => {
   // 코치 말이 생성되는 대로 말풍선에 흘려 쓴다
   let el = S.bubble;
@@ -630,6 +671,7 @@ async function openProblem(pid, withDoc, code, fresh = false) {
   activateTab("problem");
   await makeEditor(p.code);
   startExamTimer();
+  runLint();
   clearBubble(); flagLine(null);
   monaco.editor.setModelMarkers(S.editor.getModel(), "kg", []);
   S.editor.focus();

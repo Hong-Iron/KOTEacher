@@ -52,7 +52,7 @@ def main():
             "--add-data", f"{ROOT / 'ui'}{sep}ui",
             "--add-data", f"{ROOT / 'content'}{sep}content",
             "--add-data", f"{STAGE / 'packs'}{sep}packs",
-            "--collect-submodules", "koteacher", "--collect-submodules", "markdown"]
+            "--collect-submodules", "koteacher", "--collect-submodules", "markdown", "--collect-submodules", "pyflakes"]
     for m in STDLIB_FOR_USERS:
         args += ["--hidden-import", m]
     args.append(str(ROOT / "koteacher_main.py"))
