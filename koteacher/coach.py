@@ -132,12 +132,12 @@ def context(pid, code):
 
 ACK = "문제와 코드를 읽었습니다."
 EXP = set(os.environ.get("KOTEACHER_EXP", "").split(","))  # 속도 실험: textfmt, lean, short
-PROMPT = os.environ.get("KOTEACHER_PROMPT", "")  # 'qwen': Qwen에 맞춘 지시문 (eval/compare_models.py로 견준다, 맨 아래)
+PROMPT = os.environ.get("KOTEACHER_PROMPT", "")  # qwen | en | qwen_en: 견주기용 지시문 (eval/compare_models.py, 맨 아래)
 TEMP_DIAG, TEMP_SAY = 0.3, 0.5
 
 
 def messages(pid, code, dynamic, task):
-    if os.environ.get("KOTEACHER_SPLIT") == "0" or PROMPT == "qwen":  # 한 덩어리 구조 (Qwen: 가짜 assistant 답 없이)
+    if os.environ.get("KOTEACHER_SPLIT") == "0" or PROMPT in ("qwen", "qwen_en"):  # 한 덩어리 구조 (Qwen: 가짜 assistant 답 없이)
         return [{"role": "system", "content": SYSTEM},
                 {"role": "user", "content": f"{context(pid, code)}\n\n{dynamic}\n\n[할 일]\n{task}"}]
     # 문제·코드는 첫 사용자 말, 증거·할 일은 둘째 사용자 말로 나눈다. 그래야 warm()이 읽힌 프롬프트가
@@ -581,3 +581,39 @@ if PROMPT == "qwen":
         "예시: 9번 줄의 조건은 n이 2일 때 참일까요, 거짓일까요? 반례 2로 따라가 보세요."
     )
     TEMP_DIAG, TEMP_SAY = 0.7, 0.7
+
+
+# ---------------------------------------------------------------- 영어 지시문 (KOTEACHER_PROMPT=en | qwen_en)
+# 규칙과 할 일은 영어로, 학생에게 할 말만 한국어로. 출력 이름표(줄:/말:/분류:)는 앱이 읽으므로 한국어 그대로 둔다.
+# en은 대화 구조·온도를 기본 그대로 두어 언어 효과만 본다. qwen_en은 Qwen 구조(한 덩어리, 온도 0.7)를 더한다.
+if PROMPT in ("en", "qwen_en"):
+    SYSTEM = (
+        "You are a coding-test practice coach for Korean university students.\n"
+        "Rules:\n"
+        "1. Never reveal the correct code, or which operator or value to change.\n"
+        "2. Start only from the given evidence (failing input, execution trace). Never invent bugs that are not in the evidence.\n"
+        "3. What you say to the student must be a question in natural, polite Korean (해요체, ending with ~요?). "
+        "Do not state the cause; ask the student to trace how the values change on that line with the counterexample. "
+        "At most two sentences and under 100 Korean characters. No code blocks, markdown, LaTeX, or English sentences.\n"
+        "4. Refer to lines as '12번 줄' with the real line number. Use standard Korean spacing: "
+        "attach particles directly to numbers and words ('12번 줄에서', 'n이 2일 때')."
+    )
+    TEXT_TASK = (
+        "Find the line where the wrong value is FIRST created (not the line where the error was raised): "
+        "the first point where the values diverge in the execution trace.\n"
+        "Output exactly these three lines with these Korean labels, and nothing else:\n"
+        "줄: <line number, or 없음 if unknown>\n"
+        "말: <your question to the student, in Korean>\n"
+        "분류: <one of: " + " / ".join(CATEGORIES) + ">\n\n"
+        "Example:\n"
+        "줄: 6\n"
+        "말: 6번 줄에서 i가 마지막 값일 때 arr[i + 1]은 어디를 가리킬까요? 반례 [3]으로 한번 따라가 보세요.\n"
+        "분류: 인덱스"
+    )
+    SAY_TASK = (
+        "Write only your single question to the student, in Korean (no label, no preface, no quotes). "
+        "Point at the line confirmed by the tests ('테스트로 확인한 문제 줄'), but never say what to change.\n"
+        "Example: 9번 줄의 조건은 n이 2일 때 참일까요, 거짓일까요? 반례 2로 따라가 보세요."
+    )
+    if PROMPT == "qwen_en":
+        TEMP_DIAG, TEMP_SAY = 0.7, 0.7
