@@ -1,0 +1,204 @@
+[
+ {
+  "pid": "pg42891",
+  "fix": "인덱스 +1",
+  "line": 14,
+  "message": "14 번 줄에서 rest 리스트를 다시 정렬하고 인덱스를 계산하는 과정에 문제가 있습니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 24.04,
+  "first": 23.09,
+  "len": 50,
+  "hangul": 0.82,
+  "question": false,
+  "lines_said": [
+   14
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67256",
+  "fix": "4 → 3",
+  "line": 11,
+  "message": "12 번 줄의 조건에서 3 이 들어왔을 때 오른손으로 누를지 왼손으로 누를지를 결정해야 하는데, 현재 코드는 4·6·9 만은 오른손으로 처리하고 있습니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 5.48,
+  "first": 3.51,
+  "len": 86,
+  "hangul": 0.85,
+  "question": false,
+  "lines_said": [
+   12
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "fix": "인덱스 -1",
+  "line": 18,
+  "message": "18번 줄에서 mid[-0]은 첫 번째 행을 가리키지만, 해당 행이 빈 큐로 변했을 때 popleft() 실행이 문제가 됩니다.\n빈 큐를 가진 경우에도 연산이 올바르게 수행되도록 다시 확인해 보겠습니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 9.6,
+  "first": 4.89,
+  "len": 113,
+  "hangul": 0.76,
+  "question": false,
+  "lines_said": [
+   18
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67259",
+  "fix": "인덱스 -1",
+  "line": 21,
+  "message": "21 번 줄의 nc + 1이 배열 범위를 벗어날 수 있으니, 먼저 nc + 1이 유효한지 확인해 보겠습니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 10.27,
+  "first": 5.72,
+  "len": 60,
+  "hangul": 0.72,
+  "question": false,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12 번 줄의 j - 1 연산자를 확인해 보세요.  \n이 연산자가 인덱스 계산에 오류를 일으킬 수 있습니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 8.65,
+  "first": 5.89,
+  "len": 60,
+  "hangul": 0.83,
+  "question": false,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92341",
+  "fix": "min → max",
+  "line": 22,
+  "message": "12번 줄에서 기본 시간보다 주차 시간이 더 짧은 경우, 초과 시간을 계산하는 로직이 잘못된 것 같습니다.\n23번 줄에서 이 값이 어떻게 사용되고 있는지 따라 보겠습니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 9.98,
+  "first": 6.4,
+  "len": 95,
+  "hangul": 0.9,
+  "question": false,
+  "lines_said": [
+   12,
+   23
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg81303",
+  "fix": "== → !=",
+  "line": 22,
+  "message": "22번 줄에서 q가 n과 같다고 판단하여 prev[q]를 접근하려 했으나, q는 유효하지 않은 인덱스가 되어 오류가 발생했습니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 4.61,
+  "first": 3.09,
+  "len": 72,
+  "hangul": 0.75,
+  "question": false,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17678",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12 번 줄에서 riders[-1 - 1]은 -2 인덱스를 접근하려 하여 오류가 발생했습니다.  \n이 부분이 실패할 때를 어떻게 처리했는지 다시 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 4.37,
+  "first": 2.31,
+  "len": 89,
+  "hangul": 0.73,
+  "question": false,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17676",
+  "fix": "1 → 0",
+  "line": 23,
+  "message": "23 번 줄의 cnt = 1이 항상 시작할 때만 카운트되는지 확인해 보세요.\n입력에서 시작 시각과 끝 시각이 같아도 처리 중인 요청이 두 개로 계산될 수 있습니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 7.32,
+  "first": 4.69,
+  "len": 91,
+  "hangul": 0.86,
+  "question": false,
+  "lines_said": [
+   23
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "fix": "2 → 1",
+  "line": 8,
+  "message": "8 번 줄에서 i+2 로 시작해 길이를 2 이상으로 강제했죠?  \n이제 i=0, j=2 로 가는데 msg[0:2] 는 'AA' 라 dic 에 없으니 9 번 while 루프도 돌지 않고 바로 12 번 줄에서 KeyError 가 납니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 7.35,
+  "first": 3.16,
+  "len": 130,
+  "hangul": 0.52,
+  "question": true,
+  "lines_said": [
+   8,
+   12
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ }
+]
