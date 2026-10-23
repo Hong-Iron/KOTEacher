@@ -261,6 +261,9 @@ def main():
             fn = load_solution(code)
     except Exception as e:
         out["load_error"] = f"{type(e).__name__}: {e}"
+        # 함수 밖 코드에서 난 오류(예: 맨 줄에 쓴 글자 → NameError)의 줄 번호
+        tb = traceback.extract_tb(e.__traceback__)
+        out["load_line"] = next((f.lineno for f in reversed(tb) if f.filename == "<내 코드>"), None)
         print(json.dumps(out, ensure_ascii=False))
         return
 

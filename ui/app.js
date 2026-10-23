@@ -153,6 +153,12 @@ async function runLint() {
 function onEdit() {
   clearTimeout(S.idleTimer); clearTimeout(S.saveTimer);
   clearTimeout(S.lintTimer); S.lintTimer = setTimeout(runLint, 400);
+  // 코치가 짚은 줄을 고치거나 지웠으면 그 말은 더 이상 맞지 않는다: 말풍선·알림·줄 표시를 치운다
+  // (줄을 지우면 표시가 이웃 줄로 밀려 붙어 엉뚱한 줄을 가리키게 된다)
+  if (S.decos.length && S.flagText != null) {
+    const m = S.editor.getModel(), r = m.getDecorationRange(S.decos[0]);
+    if (!r || m.getLineContent(r.startLineNumber) !== S.flagText) { clearBubble(); flagLine(null); S.lastDiag = null; }
+  }
   if (S.chip) S.editor.layoutContentWidget(S.chip);  // 줄 끝이 바뀌면 따라간다
   // 고치기 시작하면 줄 표시는 흐리게 남겨 두고 말풍선은 그대로 둔다
   S.saveTimer = setTimeout(() => API.save_code(S.editor.getValue()), 1500);
@@ -173,6 +179,7 @@ function clearBubble() {
 }
 function flagLine(line) {
   const ok = line && line <= S.editor.getModel().getLineCount();
+  S.flagText = ok ? S.editor.getModel().getLineContent(line) : null;
   S.decos = S.editor.deltaDecorations(S.decos, ok ? [{range: new monaco.Range(line, 1, line, 1),
     options: {isWholeLine: true, className: "kg-flag-line", glyphMarginClassName: "kg-flag-glyph",
               stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges}}] : []);
@@ -382,7 +389,7 @@ function renderTests(r) {
   const res = r.result, box = $("#tests"); box.innerHTML = "";
   const cnt = $("#testCnt");
   if (res.fatal || res.syntax || res.load_error) {
-    box.innerHTML = `<p class="note" style="color:var(--bad)">${esc(res.fatal || (res.syntax && `${res.syntax.line}번 줄 문법 오류: ${res.syntax.msg}`) || res.load_error)}</p>`;
+    box.innerHTML = `<p class="note" style="color:var(--bad)">${esc(res.fatal || (res.syntax && `${res.syntax.line}번 줄 문법 오류: ${res.syntax.msg}`) || (res.load_line ? `${res.load_line}번 줄 ` : "") + "코드를 불러오다 오류: " + res.load_error)}</p>`;
     cnt.className = "cnt bad"; cnt.textContent = "!"; return;
   }
   const ex = res.examples;

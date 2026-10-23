@@ -23,7 +23,7 @@ def facts(result):
         s = result["syntax"]
         return [{"kind": "syntax", "line": s["line"], "msg": s["msg"]}]
     if result.get("load_error"):
-        return [{"kind": "load", "msg": result["load_error"]}]
+        return [{"kind": "load", "msg": result["load_error"], "line": result.get("load_line")}]
     for i, e in enumerate(result.get("examples", [])):
         if e.get("skipped") or e.get("ok"):
             continue
