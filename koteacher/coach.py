@@ -132,10 +132,12 @@ def context(pid, code):
 
 ACK = "문제와 코드를 읽었습니다."
 EXP = set(os.environ.get("KOTEACHER_EXP", "").split(","))  # 속도 실험: textfmt, lean, short
+PROMPT = os.environ.get("KOTEACHER_PROMPT", "")  # 'qwen': Qwen에 맞춘 지시문 (eval/compare_models.py로 견준다, 맨 아래)
+TEMP_DIAG, TEMP_SAY = 0.3, 0.5
 
 
 def messages(pid, code, dynamic, task):
-    if os.environ.get("KOTEACHER_SPLIT") == "0":  # 평가용: 예전 한 덩어리 구조
+    if os.environ.get("KOTEACHER_SPLIT") == "0" or PROMPT == "qwen":  # 한 덩어리 구조 (Qwen: 가짜 assistant 답 없이)
         return [{"role": "system", "content": SYSTEM},
                 {"role": "user", "content": f"{context(pid, code)}\n\n{dynamic}\n\n[할 일]\n{task}"}]
     # 문제·코드는 첫 사용자 말, 증거·할 일은 둘째 사용자 말로 나눈다. 그래야 warm()이 읽힌 프롬프트가
@@ -340,7 +342,7 @@ def diagnose_and_say(pid, code, f, result, hint_level=0, history=(), weak=(), on
     try:
         if textfmt:
             stream = TextStream(on_message, on_line) if on_message or on_line else None
-            text, meta = ollama.chat(msgs, max_tokens=120, temperature=0.3, on_token=stream.feed if stream else None,
+            text, meta = ollama.chat(msgs, max_tokens=120, temperature=TEMP_DIAG, on_token=stream.feed if stream else None,
                                      stop=None)
             d = parse_text(text)
         else:
@@ -411,7 +413,7 @@ def say(pid, code, diag, hint_level=0, history=(), weak=(), on_message=None):
     for tries in (1, 2):
         stream = RawStream(on_message) if (on_message and tries == 1) else None
         try:
-            text, meta = ollama.chat(msgs, max_tokens=110, temperature=0.5, on_token=stream.feed if stream else None)
+            text, meta = ollama.chat(msgs, max_tokens=110, temperature=TEMP_SAY, on_token=stream.feed if stream else None)
             msg = clean_raw(text)
         except Exception as e:
             meta = {"error": str(e)[:200]}
@@ -547,3 +549,35 @@ class Policy:
         self.said.add((diag["category"], diag.get("line"), diag["fact"].get("args")))
         if trigger == "idle":
             self.last_auto = time.time()
+
+
+# ---------------------------------------------------------------- Qwen에 맞춘 지시문 (KOTEACHER_PROMPT=qwen)
+# 기본 지시문은 gemma의 답을 보며 다듬었다. Qwen 3.5는 (1) 이름표를 빼고 답하고, (2) 질문 대신 원인을 단정하고,
+# (3) '14 번 줄'처럼 띄어 쓰는 버릇이 있어, 형식을 예시 하나로 못 박고 금지·요구를 짧은 항목으로 나눈다.
+# 가짜 assistant 답(ACK) 없이 한 덩어리로 보내고, Qwen 권장값대로 온도를 0.7로 둔다 (낮으면 같은 말을 되풀이하기 쉽다).
+if PROMPT == "qwen":
+    SYSTEM = (
+        "당신은 한국 대학생의 코딩 테스트 연습을 돕는 코치입니다. 자연스러운 한국어 존댓말(~요)로 말합니다.\n"
+        "반드시 지킬 것:\n"
+        "1. 정답 코드, 고칠 연산자, 고칠 값은 절대 말하지 않습니다.\n"
+        "2. 주어진 증거(실패한 입력, 실행 추적)에서만 출발합니다. 증거에 없는 버그를 지어내지 않습니다.\n"
+        "3. 학생에게 하는 말은 질문으로 끝냅니다. 원인을 단정하지 말고, 그 줄에서 값이 어떻게 바뀌는지 학생이 직접 따라가 보게 묻습니다. "
+        "두 문장, 100자 이내. 코드 블록, 마크다운, 수식 기호, 영어 문장을 쓰지 않습니다.\n"
+        "4. 줄은 '7번 줄'처럼 쓰고, 숫자 뒤 조사는 붙여 씁니다('n이 2가', '7번 줄에서')."
+    )
+    TEXT_TASK = (
+        "아래 형식 그대로 세 줄만 출력합니다. 각 줄은 반드시 이름표(줄:, 말:, 분류:)로 시작합니다. 다른 말은 쓰지 않습니다.\n"
+        "줄: <잘못된 값이 처음 만들어진 줄 번호, 모르면 없음>\n"
+        "말: <학생에게 하는 질문>\n"
+        "분류: <" + " / ".join(CATEGORIES) + " 중 하나>\n"
+        "버그 줄은 오류가 난 줄이 아니라, 실행 추적에서 값이 처음 어긋나는 줄입니다.\n\n"
+        "출력 예시:\n"
+        "줄: 6\n"
+        "말: 6번 줄에서 i가 마지막 값일 때 arr[i + 1]은 어디를 가리킬까요? 반례 [3]으로 한번 따라가 보세요.\n"
+        "분류: 인덱스"
+    )
+    SAY_TASK = (
+        "학생에게 하는 질문 한 개만 씁니다(이름표, 머리말, 따옴표 없이). '테스트로 확인한 문제 줄'을 짚되 무엇을 바꿀지는 말하지 않습니다.\n"
+        "예시: 9번 줄의 조건은 n이 2일 때 참일까요, 거짓일까요? 반례 2로 따라가 보세요."
+    )
+    TEMP_DIAG, TEMP_SAY = 0.7, 0.7
