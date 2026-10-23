@@ -1,0 +1,452 @@
+[
+ {
+  "pid": "pg17687",
+  "bug_lines": [
+   21,
+   12
+  ],
+  "labels": [
+   "+ ↔ -",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 12,
+  "diag_line_ok": true,
+  "diag_cat": "인덱스",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "11번 줄에서 계산된 r의 값이 12번 줄에서 어떻게 사용되는지 확인해 보세요. digits의 인덱스와 r의 관계를 다시 살펴볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 12.04,
+  "t_say": 0.0,
+  "first_token_say": 7.086200500008999,
+  "first_msg_char": 7.95,
+  "total": 12.04,
+  "len": 74,
+  "hangul": 0.76,
+  "question": true,
+  "lines_said": [
+   11,
+   12
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92335",
+  "bug_lines": [
+   18,
+   15
+  ],
+  "labels": [
+   "1 → 2",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 15,
+  "diag_line_ok": true,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "예시 3에서 n이 1이 되었을 때 digits의 최종 상태를 확인해 보시겠어요? 15번 줄의 조건이 모든 자릿수를 추출하는 데 충분한지 궁금해요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 12.49,
+  "t_say": 0.0,
+  "first_token_say": 7.078375708006206,
+  "first_msg_char": 7.79,
+  "total": 12.49,
+  "len": 81,
+  "hangul": 0.79,
+  "question": true,
+  "lines_said": [
+   15
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118666",
+  "bug_lines": [
+   8,
+   9
+  ],
+  "labels": [
+   "4 → 5",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 9,
+  "diag_line_ok": true,
+  "diag_cat": "자료구조",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "9번 줄에서 s[1]이 어떤 자료형인지 확인해 보시겠어요? 그 값에서 1을 빼는 연산이 가능한지 생각해보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 13.01,
+  "t_say": 0.0,
+  "first_token_say": 8.163204833006603,
+  "first_msg_char": 9.05,
+  "total": 13.01,
+  "len": 61,
+  "hangul": 0.83,
+  "question": true,
+  "lines_said": [
+   9
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17677",
+  "bug_lines": [
+   14,
+   13
+  ],
+  "labels": [
+   "65536 → 65535",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": 13,
+  "diag_line_ok": true,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "반례에서 12번 줄의 union 값이 무엇인지 확인해 보시겠어요? 13번 줄의 조건문이 의도대로 작동하는지 다시 한번 살펴봐 주세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 13.74,
+  "t_say": 0.0,
+  "first_token_say": 7.613442165995366,
+  "first_msg_char": 8.7,
+  "total": 13.74,
+  "len": 74,
+  "hangul": 0.81,
+  "question": true,
+  "lines_said": [
+   12,
+   13
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "bug_lines": [
+   6,
+   14
+  ],
+  "labels": [
+   "0 → -1",
+   "1 → 0"
+  ],
+  "tier": "llm",
+  "diag_line": 6,
+  "diag_line_ok": true,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "7번 줄에서 i가 -1일 때 8번 줄의 j는 얼마가 되나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 10.63,
+  "t_say": 0.0,
+  "first_token_say": 7.36812449998979,
+  "first_msg_char": 8.09,
+  "total": 10.63,
+  "len": 33,
+  "hangul": 0.71,
+  "question": true,
+  "lines_said": [
+   7,
+   8
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "bug_lines": [
+   13,
+   21
+  ],
+  "labels": [
+   "1 → 2",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 13,
+  "diag_line_ok": true,
+  "diag_cat": "기타",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "13번 줄에서 gave[i]에 더해지는 값이 문제의 조건과 일치하는지 확인해 보세요. 선물 한 개를 줄 때마다 몇 점이 올라야 할까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 15.95,
+  "t_say": 0.0,
+  "first_token_say": 10.883481500000926,
+  "first_msg_char": 11.64,
+  "total": 15.95,
+  "len": 75,
+  "hangul": 0.81,
+  "question": true,
+  "lines_said": [
+   13
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg42888",
+  "bug_lines": [
+   15,
+   13
+  ],
+  "labels": [
+   "인덱스 -1",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": false,
+  "diag_cat": "자료구조",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "8번 줄에서 uid 변수에 어떤 타입의 값이 저장되는지 확인해 보시겠어요? 이 값이 15번 줄에서 연산될 때 어떤 문제가 생길지 생각해보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 12.97,
+  "t_say": 0.0,
+  "first_token_say": 7.691374540998368,
+  "first_msg_char": 8.6,
+  "total": 12.97,
+  "len": 79,
+  "hangul": 0.87,
+  "question": true,
+  "lines_said": [
+   8,
+   15
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17682",
+  "bug_lines": [
+   12,
+   5
+  ],
+  "labels": [
+   "인덱스 +1",
+   "3 → 4"
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": false,
+  "diag_cat": "기타",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "'0S7T2S' 입력에서 7T를 처리할 때 8번 줄의 s 값이 어떻게 계산되는지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 13.03,
+  "t_say": 0.0,
+  "first_token_say": 8.312987249999424,
+  "first_msg_char": 9.1,
+  "total": 13.03,
+  "len": 53,
+  "hangul": 0.68,
+  "question": false,
+  "lines_said": [
+   8
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg150370",
+  "bug_lines": [
+   12,
+   16
+  ],
+  "labels": [
+   "인덱스 -1",
+   "+ ↔ -"
+  ],
+  "tier": "llm",
+  "diag_line": 11,
+  "diag_line_ok": false,
+  "diag_cat": "예외",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "11번 줄에서 kind 변수에 어떤 값이 들어오는지 확인해 보시겠어요? 12번 줄에서 이 값을 숫자로 바꾸려 할 때 어떤 문제가 생길지 생각해보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 15.62,
+  "t_say": 0.0,
+  "first_token_say": 9.050147582995123,
+  "first_msg_char": 10.13,
+  "total": 15.62,
+  "len": 83,
+  "hangul": 0.84,
+  "question": true,
+  "lines_said": [
+   11,
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg60061",
+  "bug_lines": [
+   9,
+   8
+  ],
+  "labels": [
+   "+ ↔ -",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 13,
+  "diag_line_ok": false,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "13번 줄에서 ok 함수가 호출될 때 S에 어떤 값이 들어있는지 확인해 보시겠어요? 설치 명령이 들어왔을 때의 동작을 다시 생각해보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 18.47,
+  "t_say": 0.0,
+  "first_token_say": 11.723053041001549,
+  "first_msg_char": 12.77,
+  "total": 18.47,
+  "len": 76,
+  "hangul": 0.88,
+  "question": true,
+  "lines_said": [
+   13
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg64061",
+  "bug_lines": [
+   11,
+   6
+  ],
+  "labels": [
+   "인덱스 +1",
+   "0 → -1"
+  ],
+  "tier": "llm",
+  "diag_line": 10,
+  "diag_line_ok": false,
+  "diag_cat": "인덱스",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "10번 줄에서 row가 0일 때 11번 줄의 board[row + 1][col]에 어떤 값이 들어오는지 확인해 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 15.37,
+  "t_say": 0.0,
+  "first_token_say": 8.433865958999377,
+  "first_msg_char": 9.43,
+  "total": 15.37,
+  "len": 68,
+  "hangul": 0.52,
+  "question": true,
+  "lines_said": [
+   10,
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "bug_lines": [
+   19,
+   17
+  ],
+  "labels": [
+   "인덱스 +1",
+   "인덱스 +1"
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": false,
+  "diag_cat": "기타",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "예시 5에서 8번 줄이 실행된 후 mid의 각 요소에 어떤 값이 들어있는지 확인해 보시겠어요? 행과 열의 크기가 2일 때 mid의 구조를 다시 생각해보면 좋을 것 같아요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 20.17,
+  "t_say": 0.0,
+  "first_token_say": 11.45065495900053,
+  "first_msg_char": 12.25,
+  "total": 20.17,
+  "len": 95,
+  "hangul": 0.84,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]

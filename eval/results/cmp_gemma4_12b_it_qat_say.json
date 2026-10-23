@@ -1,0 +1,206 @@
+[
+ {
+  "pid": "pg42891",
+  "fix": "인덱스 +1",
+  "line": 14,
+  "message": "반례에서 k가 1일 때 14번 줄의 k % m 값을 계산해 보시겠어요? 그 결과가 리스트의 몇 번째 인덱스를 가리키는지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 13.32,
+  "first": 8.3,
+  "len": 75,
+  "hangul": 0.84,
+  "question": true,
+  "lines_said": [
+   14
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67256",
+  "fix": "4 → 3",
+  "line": 11,
+  "message": "반례에서 5를 입력했을 때 11번 줄의 조건에 걸리는지 확인해 보시겠어요? 5가 해당 조건에 포함되는지 다시 한번 살펴보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 15.07,
+  "first": 10.68,
+  "len": 70,
+  "hangul": 0.89,
+  "question": true,
+  "lines_said": [
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "fix": "인덱스 -1",
+  "line": 18,
+  "message": "예시 5의 상황에서 18번 줄이 실행될 때 mid[-0]에 어떤 값이 들어있는지 확인해 보시겠어요? 해당 위치에서 popleft를 수행할 수 있는 상태인지 먼저 따라가 보시기 바랍니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 9.5,
+  "first": 3.83,
+  "len": 103,
+  "hangul": 0.76,
+  "question": true,
+  "lines_said": [
+   18
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67259",
+  "fix": "인덱스 -1",
+  "line": 21,
+  "message": "21번 줄에서 nc가 N-1인 경우에 어떤 일이 발생하는지 확인해 보시겠어요? nc+1이 가리키는 범위가 유효한지 다시 한번 살펴보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 15.47,
+  "first": 10.79,
+  "len": 76,
+  "hangul": 0.78,
+  "question": true,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "반례에서 f2가 f0에게 선물을 줄 때 12번 줄의 인덱스 값을 확인해 보세요.\n해당 줄에서 인덱스 계산이 의도한 대로 작동하는지 다시 한번 살펴보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 15.67,
+  "first": 10.14,
+  "len": 87,
+  "hangul": 0.88,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92341",
+  "fix": "min → max",
+  "line": 22,
+  "message": "예시 3에서 total[car]의 값과 base_t를 비교해 보세요. 22번 줄에서 계산된 over의 값이 예상과 어떻게 다른가요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 14.02,
+  "first": 9.76,
+  "len": 73,
+  "hangul": 0.58,
+  "question": true,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg81303",
+  "fix": "== → !=",
+  "line": 22,
+  "message": "반례에서 'C' 명령을 수행할 때 22번 줄의 q 값을 확인해 보세요. q가 n일 때 23번 줄에서 어떤 일이 발생하는지 따라가 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 16.3,
+  "first": 10.45,
+  "len": 78,
+  "hangul": 0.79,
+  "question": true,
+  "lines_said": [
+   22,
+   23
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17678",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 riders 리스트가 비어있을 때 어떤 일이 일어나는지 확인해 보시겠어요?\n리스트에 아무것도 들어있지 않은 상태에서 인덱스 접근이 가능한지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 15.21,
+  "first": 9.36,
+  "len": 94,
+  "hangul": 0.86,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17676",
+  "fix": "1 → 0",
+  "line": 23,
+  "message": "23번 줄에서 cnt를 1로 초기화한 뒤 24번 줄부터 루프를 돌 때, 자기 자신을 중복해서 세고 있지는 않은지 확인해 보세요. 25번 줄의 조건이 자기 자신을 포함하는지 다시 한번 따져보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 23.43,
+  "first": 13.16,
+  "len": 110,
+  "hangul": 0.84,
+  "question": true,
+  "lines_said": [
+   23,
+   24,
+   25
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "fix": "2 → 1",
+  "line": 8,
+  "message": "입력 'AA'가 들어왔을 때 8번 줄에서 j의 초기값을 확인해 보세요. 그 값이 11번 줄의 w를 결정할 때 어떤 영향을 주는지 따라가 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 11.52,
+  "first": 5.63,
+  "len": 82,
+  "hangul": 0.82,
+  "question": true,
+  "lines_said": [
+   8,
+   11
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ }
+]

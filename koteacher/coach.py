@@ -308,9 +308,16 @@ class TextStream:
 
 def parse_text(text):
     g = lambda k: (re.search(rf"(^|\n)\s*{k}\s*[:：]\s*(.*)", text) or [None, None, ""])[2].strip()
-    ln = re.search(r"\d+", g("줄"))
-    cat = g("분류")
-    return {"line": int(ln.group()) if ln else None, "message": g("말"),
+    line, msg, cat = g("줄"), g("말"), g("분류")
+    if not msg:  # 이름표(줄:/말:/분류:) 없이 세 줄로만 답하는 모델(Qwen 등): 순서대로 읽는다
+        rows = [l.strip() for l in text.strip().splitlines() if l.strip()]
+        if len(rows) >= 2 and re.fullmatch(r"(L|줄\s*)?\d+\s*(번\s*줄|번)?|없음", rows[0]):
+            line = rows[0]
+            last_is_cat = len(rows) >= 3 and any(c in rows[-1] for c in CATEGORIES) and len(rows[-1]) <= 20
+            msg = " ".join(rows[1:-1] if last_is_cat else rows[1:])
+            cat = rows[-1] if last_is_cat else cat
+    ln = re.search(r"\d+", line)
+    return {"line": int(ln.group()) if ln else None, "message": msg,
             "category": next((c for c in CATEGORIES if c in cat), "기타"), "cause": ""}
 
 
