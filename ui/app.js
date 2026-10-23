@@ -129,6 +129,7 @@ async function makeEditor(code) {
 
 function onEdit() {
   clearTimeout(S.idleTimer); clearTimeout(S.saveTimer);
+  if (S.chip) S.editor.layoutContentWidget(S.chip);  // 줄 끝이 바뀌면 따라간다
   // 고치기 시작하면 줄 표시는 흐리게 남겨 두고 말풍선은 그대로 둔다
   S.saveTimer = setTimeout(() => API.save_code(S.editor.getValue()), 1500);
   if (S.mode !== "quiet" && !S.exam) {
@@ -140,6 +141,7 @@ function onEdit() {
 
 /* ---------------- 말풍선 ---------------- */
 function clearBubble() {
+  if (S.chip) { S.editor.removeContentWidget(S.chip); S.chip = null; }
   if (S.zoneId != null) S.editor.changeViewZones(a => a.removeZone(S.zoneId));
   S.zoneId = null; S.zone = null;
   S.bubble?.remove(); S.bubble = null;
@@ -200,11 +202,31 @@ function bubbleSay(d) {
       <button class="chip ghost" data-act="rate" data-r="bad" data-id="${d.id}">별로예요</button>` : ""}</div>`;
   placeBubble(d.line, el);
 }
+// "할 말이 있어요"는 그 줄의 끝에 붙인다. 줄을 모르면 편집기 맨 위에
 function bubbleChip(diag) {
+  const line = diag?.line ?? diag?.fact?.line;
   const el = h("div", "bubble mini");
   el.dataset.act = "explain";
-  el.innerHTML = `<span class="d"></span><span>${diag?.fact?.kind === "syntax" ? `문법 오류: ${esc(diag.fact.msg)}` : "코치가 이 줄에 할 말이 있어요"}</span>`;
-  placeBubble(diag?.line ?? diag?.fact?.line, el);
+  el.innerHTML = `<span class="d"></span><span>${diag?.fact?.kind === "syntax" ? `문법 오류: ${esc(diag.fact.msg)}` : line ? "코치가 이 줄에 할 말이 있어요" : "코치가 할 말이 있어요"}</span>`;
+  if (!line) { placeBubble(null, el); return; }
+  clearBubble();
+  const ed = S.editor;
+  el.classList.add("inline");
+  // 줄 표시(flagLine 장식)를 따라간다: 위에 줄을 넣거나 지워도, 그 줄을 고쳐 길어져도 끝에 붙어 있다
+  const where = () => {
+    const m = ed.getModel(), r = S.decos[0] && m.getDecorationRange(S.decos[0]);
+    const ln = Math.min(r ? r.startLineNumber : line, m.getLineCount());
+    // 줄이 길어 끝에 붙이면 편집기 밖으로 나가면, 그 줄의 오른쪽 끝 안쪽에 둔다
+    const info = ed.getLayoutInfo(), cw = info.contentWidth - (el.offsetWidth || 190) - 34;
+    const charW = ed.getOption(monaco.editor.EditorOption.fontInfo).typicalHalfwidthCharacterWidth;
+    const fit = Math.max(1, Math.floor((cw + ed.getScrollLeft()) / charW) + 1);
+    return {lineNumber: ln, column: Math.min(m.getLineMaxColumn(ln), fit)};
+  };
+  S.chip = {getId: () => "kg.coach.chip", getDomNode: () => el, suppressMouseDown: true,
+    getPosition: () => ({position: where(), preference: [monaco.editor.ContentWidgetPositionPreference.EXACT]})};
+  ed.addContentWidget(S.chip);
+  S.bubble = el;
+  ed.revealLineInCenterIfOutsideViewport(line);
 }
 function bubbleDone(m) {
   const el = h("div", "bubble done");

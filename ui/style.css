@@ -158,6 +158,7 @@ a{color:var(--accent)}
 .bubble.mini{padding:4px 10px;border-radius:999px;cursor:pointer;display:flex;gap:8px;align-items:center}
 .bubble.mini .d{width:7px;height:7px;border-radius:50%;background:var(--coach-dot)}
 .bubble.mini span{color:var(--coach);font-weight:600;font-size:12px}
+.bubble.mini.inline{margin-left:22px;padding:0 9px;height:20px;margin-top:2px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .bubble.done{background:var(--ok-bg);border-color:color-mix(in srgb, var(--ok) 35%, transparent)}
 .bubble.done .who{color:var(--ok)}
 .bubble.err{background:var(--bad-bg);border-color:color-mix(in srgb, var(--bad) 35%, transparent)}
