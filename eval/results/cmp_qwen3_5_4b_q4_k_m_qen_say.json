@@ -1,0 +1,203 @@
+[
+ {
+  "pid": "pg42891",
+  "fix": "인덱스 +1",
+  "line": 14,
+  "message": "테스트로 확인한 14 번 줄에서 k 를 m 으로 나누고 1 을 빼는 과정에 어떤 값들이 들어갈지 따져보시는 건가요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 7.97,
+  "first": 5.25,
+  "len": 64,
+  "hangul": 0.87,
+  "question": true,
+  "lines_said": [
+   14
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67256",
+  "fix": "4 → 3",
+  "line": 11,
+  "message": "11 번 줄에서 d가 3 일 때 dr 이 dl 보다 작게 느껴져 R 으로 판단하진 않았나요? 거리의 계산값을 직접 비교해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 11.01,
+  "first": 7.83,
+  "len": 72,
+  "hangul": 0.78,
+  "question": true,
+  "lines_said": [
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "fix": "인덱스 -1",
+  "line": 18,
+  "message": "18 번 줄에서 mid 의 길이가 2 인 경우 -0 이 어떻게 계산되는지 확인해 보셨나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 8.11,
+  "first": 6.09,
+  "len": 50,
+  "hangul": 0.75,
+  "question": true,
+  "lines_said": [
+   18
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67259",
+  "fix": "인덱스 -1",
+  "line": 21,
+  "message": "테스트로 확인한 문제 줄인 21 번 줄에서 nc 가 N-1 인 경우 nc+1 이 나가는 것을 어떻게 생각하나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 10.2,
+  "first": 7.56,
+  "len": 62,
+  "hangul": 0.73,
+  "question": true,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 j-1 인덱스를 사용했을 때 f2가 주는 선물 기록을 어떻게 처리되는지 확인해 보아요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 10.2,
+  "first": 7.26,
+  "len": 56,
+  "hangul": 0.81,
+  "question": false,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92341",
+  "fix": "min → max",
+  "line": 22,
+  "message": "12 번 줄에서 차가 없으면 인출 시간 pop 가 안 되고 19 번 줄에서만 계산되는데 총 주차 시간이 어떻게 되는지 확인하세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 10.94,
+  "first": 7.97,
+  "len": 72,
+  "hangul": 0.85,
+  "question": false,
+  "lines_said": [
+   12,
+   19
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg81303",
+  "fix": "== → !=",
+  "line": 22,
+  "message": "23번 줄에서 q가 n인 경우 prev에 접근하려고 할 때 오류가 발생했나요? q의 값이 정말 n인지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 11.8,
+  "first": 9.15,
+  "len": 65,
+  "hangul": 0.76,
+  "question": true,
+  "lines_said": [
+   23
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17678",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 riders 리스트가 비어있을 때 riders[-1-1]에 접근하는 이유는 무엇인가요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 8.8,
+  "first": 6.43,
+  "len": 56,
+  "hangul": 0.55,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17676",
+  "fix": "1 → 0",
+  "line": 23,
+  "message": "테스트로 확인한 23 번 줄에서 n 이 1 일 때 cnt 가 어떻게 변하는지 trace 해보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 10.76,
+  "first": 8.14,
+  "len": 54,
+  "hangul": 0.67,
+  "question": false,
+  "lines_said": [
+   23
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "fix": "2 → 1",
+  "line": 8,
+  "message": "8 번 줄에서 i 가 0 일 때 j 가 2 로 바로 시작되어 msg[0:2]를 확인하는데, 이 문자열이 사전에 없으면 오류가 발생하지 않을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 6.67,
+  "first": 3.08,
+  "len": 80,
+  "hangul": 0.74,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]

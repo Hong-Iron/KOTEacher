@@ -1,0 +1,203 @@
+[
+ {
+  "pid": "pg42891",
+  "fix": "인덱스 +1",
+  "line": 14,
+  "message": "14 번 줄에서 k 가 m 보다 클 때 어떻게 되는지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 13.43,
+  "first": 10.25,
+  "len": 38,
+  "hangul": 0.81,
+  "question": false,
+  "lines_said": [
+   14
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67256",
+  "fix": "4 → 3",
+  "line": 11,
+  "message": "11 번 줄에서 d 가 3 일 때 조건은 참이 되나요, 거짓이 되나요? 그 줄에서 d 가 누른 손의 역할을 어떻게 판단하게 되는지 따라 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 21.87,
+  "first": 15.03,
+  "len": 80,
+  "hangul": 0.86,
+  "question": true,
+  "lines_said": [
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "fix": "인덱스 -1",
+  "line": 18,
+  "message": "18 번 줄에서 mid[-0] 은 첫 번째 열을 가져오지만, Rotate 연산 시 첫 번째 열이 비어있으면 오류가 납니다. 그 줄에서 left 와 mid 의 원소가 어떻게 바뀌는지 따라보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 20.65,
+  "first": 11.35,
+  "len": 107,
+  "hangul": 0.69,
+  "question": false,
+  "lines_said": [
+   18
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67259",
+  "fix": "인덱스 -1",
+  "line": 21,
+  "message": "10 번 줄에서 시작해 21 번 줄까지 값을 따라가 보면 nc + 1 을 사용할 때 인덱스 범위를 벗어날 수 있나요? 왜 그런 일이 일어났는지 두 줄만 확인해 보실래요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 23.27,
+  "first": 14.24,
+  "len": 94,
+  "hangul": 0.85,
+  "question": true,
+  "lines_said": [
+   10,
+   21
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12 번 줄에서 j 가 0 이면 주어진 인덱스는 음수가 됩니다. f0 와 f2 가 주고받은 기록을 따라가 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 17.81,
+  "first": 12.34,
+  "len": 63,
+  "hangul": 0.78,
+  "question": false,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92341",
+  "fix": "min → max",
+  "line": 22,
+  "message": "22 번 줄에서 total[car] 가 base_t 보다 클 때 over 가 0 으로 고정되는 건 맞을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 16.77,
+  "first": 12.44,
+  "len": 60,
+  "hangul": 0.47,
+  "question": true,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg81303",
+  "fix": "== → !=",
+  "line": 22,
+  "message": "22 번 줄에서 q 가 n 이 되는지 확인하는 이유는 무엇일까요? 커서가 마지막 행으로 이동했을 때 nxt[cur] 가 정확히 n 이 맞는지 증거를 보고 따져보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 21.81,
+  "first": 14.9,
+  "len": 92,
+  "hangul": 0.78,
+  "question": true,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17678",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12 번 줄에서 riders 가 비어있을 때 뒤집힌 인덱스를 쓰면 문제가 되는 건 아닌가요? rider 를 아직 태우지 않은 셔틀이 왔을 때 ans 값은 어떻게 바뀌는지 따라보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 18.28,
+  "first": 11.04,
+  "len": 101,
+  "hangul": 0.76,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17676",
+  "fix": "1 → 0",
+  "line": 23,
+  "message": "23 번 줄에서 cnt 가 1 인 것은 어떤 요청을 셈으로 하는 것인데, 처음부터 시작해야 맞지 않을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 19.39,
+  "first": 14.71,
+  "len": 59,
+  "hangul": 0.81,
+  "question": true,
+  "lines_said": [
+   23
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "fix": "2 → 1",
+  "line": 8,
+  "message": "8 번 줄에서 j 가 i 보다 2 씩 커지면 msg[i:j+1] 은 두 글자보다 길어져 'AA' 로부터 시작해 사전에 없는 긴 문자열이 될 수 있나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 19.9,
+  "first": 12.37,
+  "len": 84,
+  "hangul": 0.68,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]

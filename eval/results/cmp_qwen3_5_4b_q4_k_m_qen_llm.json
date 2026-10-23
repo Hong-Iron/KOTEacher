@@ -1,0 +1,442 @@
+[
+ {
+  "pid": "pg17687",
+  "bug_lines": [
+   21,
+   12
+  ],
+  "labels": [
+   "+ ↔ -",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": null,
+  "diag_line_ok": false,
+  "diag_cat": "기타",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "현재 제공된 실행 추적에서는 숫자 'F'가 생성되는 구체적인 과정이 보이지 않아요. 학생이 코드 내에서 어떤 조건 때문에 15 (F) 가 잘못 처리되었는지 추리해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 11.17,
+  "t_say": 0.0,
+  "first_token_say": 6.6937768750067335,
+  "first_msg_char": 7.11,
+  "total": 11.17,
+  "len": 95,
+  "hangul": 0.86,
+  "question": false,
+  "lines_said": [],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92335",
+  "bug_lines": [
+   18,
+   15
+  ],
+  "labels": [
+   "1 → 2",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 17,
+  "diag_line_ok": false,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "031이 만들어지는 과정 중 part가 빈 문자열로 처리될 때 is_prime는 어떻게 작동하시나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 9.55,
+  "t_say": 0.0,
+  "first_token_say": 6.227232582998113,
+  "first_msg_char": 6.84,
+  "total": 9.55,
+  "len": 56,
+  "hangul": 0.64,
+  "question": true,
+  "lines_said": [],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118666",
+  "bug_lines": [
+   8,
+   9
+  ],
+  "labels": [
+   "4 → 5",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 9,
+  "diag_line_ok": true,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "9 번 줄에서 score[s[1]-1]이 실행되기 전, s의 값과 c의 값을 어떻게 생각하나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 11.12,
+  "t_say": 0.0,
+  "first_token_say": 7.440391333992011,
+  "first_msg_char": 7.98,
+  "total": 11.12,
+  "len": 53,
+  "hangul": 0.57,
+  "question": true,
+  "lines_said": [
+   9
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17677",
+  "bug_lines": [
+   14,
+   13
+  ],
+  "labels": [
+   "65536 → 65535",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": null,
+  "diag_line_ok": false,
+  "diag_cat": "기타",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "원본 코드를 보니 12번 줄과 13번 줄에서 error 발생이 아니라서, 증거나 추적 정보에 실수나 다른 오류가 있었나요? 먼저 원본 코드를 다시 확인해 주세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 10.87,
+  "t_say": 0.0,
+  "first_token_say": 6.067771874993923,
+  "first_msg_char": 6.49,
+  "total": 10.87,
+  "len": 90,
+  "hangul": 0.82,
+  "question": true,
+  "lines_said": [
+   12,
+   13
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "bug_lines": [
+   6,
+   14
+  ],
+  "labels": [
+   "0 → -1",
+   "1 → 0"
+  ],
+  "tier": "llm",
+  "diag_line": null,
+  "diag_line_ok": false,
+  "diag_cat": "기타",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "현재 실행 추적에는 변수의 실제 값이 표시되지 않아 어떤 줄에서 첫 번째로 잘못된 값이 생성되었는지 파악할 수 없어요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 9.98,
+  "t_say": 0.0,
+  "first_token_say": 6.246415707995766,
+  "first_msg_char": 6.77,
+  "total": 9.98,
+  "len": 66,
+  "hangul": 0.98,
+  "question": false,
+  "lines_said": [],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "bug_lines": [
+   13,
+   21
+  ],
+  "labels": [
+   "1 → 2",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 21,
+  "diag_line_ok": true,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "21번 줄에서 give[i][j - 1]이 왜 그렇게 계산되셨나요? i=0, j=2일 때 이 식의 의미를 다시 확인해 보실 수 있나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 14.16,
+  "t_say": 0.0,
+  "first_token_say": 9.507966707999003,
+  "first_msg_char": 10.13,
+  "total": 14.16,
+  "len": 75,
+  "hangul": 0.6,
+  "question": true,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg42888",
+  "bug_lines": [
+   15,
+   13
+  ],
+  "labels": [
+   "인덱스 -1",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": null,
+  "diag_line_ok": false,
+  "diag_cat": "기타",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "실행 추적에 따르면 15번 줄에서 오류가 발생한 이유는 코드에 명백한 실수가 있는지 확인하기 위해 다시 코드를 검토해 보셨나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 11.3,
+  "t_say": 0.0,
+  "first_token_say": 7.142162207994261,
+  "first_msg_char": 7.75,
+  "total": 11.3,
+  "len": 71,
+  "hangul": 0.94,
+  "question": true,
+  "lines_said": [
+   15
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17682",
+  "bug_lines": [
+   12,
+   5
+  ],
+  "labels": [
+   "인덱스 +1",
+   "3 → 4"
+  ],
+  "tier": "llm",
+  "diag_line": 12,
+  "diag_line_ok": true,
+  "diag_cat": "인덱스",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "12번 줄에서 scores[-1 + 1]이 어떻게 계산되는지, 그리고 이 오류가 실제 점수에 어떤 영향을 미치는지 따져보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 11.67,
+  "t_say": 0.0,
+  "first_token_say": 7.0787297089991625,
+  "first_msg_char": 7.76,
+  "total": 11.67,
+  "len": 72,
+  "hangul": 0.72,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg150370",
+  "bug_lines": [
+   12,
+   16
+  ],
+  "labels": [
+   "인덱스 -1",
+   "+ ↔ -"
+  ],
+  "tier": "llm",
+  "diag_line": 12,
+  "diag_line_ok": true,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "12번 줄에서 kind와 m이 각각 문자열로 어떻게 처리되고 있냐고요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 10.6,
+  "t_say": 0.0,
+  "first_token_say": 7.5912062089919345,
+  "first_msg_char": 8.18,
+  "total": 10.6,
+  "len": 39,
+  "hangul": 0.74,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg60061",
+  "bug_lines": [
+   9,
+   8
+  ],
+  "labels": [
+   "+ ↔ -",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 4,
+  "diag_line_ok": false,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "4번 줄에서 S가 빈 집합으로 초기화되는 것을 확인했고, 그 후 8번 줄의 조건에 의해 ret 이 False 가 되는데, 이는 어떻게 발생했는지 trace 따라 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 12.82,
+  "t_say": 0.0,
+  "first_token_say": 8.380120791000081,
+  "first_msg_char": 8.91,
+  "total": 12.82,
+  "len": 96,
+  "hangul": 0.74,
+  "question": true,
+  "lines_said": [
+   4,
+   8
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg64061",
+  "bug_lines": [
+   11,
+   6
+  ],
+  "labels": [
+   "인덱스 +1",
+   "0 → -1"
+  ],
+  "tier": "llm",
+  "diag_line": null,
+  "diag_line_ok": false,
+  "diag_cat": "기타",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "주어진 실행 추적에서 row=0일 때 board[1][0]을 접근하려는데도 11번 줄에 멈추지 않았어요. 실제 버그와 추적이 다르니 코드 내용을 다시 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 10.01,
+  "t_say": 0.0,
+  "first_token_say": 5.517476875000284,
+  "first_msg_char": 5.89,
+  "total": 10.01,
+  "len": 92,
+  "hangul": 0.73,
+  "question": false,
+  "lines_said": [
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "bug_lines": [
+   19,
+   17
+  ],
+  "labels": [
+   "인덱스 +1",
+   "인덱스 +1"
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": false,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "8번 줄에서 row[1:-1]이 빈 리스트일 때 mid 구조가 어떻게 만들어졌는지 먼저 확인해 볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 10.46,
+  "t_say": 0.0,
+  "first_token_say": 7.265786834002938,
+  "first_msg_char": 7.81,
+  "total": 10.46,
+  "len": 57,
+  "hangul": 0.69,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]

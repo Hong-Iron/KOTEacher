@@ -1,0 +1,206 @@
+[
+ {
+  "pid": "pg42891",
+  "fix": "인덱스 +1",
+  "line": 14,
+  "message": "14 번 줄에서 rest 리스트를 만들 때 인덱스 계산이 잘못되었습니다. 12 번 줄의 조건에 따라 k는 현재 음식까지의 시간 차분보다 작아졌으므로, 해당 구간 내에서의 실제 순서를 고려해야 합니다. 특히 foods[idx:] 에서 남은 음식들의 순서대로 인덱스를 매핑할 때, 단순히 k % m - 1로 접근하면 음식이 건너뛰어진 상황을 반영하지 못합니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 28.18,
+  "first": 10.44,
+  "len": 199,
+  "hangul": 0.8,
+  "question": false,
+  "lines_said": [
+   14,
+   12
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67256",
+  "fix": "4 → 3",
+  "line": 11,
+  "message": "11 번 줄은 3 이 오른손 영역인데도 조건이 맞지 않아, 2 번 줄의 elif 가 실행되지 않습니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 20.12,
+  "first": 14.89,
+  "len": 57,
+  "hangul": 0.76,
+  "question": false,
+  "lines_said": [
+   11,
+   2
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "fix": "인덱스 -1",
+  "line": 18,
+  "message": "18 번 줄에서 mid[-0]은 mid[0]과 같은 값을 갖습니다. Rotate 연산 시 첫 번째 행의 마지막 원소를 right 에 넣고, 다음에는 left 를 mid 의 첫 번째 행으로 옮기려는 과정에서 18 번 줄이 실행됩니다. 이때 left 가 비어있거나 pop 을 시도할 수 있는 상황이 발생하는데, 특히 예시처럼 2x2 행렬에서 rotate 연산 후 모든 테두리 원소가 이동되었을 때 mid 의",
+  "source": "ai",
+  "tries": 1,
+  "total": 21.65,
+  "first": 4.34,
+  "len": 225,
+  "hangul": 0.65,
+  "question": false,
+  "lines_said": [
+   18,
+   18
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67259",
+  "fix": "인덱스 -1",
+  "line": 21,
+  "message": "21 번 줄에서 nc + 1 을 계산할 때, 현재 열 인덱스가 마지막인 경우 배열 범위를 벗어나는 오류가 발생합니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 19.34,
+  "first": 14.03,
+  "len": 65,
+  "hangul": 0.83,
+  "question": false,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12 번 줄에서 j - 1 을 빼서 인덱스를 계산했지만, 실제 친구 이름 순서가 아니라 입력받은 friends 리스트의 인덱스 (idx) 와는 다른 값이 되어 버립니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 19.17,
+  "first": 11.75,
+  "len": 94,
+  "hangul": 0.73,
+  "question": false,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92341",
+  "fix": "min → max",
+  "line": 22,
+  "message": "예시 3의 입력에서는 22 번 줄에서 total[car]가 기본 시간보다 커도 0 이나 음수가 되어 기본 요금만 계산되는 오류가 발생했습니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 18.16,
+  "first": 11.71,
+  "len": 79,
+  "hangul": 0.75,
+  "question": false,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg81303",
+  "fix": "== → !=",
+  "line": 22,
+  "message": "23 번 줄에서 q 가 n 이 되는 경우를 고려하지 않아 범위를 벗어난 인덱스 접근이 발생했습니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 18.09,
+  "first": 13.01,
+  "len": 55,
+  "hangul": 0.88,
+  "question": false,
+  "lines_said": [
+   23
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17678",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 riders에 사람이 태워지지 않았을 때 -1 - 1로 인덱스를 접근하니 빈 리스트에서 에러가 납니다. 사람들이 한 명도 타지 않은 경우, 콘이 언제까지 기다려야 하는지를 다시 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 21.53,
+  "first": 11.2,
+  "len": 115,
+  "hangul": 0.83,
+  "question": false,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17676",
+  "fix": "1 → 0",
+  "line": 23,
+  "message": "23 번 줄의 cnt = 1 을 기준으로, 첫 번째 요청과 겹치는 구간이 있는지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 20.55,
+  "first": 14.51,
+  "len": 53,
+  "hangul": 0.76,
+  "question": false,
+  "lines_said": [
+   23
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "fix": "2 → 1",
+  "line": 8,
+  "message": "8 번 줄에서 j 를 2 씩 늘려서 msg[i:j+1] 을 검사하면, 입력이 \"AA\" 일 때 처음에는 \"A\" 가 맞지만 다음 반복에서 이미 \"AA\" 가 사전에 없으므로 키 에러가 납니다. 9 번 줄 조건을 만족하려면 j 를 1 씩 늘려서 단어가 끝나는지 하나씩 확인해야 합니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 23.26,
+  "first": 6.56,
+  "len": 155,
+  "hangul": 0.73,
+  "question": false,
+  "lines_said": [
+   8,
+   9
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ }
+]
