@@ -1,0 +1,202 @@
+[
+ {
+  "pid": "pg42891",
+  "fix": "인덱스 +1",
+  "line": 14,
+  "message": "14번 줄에서 k % m - 1을 사용했는데, k가 1일 때 이 식이 어떤 값을 반환하는지 추적해 줄 수 있나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 13.38,
+  "first": 9.16,
+  "len": 63,
+  "hangul": 0.75,
+  "question": true,
+  "lines_said": [
+   14
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67256",
+  "fix": "4 → 3",
+  "line": 11,
+  "message": "11번 줄에서 d가 5일 때, 이 조건문은 참일까요, 거짓일까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 14.29,
+  "first": 11.75,
+  "len": 36,
+  "hangul": 0.75,
+  "question": true,
+  "lines_said": [
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "fix": "인덱스 -1",
+  "line": 18,
+  "message": "18번 줄에서 mid[-0]이 비어있을 때 popleft()를 호출하면 어떤 일이 일어날지 순서대로 따라가 볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 14.54,
+  "first": 9.92,
+  "len": 64,
+  "hangul": 0.63,
+  "question": true,
+  "lines_said": [
+   18
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67259",
+  "fix": "인덱스 -1",
+  "line": 21,
+  "message": "21번 줄에서 nc+1이 범위를 벗어나는 상황은 어떤 경우에 발생할까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 14.22,
+  "first": 11.91,
+  "len": 40,
+  "hangul": 0.78,
+  "question": true,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 i와 j가 각각 0과 1일 때, give[i][j - 1]에 어떤 값이 더해지나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 13.59,
+  "first": 9.8,
+  "len": 54,
+  "hangul": 0.51,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92341",
+  "fix": "min → max",
+  "line": 22,
+  "message": "22번 줄에서 total[car]가 100이고 base_t가 50일 때 over의 값은 어떻게 될까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 14.0,
+  "first": 10.58,
+  "len": 57,
+  "hangul": 0.4,
+  "question": true,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg81303",
+  "fix": "== → !=",
+  "line": 22,
+  "message": "22번 줄에서 q가 n과 같을 때, prev[q]에 어떤 값이 할당되는지 순서대로 따라가 볼 수 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 16.04,
+  "first": 12.18,
+  "len": 59,
+  "hangul": 0.71,
+  "question": true,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17678",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 len(riders)가 1일 때, riders[-1 - 1]은 어떤 값을 가리키게 될까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 13.31,
+  "first": 9.59,
+  "len": 58,
+  "hangul": 0.4,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17676",
+  "fix": "1 → 0",
+  "line": 23,
+  "message": "23번 줄에서 cnt를 1로 초기화했을 때, 로그가 하나일 경우 어떻게 될까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 15.05,
+  "first": 12.06,
+  "len": 44,
+  "hangul": 0.76,
+  "question": true,
+  "lines_said": [
+   23
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "fix": "2 → 1",
+  "line": 8,
+  "message": "8번 줄에서 j의 초기값은 어떻게 설정되고, 이 값이 이후 반복에서 어떤 영향을 주는지 따라가 볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 8.92,
+  "first": 4.95,
+  "len": 57,
+  "hangul": 0.91,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]

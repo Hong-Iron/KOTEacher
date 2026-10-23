@@ -1,0 +1,204 @@
+[
+ {
+  "pid": "pg42891",
+  "fix": "인덱스 +1",
+  "line": 14,
+  "message": "14번 줄에서 rest 리스트의 길이가 몇 개인지 확인해 주시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 12.42,
+  "first": 9.49,
+  "len": 38,
+  "hangul": 0.77,
+  "question": true,
+  "lines_said": [
+   14
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67256",
+  "fix": "4 → 3",
+  "line": 11,
+  "message": "11번 줄에서 5가 들어왔을 때, 왼쪽 손이 눌러야 하는 숫자들이 빠져 있는 것 같아요. 5를 눌렀을 때, 왼쪽 손과 오른쪽 손의 거리를 비교하면 어떤 결과가 나오나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 16.04,
+  "first": 10.7,
+  "len": 94,
+  "hangul": 0.88,
+  "question": true,
+  "lines_said": [
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "fix": "인덱스 -1",
+  "line": 18,
+  "message": "18번 줄에서 mid[-0]을 사용하실 때, 해당 mid의 길이가 1일 경우 어떤 일이 발생하는지 따라가 볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 6.25,
+  "first": 3.15,
+  "len": 63,
+  "hangul": 0.69,
+  "question": true,
+  "lines_said": [
+   18
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67259",
+  "fix": "인덱스 -1",
+  "line": 21,
+  "message": "21번 줄에서 board[nr][nc + 1]을 참조할 때 nc + 1이 범위를 벗어날 수 있는 상황을 생각해 보셨나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 14.69,
+  "first": 10.79,
+  "len": 67,
+  "hangul": 0.57,
+  "question": true,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 j-1을 사용했는데, 이 값이 실제 친구의 인덱스와 일치하는지 확인해 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 13.42,
+  "first": 10.11,
+  "len": 53,
+  "hangul": 0.83,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92341",
+  "fix": "min → max",
+  "line": 22,
+  "message": "22번 줄에서 total[car] - base_t가 음수일 때 over의 값이 어떻게 되는지 확인해 볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 13.7,
+  "first": 9.85,
+  "len": 60,
+  "hangul": 0.5,
+  "question": true,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg81303",
+  "fix": "== → !=",
+  "line": 22,
+  "message": "23번 줄에서 q의 값이 n일 때, prev[q]에 접근하는 것이 올바른지 확인해 볼 필요가 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 18.38,
+  "first": 12.74,
+  "len": 57,
+  "hangul": 0.7,
+  "question": true,
+  "lines_said": [
+   23
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17678",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 riders 리스트의 길이에 따라 인덱스 접근 시 오류가 발생할 수 있을 것 같아요. 12번 줄의 코드를 다시 한번 살펴보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 14.28,
+  "first": 8.55,
+  "len": 81,
+  "hangul": 0.8,
+  "question": true,
+  "lines_said": [
+   12,
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17676",
+  "fix": "1 → 0",
+  "line": 23,
+  "message": "23번 줄에서 cnt를 1로 초기화했는데, 이 요청이 이미 세어야 할 대상이 맞을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 14.56,
+  "first": 11.2,
+  "len": 48,
+  "hangul": 0.78,
+  "question": true,
+  "lines_said": [
+   23
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "fix": "2 → 1",
+  "line": 8,
+  "message": "8번 줄에서 j의 초기값이 어떻게 설정되어 있는지 확인해 볼까요? 'AA'를 입력했을 때 12번 줄에서 KeyError가 발생하는 이유를 따라가 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 9.53,
+  "first": 5.06,
+  "len": 85,
+  "hangul": 0.73,
+  "question": true,
+  "lines_said": [
+   8,
+   12
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ }
+]
