@@ -98,7 +98,7 @@ class Api:
             except Exception:
                 sm = {}
             s["fact"] = (sm.get("facts") or [{}])[0]
-            s["exam"], s["submit"] = sm.get("exam"), sm.get("submit")
+            s["exam"], s["submit"], s["reset"] = sm.get("exam"), sm.get("submit"), sm.get("reset")
         return d
 
     def _content_file(self, rel):
@@ -372,6 +372,14 @@ class Api:
         latest = d.get("tag_name", "").lstrip("v")
         num = lambda v: tuple(int(x) for x in v.split(".") if x.isdigit())
         return {"ok": True, "latest": latest, "newer": num(latest) > num(__version__), "url": d.get("html_url")}
+
+    def save_before_reset(self, code):
+        """'처음부터' 전에 지금 코드를 풀이 기록에 남긴다 (빈 틀이면 남기지 않는다)."""
+        s = self.s
+        if s and code.strip() and code.strip() != template_code(packs.load(s.pid)["params"]).strip():
+            self.store.snapshot(s.aid, code, {"reset": True}, False)
+            return True
+        return False
 
     # ------------------------------------------------------------ 타이핑 중 정적 검사
     def lint(self, code):

@@ -687,6 +687,14 @@ $$("#modeSeg button").forEach(b => b.onclick = () => {
   if (S.mode === "quiet") clearTimeout(S.idleTimer);
 });
 $("#run").onclick = () => runCheck("run");
+// 처음부터: 지금 코드를 풀이 기록에 저장하고, 빈 틀로 새 시도를 연다 (힌트·코치 기록·제한 시간도 새로)
+$("#resetCode").onclick = async () => {
+  if (!S.p || !S.editor) return;
+  const saved = await API.save_before_reset(S.editor.getValue());
+  await openProblem(S.p.id, null, null, true);
+  addLog("sys", "처음부터", saved ? "이전 코드는 풀이 기록에 저장했습니다. '풀이 기록' 탭에서 다시 불러올 수 있습니다." : "빈 틀로 다시 시작했습니다.");
+  loadProblemHistory();
+};
 
 $$(".tabs [role=tab]").forEach(t => t.onclick = () => {
   $$(".tabs [role=tab]").forEach(x => x.setAttribute("aria-selected", x === t));
@@ -1376,7 +1384,7 @@ async function showAttempt(aid) {
       <div class="acts"><button class="btn" data-h="open">이 문제 열기</button><button class="run" data-h="code">이 코드로 다시 열기</button></div>
       <h2>코드 (${shown === last ? "마지막 실행" : fmtWhen(shown.t).split(" ").slice(2).join(" ") + " 실행"})</h2>${codeHtml(shown?.code)}
       <h2>실행 흐름 · 누르면 그때 코드를 봅니다</h2><ul class="tl">${snaps.map(s => `<li class="pick" data-sid="${s.id}"><span class="tm">${fmtWhen(s.t).split(" ").slice(2).join(" ")}</span>
-        <span class="${s.passed ? "ok" : "bad"}">${s.passed ? "✓" : "✗"}</span><span class="tx">${s.exam ? snapExam(s) : s.passed ? "모두 통과" : esc(evidence(s.fact) || s.fact.msg || "실패")}</span></li>`).join("")}</ul>
+        <span class="${s.passed ? "ok" : "bad"}">${s.passed ? "✓" : "✗"}</span><span class="tx">${s.reset ? "처음부터 다시 풀기 전에 저장한 코드" : s.exam ? snapExam(s) : s.passed ? "모두 통과" : esc(evidence(s.fact) || s.fact.msg || "실패")}</span></li>`).join("")}</ul>
       ${d.coach.length ? `<h2>코치가 한 말</h2><ul class="log">${d.coach.map(c => `<li><span class="tm">${fmtWhen(c.t).split(" ").slice(2).join(" ")}</span><span>${esc(c.message)}</span><span></span></li>`).join("")}</ul>` : ""}
       ${d.mistakes.length ? `<h2>오답 기록</h2>${d.mistakes.map(m => mistakeRow({...m, title: meta.title})).join("")}` : ""}`;
   };
