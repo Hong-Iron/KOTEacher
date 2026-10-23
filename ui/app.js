@@ -51,6 +51,17 @@ function renderList() {
   }
   if (!items.length) list.innerHTML = `<p class="note" style="padding:12px 14px;margin:0">맞는 문제가 없습니다.</p>`;
 }
+// 홈 위쪽: 다시 풀어 볼 문제(지난 코드 없이 빈 틀로) · 다음에 풀 문제
+async function renderRecs() {
+  const r = await API.recommend(), box = $("#recs");
+  const row = (p, retry) => `<button class="rec" data-rec="${p.id}" data-fresh="${retry ? 1 : ""}"><span class="lv">Lv${p.level}</span>
+    <span class="ti">${esc(p.title)}</span><span class="why">${esc(p.why)}</span><span class="go">${retry ? "빈 코드로 다시" : "풀기"}</span></button>`;
+  const col = (title, sub, xs, retry) => xs.length ? `<div class="rcol"><div class="rhead"><b>${title}</b><span>${sub}</span></div>${xs.map(p => row(p, retry)).join("")}</div>` : "";
+  box.innerHTML = col("다시 풀어 볼 문제", "틀렸거나 힌트로 넘긴 문제를 지난 코드 없이", r.retry, true) + col("다음 문제 추천", r.retry.length ? "자주 틀린 개념의 안 푼 문제" : "쉬운 것부터", r.next, false);
+  box.hidden = !r.retry.length && !r.next.length;
+}
+$("#recs").addEventListener("click", e => { const b = e.target.closest("[data-rec]"); if (b) openProblem(b.dataset.rec, null, null, !!b.dataset.fresh); });
+
 function setAi(st) {
   for (const el of [$("#aiStat"), $("#aiStat2")]) {
     const ready = st.server && st.model && st.loaded;
@@ -64,7 +75,8 @@ function setAi(st) {
 }
 async function boot() {
   const b = await API.boot();
-  S.problems = b.problems; S.mode = b.mode; setExam(!!b.exam, false);
+  S.problems = b.problems; S.mode = b.mode; S.examMin = b.exam_minutes || 0; $("#examTime").value = String(S.examMin); setExam(!!b.exam, false);
+  renderRecs();
   $("#bookCnt").textContent = b.mistakes;
   setAi(b.ai);
   renderList();
@@ -373,6 +385,7 @@ function setExam(on, save = true) {
   run.title = on ? "입출력 예만 돌리기" : "예시와 숨은 검사 돌리기";
   if (save) API.set_exam(on);
   if (!S.p || !S.editor) return;
+  startExamTimer();
   if (on) {
     clearTimeout(S.idleTimer); clearTimeout(S.warmTimer);
     clearBubble(); flagLine(null); S.lastDiag = null;
@@ -385,16 +398,43 @@ function setExam(on, save = true) {
 const examIntro = () => `<p class="note">실전 모드입니다. 자동 검사, 코치, 힌트가 꺼져 있습니다.
   예시 실행(⌘↵)은 입출력 예 ${S.p.examples.length}개만 돌립니다. 제출(⌘⇧↵)하면 숨은 검사 ${S.p.hidden_total}개를 모두 돌리고, 몇 개를 맞혔는지만 알려 드립니다.</p>`;
 $("#examBtn").onclick = () => setExam(!S.exam);
+$("#examTime").onchange = e => { S.examMin = +e.target.value; API.set_exam_minutes(S.examMin); startExamTimer(); };
+// 문제를 열거나 실전을 켜거나 제한 시간을 바꾸면 지금부터 다시 잰다
+function startExamTimer() {
+  S.examEnd = S.exam && S.examMin && S.p ? Date.now() + S.examMin * 60000 : null;
+  S.examDone = false;
+  S.editor?.updateOptions({readOnly: false});
+  $("#examOver")?.remove();
+}
+// 시간이 끝나면 지금 코드로 한 번 제출하고 편집을 막는다
+async function timeUp() {
+  S.examEnd = null; S.examDone = true;
+  $("#clock").textContent = "시간 끝"; $("#clock").classList.add("warn");
+  S.editor.updateOptions({readOnly: true});
+  while (S.checking) await new Promise(r => setTimeout(r, 200));
+  await examRun("submit", {timeup: true, limit: S.examMin});
+  const box = h("div", "examover", `<b>제한 시간 ${S.examMin}분이 끝났습니다.</b> 마지막 코드로 제출했고, 편집을 잠갔습니다.
+    <div class="acts"><button class="btn" data-over="reveal">실전 끄고 반례 보기</button><button class="btn" data-over="more">시간 넘겨 계속 풀기</button></div>`);
+  box.id = "examOver"; $("#tests").prepend(box);
+  box.onclick = async e => {
+    const k = e.target.closest("[data-over]")?.dataset.over; if (!k) return;
+    S.editor.updateOptions({readOnly: false}); box.remove();
+    if (k === "reveal") { setExam(false); runCheck("run"); }
+    else { await API.exam_overtime(); addLog("sys", "실전", "제한 시간을 넘겨 계속 풉니다. 이제 통과해도 '실전 통과'로 남지 않습니다."); S.editor.focus(); }
+  };
+}
 $("#submit").onclick = () => examRun("submit");
 
-async function examRun(kind) {
+async function examRun(kind, info) {
   if (S.checking) return;
   S.checking = true;
   const code = S.editor.getValue(), sub = kind === "submit";
   const what = sub ? `숨은 검사 ${S.p.hidden_total}개를 모두 돌리고 있습니다` : `예시 ${S.p.examples.length}개를 돌리고 있습니다`;
   const stop = showRunning("run", sub ? $("#submit") : $("#run"), what);
   try {
-    const [r] = await Promise.all([API.exam_run(code, kind), new Promise(ok => setTimeout(ok, 450))]);
+    const left = S.examEnd ? Math.max(0, Math.round((S.examEnd - Date.now()) / 1000)) : null;
+    const [r] = await Promise.all([API.exam_run(code, kind, info || (S.examMin && kind === "submit" ? {limit: S.examMin, left} : null)), new Promise(ok => setTimeout(ok, 450))]);
+    if (r.passed && kind === "submit" && S.examEnd) { S.examEnd = null; S.examDone = true; $("#clock").textContent = `통과 · ${mmss(left)} 남김`; }
     renderExam(r);
     const res = r.result;
     monaco.editor.setModelMarkers(S.editor.getModel(), "kg", res.syntax ? [{
@@ -522,7 +562,7 @@ function mistakeRow(m, withTitle) {
   const when = new Date(m.t * 1000);
   const diff = (m.diff || "").split("\n").filter(Boolean).slice(0, 2).map(l => `<code>${esc(l)}</code>`).join(" ");
   return `<div class="mrow" data-pid="${m.problem_id}" title="이 문제 열기"><span><span class="nm">${esc(m.name)}</span><span class="cat">${esc(m.category)}</span>${m.fixed ? "" : '<span class="cat">고치지 못했습니다</span>'}</span>
-    <span class="when">${when.getMonth() + 1}월 ${when.getDate()}일${withTitle ? ` · ${esc(m.title)}` : ""}</span>
+    <span class="when">${when.getMonth() + 1}월 ${when.getDate()}일${withTitle ? ` · ${esc(m.title)}` : ""}<button class="chip retry" data-retry="${m.problem_id}" title="지난 코드 없이 빈 틀로 이 문제를 다시 엽니다">다시 풀기</button></span>
     <span class="sub">${esc(m.evidence)}${diff ? "<br>" + diff : ""} · ${fmtDur(m.time_to_fix)} · 힌트 ${m.hints_at_detection}개${m.note ? ` · “${esc(m.note)}”` : ""}</span></div>`;
 }
 async function loadMistakes() {
@@ -553,6 +593,11 @@ async function openBook() {
   draw(); show("book");
 }
 $("#openBook").onclick = openBook;
+// 오답 기록의 '다시 풀기': 빈 틀로 다시 연다
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-retry]"); if (!b) return;
+  e.stopPropagation(); openProblem(b.dataset.retry, null, null, true);
+});
 // 오답 기록(오답 노트, 풀기 화면의 탭)을 누르면 그 문제를 연다
 document.addEventListener("click", e => {
   const row = e.target.closest(".mrow[data-pid]");
@@ -563,8 +608,8 @@ document.addEventListener("click", e => {
 $("#bookBack").onclick = () => show("home");
 
 /* ---------------- 문제 열기 ---------------- */
-async function openProblem(pid, withDoc, code) {
-  const p = await API.open(pid, code || null);
+async function openProblem(pid, withDoc, code, fresh = false) {
+  const p = await API.open(pid, code || null, fresh);
   S.p = p; S.hints = 0; S.logN = 0; S.lastDiag = null; S.startT = Date.now();
   $("#pTitle").textContent = p.title; $("#pLevel").textContent = `Lv${p.level}`; $("#pSource").textContent = p.source || "연습문제";
   $("#pSource").hidden = !p.source;
@@ -584,6 +629,7 @@ async function openProblem(pid, withDoc, code) {
   if (withDoc) openDoc(withDoc, false);
   activateTab("problem");
   await makeEditor(p.code);
+  startExamTimer();
   clearBubble(); flagLine(null);
   monaco.editor.setModelMarkers(S.editor.getModel(), "kg", []);
   S.editor.focus();
@@ -606,7 +652,19 @@ $$(".tabs [role=tab]").forEach(t => t.onclick = () => {
   $("#dock").classList.remove("small"); $("#dockToggle").textContent = "접기";
 });
 $("#dockToggle").onclick = () => { const s = $("#dock").classList.toggle("small"); $("#dockToggle").textContent = s ? "펼치기" : "접기"; };
-setInterval(() => { if (!$("#solve").hidden) { const s = Math.floor((Date.now() - S.startT) / 1000); $("#clock").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; } }, 1000);
+const mmss = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+setInterval(() => {
+  if ($("#solve").hidden) return;
+  const c = $("#clock");
+  if (S.exam && S.examEnd) {  // 실전 제한 시간: 남은 시간, 5분 아래면 빨갛게
+    const left = Math.max(0, Math.ceil((S.examEnd - Date.now()) / 1000));
+    c.textContent = `남은 ${mmss(left)}`; c.classList.toggle("warn", left <= 300); c.classList.add("timer");
+    if (!left) timeUp();
+  } else {
+    c.classList.remove("warn", "timer");
+    if (!S.examDone) c.textContent = mmss(Math.floor((Date.now() - S.startT) / 1000));
+  }
+}, 1000);
 
 
 /* ---------------- 홈: 문제 / 개념 목록 ---------------- */
@@ -1263,7 +1321,7 @@ $$("#histSeg button").forEach(b => b.onclick = () => { histF = b.dataset.f; $$("
 $("#hList").addEventListener("click", e => { const r = e.target.closest(".hrow"); if (r) showAttempt(+r.dataset.aid); });
 $("#hList").addEventListener("keydown", e => { const r = e.target.closest(".hrow"); if (r && e.key === "Enter") showAttempt(+r.dataset.aid); });
 const codeHtml = code => `<pre class="hcode">${(code || "").split("\n").map(l => `<span>${esc(l) || " "}</span>`).join("")}</pre>`;
-const snapExam = s => s.exam === "submit" ? (s.submit ? `실전 제출 · 숨은 검사 ${s.submit.total}개 중 ${s.submit.passed}개` : "실전 제출 · 실행 실패") : "실전 예시 실행";
+const snapExam = s => s.exam === "timeup" ? "제한 시간이 끝난 뒤 계속 풂" : s.exam === "submit" ? (s.submit ? `실전 제출 · 숨은 검사 ${s.submit.total}개 중 ${s.submit.passed}개` : "실전 제출 · 실행 실패") : "실전 예시 실행";
 async function showAttempt(aid) {
   $$(".hrow").forEach(r => r.setAttribute("aria-selected", +r.dataset.aid === aid));
   const meta = histAll.find(r => r.id === aid), d = await API.attempt(aid);

@@ -46,15 +46,17 @@ class Api:
                  for p in vault.problems()]
         from . import config
         return {"problems": items, "ai": ollama.status(), "mode": self.mode, "exam": bool(config.settings().get("exam")),
+                "exam_minutes": int(config.settings().get("exam_minutes") or 0),
                 "mistakes": len(self.store.mistakes(limit=10000))}
 
-    def open(self, pid, code_override=None):
+    def open(self, pid, code_override=None, fresh=False):
+        """fresh=True면 지난 코드 없이 빈 틀로 연다 (오답 다시 풀기)."""
         p = vault.problem(pid)
         pk = packs.load(pid)
-        aid = self.store.start_attempt(pid)
+        aid = self.store.start_attempt(pid, mode="retry" if fresh else "practice")
         self.s = Session(pid, aid)
         ladder = vault.hint_ladder(pid)
-        code = code_override or self.store.last_code(pid) or template_code(pk["params"])
+        code = template_code(pk["params"]) if fresh else code_override or self.store.last_code(pid) or template_code(pk["params"])
         self.s.code = code
         if ollama.status()["model"]:  # 공통 앞부분(규칙·문제·코드)을 미리 읽혀 두어 첫 코치 응답을 빠르게
             threading.Thread(target=coach.warm, args=(pid, code), daemon=True).start()
@@ -289,6 +291,61 @@ class Api:
                 self._record_mistake(fixed=False, code_after=None)
         return {"step": step, "html": lad[step - 1]["html"], "hints": s.hints}
 
+    # ------------------------------------------------------------ 다시 풀기와 추천
+    def recommend(self):
+        """홈의 추천. retry: 틀렸거나 힌트로 넘긴 문제(오래된 것 먼저), next: 약한 개념의 아직 안 푼 문제."""
+        probs = {p["id"]: p for p in vault.problems()}
+        st = self.store.problem_status()
+        rows = self.store.rows("""
+            SELECT a.problem_id pid, MAX(s.t) last_t, COUNT(s.id) runs,
+                   MAX(CASE WHEN a.result='pass' AND COALESCE(a.hints_opened,0)<=1 AND NOT a.solution_viewed THEN s.t END) clean_t
+            FROM attempts a JOIN snapshots s ON s.attempt_id=a.id GROUP BY a.problem_id""")
+        last = {r["pid"]: r for r in rows}
+        mis = self.store.rows("SELECT problem_id pid, COUNT(*) n, MAX(t) t, MAX(category) cat FROM mistakes GROUP BY problem_id")
+        mis = {r["pid"]: r for r in mis}
+        now = time.time()
+
+        def ago(t):
+            d = (now - t) / 86400
+            return "오늘" if d < 1 else f"{int(d)}일 전"
+
+        retry = []
+        for pid, r in last.items():
+            if pid not in probs:
+                continue
+            m = mis.get(pid)
+            # 마지막 오답 뒤에 깨끗하게(힌트 1개 이하) 통과했으면 뺀다
+            if m and r["clean_t"] and r["clean_t"] > m["t"]:
+                continue
+            why = (f"오답 {m['n']}번" + (f" · {m['cat']}" if m["cat"] else "")) if m else \
+                {"helped": "힌트로 통과", "tried": "풀다 멈춤"}.get(st.get(pid))
+            if not why or (not m and st.get(pid) == "tried" and r["runs"] < 3):  # 한두 번 열어 본 것은 빼고
+                continue
+            retry.append({"id": pid, "title": probs[pid]["title"], "level": probs[pid]["level"],
+                          "why": f"{why} · {ago(r['last_t'])}", "score": (m["n"] if m else 0) * 2 + (now - r["last_t"]) / 86400})
+        retry.sort(key=lambda x: -x["score"])
+
+        # 약한 개념: 오답과 힌트로 넘긴 문제가 걸린 개념에 점수
+        weak = {}
+        for pid in set(mis) | {p for p, v in st.items() if v in ("helped", "tried")}:
+            for c in probs.get(pid, {}).get("concepts", []):
+                weak[c] = weak.get(c, 0) + (mis[pid]["n"] if pid in mis else 1)
+        fresh = [p for p in probs.values() if st.get(p["id"], "new") == "new"]
+        nxt, seen = [], set()
+        for c, _ in sorted(weak.items(), key=lambda kv: -kv[1]):
+            cand = sorted((p for p in fresh if c in p["concepts"] and p["id"] not in seen), key=lambda p: (p["level"], p["num"]))
+            if cand:
+                p = cand[0]; seen.add(p["id"])
+                nxt.append({"id": p["id"], "title": p["title"], "level": p["level"], "why": f"약한 개념: {c}"})
+            if len(nxt) >= 3:
+                break
+        if len(nxt) < 3:  # 기록이 적으면 로드맵 순서대로 아직 안 푼 쉬운 문제
+            for p in sorted(fresh, key=lambda p: (p["level"], p["num"])):
+                if p["id"] not in seen and len(nxt) < 3:
+                    seen.add(p["id"])
+                    nxt.append({"id": p["id"], "title": p["title"], "level": p["level"], "why": "아직 안 푼 문제 · " + ", ".join(p["concepts"][:2])})
+        return {"retry": [{k: v for k, v in r.items() if k != "score"} for r in retry[:3]], "next": nxt}
+
     # ------------------------------------------------------------ 정보 창
     REPO = "Hong-Iron/KOTEacher"
 
@@ -323,7 +380,19 @@ class Api:
         config.save_settings(exam=bool(on))
         return bool(on)
 
-    def exam_run(self, code, kind):
+    def set_exam_minutes(self, minutes):
+        from . import config
+        config.save_settings(exam_minutes=int(minutes or 0))
+        return int(minutes or 0)
+
+    def exam_overtime(self):
+        """제한 시간이 끝난 뒤에도 계속 풀면, 그 뒤의 통과는 실전 통과로 치지 않는다."""
+        if self.s:
+            self.s.practiced = True
+            self.store.snapshot(self.s.aid, self.s.code, {"exam": "timeup"}, False)
+        return True
+
+    def exam_run(self, code, kind, info=None):
         """kind='examples'면 예시만, 'submit'이면 숨은 검사를 끝까지 돌려 개수만 낸다. 코치·오답 기록은 쓰지 않는다."""
         s = self.s
         with self.lock:
@@ -334,7 +403,7 @@ class Api:
         sub = res.get("submit")
         ex_ok = bool(res.get("examples")) and all(e["ok"] for e in res["examples"])
         ok = bool(sub) and ex_ok and sub["passed"] == sub["total"]
-        self.store.snapshot(s.aid, code, {"exam": only, "submit": sub}, ok)
+        self.store.snapshot(s.aid, code, {"exam": only, "submit": sub, **(info or {})}, ok)
         if ok:
             self.store.update_attempt(s.aid, result="pass", ended=time.time(), code=code,
                                       mode="practice" if s.practiced else "exam")

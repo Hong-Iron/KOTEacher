@@ -23,6 +23,7 @@
   </header>
   <div class="home">
     <div class="home-inner">
+      <section class="recs" id="recs" hidden aria-label="추천"></section>
       <div class="homebar">
         <div class="seg plain big" id="homeSeg" role="tablist" aria-label="목록">
           <button data-list="problems" aria-pressed="true">문제 90</button><button data-list="concepts" aria-pressed="false">로드맵</button>
@@ -50,6 +51,9 @@
     <span class="meta" id="clock">0:00</span>
     <span class="meta exam-hide" id="hintMeta">힌트 0 / 3</span>
     <button class="examtog" id="examBtn" aria-pressed="false" title="실제 코딩 테스트처럼 풉니다. 자동 검사·코치·힌트를 끄고, 예시 실행과 제출만 씁니다">실전</button>
+    <select class="examtime exam-only" id="examTime" aria-label="제한 시간" title="실전 제한 시간. 바꾸면 지금부터 다시 잽니다">
+      <option value="0">제한 없음</option><option value="20">20분</option><option value="30">30분</option><option value="40">40분</option>
+      <option value="60">60분</option><option value="90">90분</option><option value="120">120분</option></select>
     <div class="seg exam-hide" id="modeSeg" role="group" aria-label="코치 말수">
       <button data-mode="quiet" aria-pressed="false" title="실행하거나 물을 때만 말합니다. 손을 멈춰도 검사하지 않습니다">조용히</button>
       <button data-mode="normal" aria-pressed="true" title="손을 멈추면 검사하고, 테스트로 확인된 문제만 먼저 말합니다">보통</button>
