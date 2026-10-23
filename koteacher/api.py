@@ -592,7 +592,8 @@ class Api:
         threading.Thread(target=work, daemon=True).start()
         return True
 
-    def ask(self, question, code):
+    def ask(self, question, code, sel=None):
+        """코치에게 묻기. sel={'start','end','text'}면 편집기에서 드래그한 코드에 대해 묻는다."""
         s = self.s
         s.code = code
         gen = s.gen
@@ -602,7 +603,12 @@ class Api:
             if s.diag:
                 dyn = coach.evidence(s.diag["fact"], None, code, s.diag.get("line") if s.diag.get("confidence") == "확인됨" else None)
             ex = coach.extras(s.pid, s.hints, s.history, [])
-            task = (f"[학생 질문] {question}\n학생 질문에 바로 답한다(머리말 없이). 규칙 1을 지킨다. "
+            picked = ""
+            if sel and sel.get("text"):
+                a, b = int(sel.get("start") or 0), int(sel.get("end") or 0)
+                picked = (f"[학생이 고른 코드: {a}번 줄" + (f"~{b}번 줄" if b != a else "") + f"]\n{sel['text'][:1500]}\n"
+                          "고른 코드가 무엇을 하는지, 질문에 맞춰 쉬운 말로 3~4문장 답한다. 필요하면 작은 입력으로 값이 어떻게 바뀌는지 보여 준다. ")
+            task = (f"[학생 질문] {question}\n{picked}학생 질문에 바로 답한다(머리말 없이). 규칙 1을 지킨다. "
                     "질문이 정답이나 고친 코드를 달라는 것이면, 왼쪽 힌트 사다리의 다음 단계를 열어 보라고 권한다.")
             msgs = coach.messages(s.pid, code, dyn + ("\n\n" + ex if ex else ""), task)
             t = time.time()
@@ -616,7 +622,8 @@ class Api:
             mid = self.store.coach_msg(s.aid, signal="ask", tier="ask", hint_level=s.hints, message=msg,
                                        ms=int((time.time() - t) * 1000))
             s.history.append(msg)
-            self._push("answer", {"gen": gen, "id": mid, "q": question, "message": msg})
+            if self._current(s, gen):
+                self._push("answer", {"gen": gen, "id": mid, "q": question, "message": msg})
 
         threading.Thread(target=work, daemon=True).start()
         return True

@@ -133,6 +133,9 @@ async function makeEditor(code) {
     S.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyB, () => toggleLeft());
     S.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyB, () => toggleRight());
     S.editor.onDidChangeCursorPosition(e => $("#edStat").textContent = `${e.position.lineNumber}번 줄`);
+    S.editor.onDidChangeCursorSelection(() => { clearTimeout(S.selTimer); S.selTimer = setTimeout(showCodeAsk, 250); });
+    S.editor.addAction({id: "kg.askCode", label: "고른 코드를 코치에게 묻기", contextMenuGroupId: "navigation",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI], run: () => openCodeAsk()});
   } else {
     S.editor.setValue(code);
   }
@@ -169,9 +172,56 @@ function onEdit() {
   }
 }
 
+/* ---------------- 편집기에서 드래그한 코드를 코치에게 묻기 ---------------- */
+// 고른 곳 끝에 작은 '코치에게 묻기' 버튼을 띄운다 (⌘I, 오른쪽 클릭 메뉴로도). 실전 모드에서는 끈다
+function pickedCode() {
+  const ed = S.editor, sel = ed?.getSelection();
+  if (!sel || sel.isEmpty()) return null;
+  const text = ed.getModel().getValueInRange(sel);
+  if (text.trim().length < 2) return null;
+  const end = sel.endColumn === 1 && sel.endLineNumber > sel.startLineNumber ? sel.endLineNumber - 1 : sel.endLineNumber;
+  return {start: sel.startLineNumber, end, text, pos: sel.getEndPosition()};
+}
+function hideCodeAsk() { if (S.askW) { S.editor.removeContentWidget(S.askW); S.askW = null; } }
+function showCodeAsk() {
+  hideCodeAsk();
+  const p = pickedCode();
+  if (!p || S.exam) return;
+  const el = h("button", "codeask", "코치에게 묻기 <kbd>⌘I</kbd>");
+  if (!/Mac/.test(navigator.platform)) el.querySelector("kbd").textContent = "Ctrl+I";
+  el.onmousedown = e => e.preventDefault();  // 선택이 풀리지 않게
+  el.onclick = () => openCodeAsk();
+  S.askW = {getId: () => "kg.codeask", getDomNode: () => el, suppressMouseDown: true,
+    getPosition: () => ({position: p.pos, preference: [monaco.editor.ContentWidgetPositionPreference.BELOW, monaco.editor.ContentWidgetPositionPreference.ABOVE]})};
+  S.editor.addContentWidget(S.askW);
+}
+function openCodeAsk() {
+  const p = pickedCode();
+  if (!p || S.exam) return;
+  hideCodeAsk();
+  const where = p.start === p.end ? `${p.start}번 줄` : `${p.start}~${p.end}번 줄`;
+  const quote = p.text.split("\n").slice(0, 4).join("\n") + (p.text.split("\n").length > 4 ? "\n…" : "");
+  const el = h("div", "bubble");
+  el.innerHTML = bubbleHead("코치에게 묻기", where) + `<pre class="quote">${esc(quote)}</pre>
+    <div class="quick"><button class="chip" data-q="이 코드가 하는 일을 쉬운 말로 설명해 줘">무슨 일을 해?</button>
+      <button class="chip" data-q="작은 입력으로 이 코드에서 값이 어떻게 바뀌는지 보여 줘">값을 따라가 줘</button>
+      <button class="chip" data-q="이 부분에서 틀릴 만한 곳이 있을까?">틀릴 만한 곳?</button></div>
+    <form class="codeq"><input placeholder="이 코드에서 궁금한 것" aria-label="고른 코드에 대한 질문"><button class="chip pri">묻기</button></form>`;
+  placeBubble(p.end, el);
+  const send = q => {
+    addLog("me", "나", `${where}: ${q}`);
+    el.querySelector(".quick").remove(); el.querySelector("form").replaceWith(h("div", "thinking", waiting("코치가 생각하고 있습니다")));
+    API.ask(q, S.editor.getValue(), {start: p.start, end: p.end, text: p.text});
+  };
+  el.querySelectorAll(".quick [data-q]").forEach(b => b.onclick = () => send(b.dataset.q));
+  el.querySelector("form").onsubmit = e => { e.preventDefault(); const v = e.target.querySelector("input").value.trim(); send(v || "이 코드가 하는 일을 쉬운 말로 설명해 줘"); };
+  setTimeout(() => el.querySelector("input")?.focus(), 0);
+}
+
 /* ---------------- 말풍선 ---------------- */
 function clearBubble() {
   (S.bubbleSubs || []).forEach(d => d.dispose()); S.bubbleSubs = null;
+  if (S.bubbleDeco?.length) S.bubbleDeco = S.editor.deltaDecorations(S.bubbleDeco, []);
   if (S.chip) { S.editor.removeContentWidget(S.chip); S.chip = null; }
   if (S.zoneId != null) S.editor.changeViewZones(a => a.removeZone(S.zoneId));
   S.zoneId = null; S.zone = null;
@@ -203,10 +253,12 @@ function placeBubble(line, el) {
   const height = () => el.offsetHeight + 14;
   // 위치는 스크롤·레이아웃이 바뀔 때마다 직접 계산한다 (Monaco는 스크롤 때 onDomNodeTop을 부르지 않는다).
   // 붙은 줄(과 그 아래 공간)이 화면 밖이면 숨긴다: 상단바·아래 패널 위로 겹치지 않게
-  // 붙은 줄은 줄 표시 장식(flagLine)을 따라간다: 위에 줄을 넣거나 지워도 같은 코드 줄에 붙어 있다
+  // 말풍선은 자기 줄을 장식으로 따라간다: 위에 줄을 넣거나 지워도 같은 코드 줄에 붙어 있다
+  S.bubbleDeco = ed.deltaDecorations(S.bubbleDeco || [], [{range: new monaco.Range(after, 1, after, 1),
+    options: {stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges}}]);
   const place = () => {
     if (S.bubble !== el || !S.zone) return;
-    const m = ed.getModel(), r = S.decos[0] && m.getDecorationRange(S.decos[0]);
+    const m = ed.getModel(), r = S.bubbleDeco[0] && m.getDecorationRange(S.bubbleDeco[0]);
     const ln = Math.min(r ? r.startLineNumber : after, m.getLineCount());
     const y = ed.getBottomForLineNumber(ln) - ed.getScrollTop();
     el.style.top = `${y + 6}px`;
@@ -428,6 +480,7 @@ function setExam(on, save = true) {
   startExamTimer();
   runLint();
   if (on) {
+    hideCodeAsk();
     clearTimeout(S.idleTimer); clearTimeout(S.warmTimer);
     clearBubble(); flagLine(null); S.lastDiag = null;
     $("#tests").innerHTML = examIntro();
@@ -569,7 +622,7 @@ handlers.stream = d => {
   el.querySelector(".refining")?.remove();
   let m = el.querySelector(".live");
   if (!m) { m = h("div", "live"); const t = el.querySelector(".thinking"); t ? t.replaceWith(m) : el.append(m); }
-  m.textContent += d.text.replace(/`/g, "");
+  m.textContent += d.text.replace(/[`$]/g, "");  // 흘려 쓰는 동안에도 백틱·수식 기호는 감춘다 (끝나면 정리된 문장으로 바뀐다)
 };
 handlers.answer = d => {
   addLog("ai", "코치", d.message);

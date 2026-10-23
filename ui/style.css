@@ -417,3 +417,12 @@ mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);co
 .phist .meta code{font:11.5px var(--f-mono);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .phist .chip{white-space:nowrap}
 @media (max-width: 760px){ .phist li{grid-template-columns:max-content minmax(0,1fr)} .phist .meta{grid-column:1/-1} }
+
+/* 편집기에서 고른 코드를 코치에게 묻기 */
+.codeask{border:1px solid var(--coach-line);background:var(--coach-bg);color:var(--coach);font:600 12px var(--f-ui);border-radius:999px;
+  padding:2px 10px;cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.12);margin-top:4px;display:flex;gap:6px;align-items:center}
+.codeask kbd{font:10.5px var(--f-mono);color:var(--muted);background:none;border:0;padding:0}
+.bubble pre.quote{font:12px var(--f-mono);background:var(--sunk);border-radius:6px;padding:6px 8px;margin:4px 0 6px;white-space:pre-wrap;max-height:7.5em;overflow:hidden}
+.bubble .quick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.bubble form.codeq{display:flex;gap:6px}
+.bubble form.codeq input{flex:1;min-width:0;font:13px var(--f-ui);padding:4px 8px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--ink)}

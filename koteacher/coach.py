@@ -435,10 +435,25 @@ def warm(pid, code):
         pass
 
 
+_TEX = {r"\\times": "×", r"\\cdot": "·", r"\\le(q)?": "≤", r"\\ge(q)?": "≥", r"\\neq": "≠", r"\\ne\b": "≠",
+        r"\\to": "→", r"\\ldots|\\dots": "…", r"\\lfloor|\\rfloor": "", r"\\left|\\right": ""}
+
+
+def plain_math(msg):
+    """모델이 쓴 수식 문법($k$, \\pmod{16}, \\frac{a}{b})을 말풍선에서 읽히는 평범한 글로 바꾼다."""
+    msg = re.sub(r"\\pmod\{([^}]*)\}", r"mod \1", msg)
+    msg = re.sub(r"\\frac\{([^}]*)\}\{([^}]*)\}", r"\1/\2", msg)
+    msg = re.sub(r"\\(?:text|mathrm|operatorname)\{([^}]*)\}", r"\1", msg)
+    for k, v in _TEX.items():
+        msg = re.sub(k, v, msg)
+    msg = re.sub(r"\$\$?([^$]{1,80}?)\$\$?", r"\1", msg)  # $k$ → k
+    return msg.replace("\\", "")
+
+
 def tidy(msg):
-    """추적표 표기(L12)를 '12번 줄'로, 백틱을 지운다."""
+    """추적표 표기(L12)를 '12번 줄'로, 백틱과 수식 문법을 지운다."""
     msg = re.sub(r"(?<![A-Za-z0-9_])L(\d+)(?!\d)", r"\1번 줄", msg.strip())
-    return msg.replace("`", "")
+    return plain_math(msg.replace("`", ""))
 
 
 # ---------------------------------------------------------------- ④ 유출 검사
