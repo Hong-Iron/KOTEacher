@@ -355,6 +355,22 @@ $("#edwrap").addEventListener("click", async e => {
   if (act === "fold") { const d = S.lastDiag; clearBubble(); if (d) bubbleChip(d); }
   if (act === "explain") { if (S.lastDiag?.fact?.kind === "syntax") return; bubbleThinking(S.lastDiag); API.explain(); }
   if (act === "hint") { setPanes(true, true); activateTab("problem"); requestStep(S.hints + 1); }
+  if (act === "solution") { setPanes(true, true); activateTab("problem"); requestStep((S.p?.hints_max ?? 3) + 1); }
+  if (act === "excopy") {
+    const code = t.closest(".exbox")?.dataset.code || "";
+    try { await navigator.clipboard.writeText(code); t.textContent = "복사했습니다"; } catch (_) { t.textContent = "복사하지 못했습니다"; }
+    setTimeout(() => t.textContent = "복사", 1500);
+  }
+  if (act === "reveal") {
+    const box = t.closest(".exbox"), r = await API.reveal_template(t.dataset.id);
+    if (!r) { t.textContent = "펼칠 수 없습니다"; return; }
+    const html = await monaco.editor.colorize(r.code, "python", {tabSize: 4});
+    box.dataset.code = r.code;
+    box.querySelector(".exfold").outerHTML = `<pre class="excode">${html}</pre>`;
+    const copy = h("button", "chip", "복사"); copy.dataset.act = "excopy";
+    t.replaceWith(copy, h("span", "extag", `개념 코드 · ${esc(box.dataset.file)}`));
+    addLog("sys", "힌트", `예제 코드의 기본 틀을 펼쳤습니다. 이 시도에 힌트 ${r.hints}개로 남습니다.`);
+  }
   if (act === "rate") { API.rate(t.dataset.id, t.dataset.r); t.textContent += " ✓"; }
   if (act === "ask") {
     if (S.bubble.querySelector(".ask")) return;
@@ -629,7 +645,27 @@ handlers.answer = d => {
   const t = S.bubble?.querySelector(".live") || S.bubble?.querySelector(".thinking");
   if (t) { t.className = ""; t.textContent = d.message; }  // 흘려 쓰던 점(.live)도 같이 사라진다
   else { const el = h("div", "bubble"); el.innerHTML = bubbleHead("코치", "질문에 답") + `<div>${esc(d.message)}</div>`; placeBubble(S.lastDiag?.line, el); }
+  if (S.bubble && ["example", "template", "answer"].includes(d.kind)) answerExtras(S.bubble, d);
 };
+// 예제 코드: ① 문법·디버깅 예제는 실행 결과와 함께 바로, ③ 알고리즘 틀은 접어서(펼치면 힌트 1개), ④ 정답 요청은 힌트 사다리로
+async function answerExtras(el, d) {
+  const box = h("div", "exbox");
+  if (d.kind === "example" && d.code) {
+    const html = await monaco.editor.colorize(d.code, "python", {tabSize: 4});
+    box.innerHTML = `<pre class="excode">${html}</pre>${d.out ? `<div class="exout">실행해 봄 · ${esc(d.out)}</div>` : ""}
+      <div class="exrow"><span class="extag">예제 · 이 문제의 답이 아니에요</span><button class="chip" data-act="excopy">복사</button></div>`;
+    box.dataset.code = d.code;
+  } else if (d.kind === "template") {
+    box.innerHTML = `<div class="exfold">${esc(d.concept)} 기본 틀 ${d.lines}줄 · 펼치면 이 시도에 힌트 1개로 남아요</div>
+      <div class="exrow"><button class="chip pri" data-act="reveal" data-id="${d.id}">펼치기</button><button class="chip" data-doc="${esc(d.doc)}">개념 문서 열기</button></div>`;
+    box.dataset.file = d.file || "";
+  } else if (d.kind === "answer") {
+    const FIN = (S.p?.hints_max ?? 3) + 1;
+    box.innerHTML = `<div class="exrow">${S.hints < FIN - 1 ? `<button class="chip pri" data-act="hint">힌트 ${S.hints + 1}단계 열기</button>` : ""}
+      <button class="chip ghost" data-act="solution">풀이 보기 · 기록에 남음</button></div>`;
+  }
+  el.append(box);
+}
 handlers.coach_error = d => { coachBusy(false); addLog("sys", "코치 오류", d.error); };
 handlers.mistake_named = d => { $$(`.mname[data-id="${d.id}"]`).forEach(e => e.textContent = d.name); loadMistakes(); };
 

@@ -4,7 +4,7 @@ import json
 import threading
 import time
 
-from . import coach, ollama, packs, runner, vault
+from . import coach, examples, ollama, packs, runner, vault
 from .store import Store
 
 
@@ -19,6 +19,8 @@ class Session:
         self.solution_viewed = False
         self.policy = coach.Policy()
         self.history = []          # 코치가 한 말
+        self.extra_hints = 0       # 예제 코드의 알고리즘 틀을 펼친 횟수 (힌트로 센다)
+        self.templates = {}        # 코치 말 번호 → 아직 펼치지 않은 틀 코드
         self.open_fail = None      # 아직 못 고친 실패 (오답 기록 후보)
         self.diag = None           # 마지막 진단
         self.code = ""
@@ -283,7 +285,7 @@ class Api:
         lad = vault.hint_ladder(s.pid)
         if step < final:
             s.hints = max(s.hints, step)
-            self.store.update_attempt(s.aid, hints_opened=s.hints)
+            self.store.update_attempt(s.aid, hints_opened=s.hints + s.extra_hints)
         else:
             s.solution_viewed = True
             self.store.update_attempt(s.aid, solution_viewed=1)
@@ -610,23 +612,76 @@ class Api:
                           "고른 코드가 무엇을 하는지, 질문에 맞춰 쉬운 말로 3~4문장 답한다. 필요하면 작은 입력으로 값이 어떻게 바뀌는지 보여 준다. ")
             task = (f"[학생 질문] {question}\n{picked}학생 질문에 바로 답한다(머리말 없이). 규칙 1을 지킨다. "
                     "질문이 정답이나 고친 코드를 달라는 것이면, 왼쪽 힌트 사다리의 다음 단계를 열어 보라고 권한다.")
+            # 예제 코드를 원하는지 먼저 가른다 (examples.py: 문법 예제·알고리즘 틀·정답 요청)
+            kind, concept = examples.classify(question)
+            extra = {"kind": kind or "ask"}
+            if kind == "example":
+                task = examples.EXAMPLE_TASK.format(q=question)
+            elif kind == "template":
+                task = examples.TEMPLATE_TASK.format(q=question, concept=concept["title"])
             msgs = coach.messages(s.pid, code, dyn + ("\n\n" + ex if ex else ""), task)
             t = time.time()
             try:
-                text, meta = ollama.chat(msgs, max_tokens=220, on_token=coach.RawStream(self._streamer(gen)).feed)
-                msg = coach.clean_raw(text)
-                if coach.leak_reason(msg, s.diag or {}, s.pid):
-                    msg = "그 부분은 직접 찾아야 실력이 돼요. 막히면 왼쪽 힌트 사다리의 다음 단계를 열어 보세요."
+                live = kind not in ("example", "template")  # 코드가 섞이는 답은 흘려 쓰지 않는다
+                text, meta = ollama.chat(msgs, max_tokens=420 if kind == "example" else 220,
+                                         on_token=coach.RawStream(self._streamer(gen)).feed if live else None)
+                if kind == "example":
+                    msg, extra = self._example(question, text, msgs, s)
+                else:
+                    msg = coach.clean_raw(text)
+                    if coach.leak_reason(msg, s.diag or {}, s.pid):
+                        msg = "그 부분은 직접 찾아야 실력이 돼요. 막히면 왼쪽 힌트 사다리의 다음 단계를 열어 보세요."
+                        extra = {"kind": "answer"}
+                if kind == "template":
+                    tpl = examples.template_of(concept)
+                    if tpl:
+                        extra = {"kind": "template", "concept": concept["title"], "doc": concept["name"],
+                                 "file": tpl[1], "lines": len(tpl[0].splitlines())}
             except Exception as e:
                 msg = f"코치가 지금 답할 수 없어요 ({str(e)[:80]}). Ollama가 켜져 있는지 확인해 주세요."
-            mid = self.store.coach_msg(s.aid, signal="ask", tier="ask", hint_level=s.hints, message=msg,
-                                       ms=int((time.time() - t) * 1000))
+                extra, tpl = {"kind": "ask"}, None
+            mid = self.store.coach_msg(s.aid, signal=extra["kind"] if extra["kind"] != "ask" else "ask", tier="ask",
+                                       hint_level=s.hints, message=msg, ms=int((time.time() - t) * 1000))
+            if extra["kind"] == "template":
+                s.templates[mid] = tpl[0]  # 펼치기 전에는 화면에 보내지 않는다
             s.history.append(msg)
             if self._current(s, gen):
-                self._push("answer", {"gen": gen, "id": mid, "q": question, "message": msg})
+                self._push("answer", {"gen": gen, "id": mid, "q": question, "message": msg, **extra})
 
         threading.Thread(target=work, daemon=True).start()
         return True
+
+    def _example(self, question, text, msgs, s):
+        """AI가 쓴 예제를 확인한다: 위험한 코드·정답과 겹침은 버리고, 실행해서 결과를 붙인다. 오류면 한 번 다시 쓰게 한다."""
+        for attempt in range(2):
+            expl, code = examples.split_answer(text)
+            expl = coach.clean_raw(expl) or "예제를 만들었어요."
+            if not code:
+                return expl, {"kind": "ask"}
+            if examples.overlaps_answer(code, s.pid) or "def solution" in code:
+                return ("그 코드는 지금 문제의 답과 너무 가까워서 보여 드릴 수 없어요. 막히면 왼쪽 힌트 사다리의 다음 단계를 열어 보세요.",
+                        {"kind": "answer"})
+            bad = examples.unsafe(code)
+            if not bad:
+                ok, out = examples.run(code)
+                if ok:
+                    return expl, {"kind": "example", "code": code, "out": out}
+                bad = out
+            if attempt == 0:  # 오류를 알려 주고 한 번 다시 쓰게 한다
+                text, _ = ollama.chat(msgs + [{"role": "assistant", "content": text},
+                                              {"role": "user", "content": f"그 코드는 실행하면 문제가 있다({bad}). 같은 규칙으로 다시 쓴다."}],
+                                      max_tokens=420)
+        return expl + " (예제 코드는 실행해 보니 문제가 있어서 빼 두었어요.)", {"kind": "ask"}
+
+    def reveal_template(self, mid):
+        """접어 둔 알고리즘 틀을 펼친다. 이 시도에 힌트 1개로 남긴다."""
+        s = self.s
+        code = s.templates.pop(int(mid), None) if s else None
+        if code is None:
+            return None
+        s.extra_hints += 1
+        self.store.update_attempt(s.aid, hints_opened=s.hints + s.extra_hints)
+        return {"code": code, "hints": s.hints + s.extra_hints}
 
     # ------------------------------------------------------------ 문서에서 골라 묻기
     DOC_SYSTEM = ("너는 알고리즘을 쉽게 설명하는 선배다. 부드러운 존댓말. 학생이 문서에서 고른 부분과 그 문단을 보고 질문에 답한다.\n"
