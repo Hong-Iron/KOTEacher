@@ -110,6 +110,13 @@ class Store:
             FROM snapshots s JOIN attempts a ON a.id=s.attempt_id WHERE s.t >= ? AND {self.RUN} GROUP BY d""", (since,))
         return {r["d"]: {"problems": r["problems"], "passed": r["passed"], "runs": r["runs"]} for r in rows}
 
+    def range_summary(self, start, end):
+        """start~end(날짜 포함) 동안: 푼 날 수, 코드를 실행한 문제 수, 통과한 문제 수(여러 날 풀어도 한 번), 실행 횟수."""
+        r = self.rows(f"""SELECT COUNT(DISTINCT {self.DAY}) days, COUNT(DISTINCT a.problem_id) problems,
+                   COUNT(DISTINCT CASE WHEN s.passed THEN a.problem_id END) passed, COUNT(*) runs
+            FROM snapshots s JOIN attempts a ON a.id=s.attempt_id WHERE {self.DAY} BETWEEN ? AND ? AND {self.RUN}""", (start, end))
+        return r[0]
+
     def day_detail(self, day):
         """그날 실행한 문제마다: 실행 횟수, 그날 통과했나, 처음·마지막 실행 시각."""
         return self.rows(f"""SELECT a.problem_id, COUNT(*) runs, MAX(s.passed) passed, MIN(s.t) first, MAX(s.t) last

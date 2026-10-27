@@ -132,8 +132,7 @@ class Api:
         """프로필: 이름, 지난 1년 날마다 활동(잔디), 연속 일수, 통과 수, 레벨별 진도."""
         import datetime as dt
         from . import config
-        act = self.store.activity()
-        since = (dt.date.today() - dt.timedelta(days=371)).isoformat()  # 53주
+        act = self.store.activity()  # 월별·주간 보기에서 1년 전으로도 넘겨 보므로 기록 전체를 준다
         cur, longest = streaks(act)
         st = self.store.problem_status()
         probs = vault.problems()
@@ -143,12 +142,16 @@ class Api:
             lv["total"] += 1
             if st.get(p["id"]) in ("solved", "helped"):
                 lv[st[p["id"]]] += 1
-        return {"name": config.settings().get("profile_name") or "", "days": {d: v for d, v in act.items() if d >= since},
+        return {"name": config.settings().get("profile_name") or "", "days": act,
                 "first": min(act) if act else None, "active_days": len(act), "runs": sum(v["runs"] for v in act.values()),
                 "streak": cur, "longest": longest, "today": dt.date.today().isoformat(),
                 "solved": sum(v == "solved" for v in st.values()), "helped": sum(v == "helped" for v in st.values()),
                 "exam": len(self.store.exam_passes()), "total": len(probs),
                 "levels": sorted(levels.values(), key=lambda x: x["level"])}
+
+    def profile_range(self, start, end):
+        """월별·주간 보기의 합계 (start~end 날짜 포함)."""
+        return self.store.range_summary(start, end)
 
     def profile_day(self, day):
         """그날 실행한 문제들 (잔디 한 칸을 누르면 보인다)."""

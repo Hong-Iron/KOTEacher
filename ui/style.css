@@ -458,13 +458,40 @@ mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);co
 .heat .grid{display:grid;grid-template-columns:28px repeat(53,12px);grid-template-rows:16px repeat(7,12px);gap:3px;width:max-content}
 .heat .mon{font-size:11px;color:var(--faint);grid-row:1;white-space:nowrap}
 .heat .wd{font-size:10.5px;color:var(--faint);grid-column:1;line-height:12px}
-.heat .c{width:12px;height:12px;border-radius:2px;background:var(--heat0);border:0;padding:0;cursor:pointer}
-.heat .c.l1{background:var(--heat1)} .heat .c.l2{background:var(--heat2)} .heat .c.l3{background:var(--heat3)} .heat .c.l4{background:var(--heat4)}
-.heat .c.future{visibility:hidden}
-.heat .c[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
-.heat .legend{display:flex;align-items:center;gap:3px;justify-content:flex-end;font-size:11.5px;color:var(--faint);margin-top:8px}
-.heat .legend i{width:12px;height:12px;border-radius:2px;display:inline-block}
-.heat .legend span{margin:0 4px}
+.heat .c{width:12px;height:12px;border:0;padding:0;background:none;display:grid;place-items:center;cursor:pointer;border-radius:2px}
+/* 칸 안 네모의 크기 = 그날 푼 문제 수 (0, 1, 2, 3~4, 5개 이상) */
+.heat .c i,.heat .legend b.c i{display:block;border-radius:2px;background:var(--ok)}
+.c i.l0{width:4px;height:4px;background:var(--heat0)!important;border-radius:1px} .c i.l1{width:5px;height:5px} .c i.l2{width:7px;height:7px} .c i.l3{width:9px;height:9px} .c i.l4{width:12px;height:12px}
+.heat .c[aria-pressed="true"],.mcal .md[aria-pressed="true"],.wk .wd[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
+.legend{display:flex;align-items:center;gap:4px;justify-content:flex-end;font-size:11.5px;color:var(--faint);margin-top:8px}
+.legend b{display:grid;place-items:center} .legend b.c{width:12px;height:12px} .legend b.md{width:30px;height:30px}
+.legend span{margin:0 4px}
+.legend b.md i{display:block;background:var(--ok);border-radius:3px}
+.md i.l0{width:0;height:0} .md i.l1{width:9px;height:9px} .md i.l2{width:15px;height:15px} .md i.l3{width:22px;height:22px} .md i.l4{width:30px;height:30px}
+.legend b.md i.l0{width:4px;height:4px;background:var(--heat0)}
+/* 월별: 달력 */
+.pvhead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.pvhead h2{margin:0}
+.pvnav{display:flex;align-items:center;gap:8px} .pvnav b{font-size:15px;min-width:9em;text-align:center}
+.pvnav .btn:disabled{opacity:.4;cursor:default}
+.pvsum{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:0 0 10px} .pvsum b{color:var(--ink)} .pvsum:empty{display:none}
+.mcal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;max-width:560px}
+.mcal .mh{font-size:11.5px;color:var(--faint);text-align:center}
+.mcal .md{position:relative;height:58px;border:1px solid var(--line);border-radius:8px;background:var(--panel);display:grid;place-items:center;padding:0;cursor:pointer}
+.mcal .md:hover{background:var(--sunk)} .mcal .md:disabled{opacity:.35;cursor:default;background:none}
+.mcal .md i{display:block;border-radius:3px;background:var(--ok)}
+.mcal .md .n{position:absolute;top:3px;left:6px;font-size:11px;color:var(--muted)}
+.mcal .md .k{position:absolute;bottom:2px;right:6px;font-size:10.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.mcal .md.today .n,.wk .wd.today .lbl{color:var(--accent);font-weight:700}
+/* 주간: 막대 높이 = 그날 푼 문제 수 */
+.wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;max-width:560px}
+.wk .wd{display:grid;grid-template-rows:18px 130px auto;justify-items:center;gap:4px;border:1px solid transparent;border-radius:8px;background:none;padding:6px 0;cursor:pointer}
+.wk .wd:hover{background:var(--sunk)} .wk .wd:disabled{opacity:.35;cursor:default}
+.wk .wd .k{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.wk .bar{width:60%;height:130px;display:flex;align-items:flex-end;background:var(--sunk);border-radius:4px;overflow:hidden}
+.wk .bar i{display:block;width:100%;background:var(--ok);border-radius:4px 4px 0 0}
+.wk .lbl{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.35}
+.pvkeys{margin:8px 0 0}
 .prof .day h3{font-size:13.5px;margin:14px 0 6px;color:var(--muted);font-weight:600}
 .prof .dayrow{display:grid;grid-template-columns:38px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 4px;border-top:1px solid var(--line);cursor:pointer}
 .prof .dayrow:hover{background:var(--sunk)}
@@ -475,3 +502,4 @@ mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);co
 .prof .lvrow .n{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
 .prof .key{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:8px}
 .prof .key i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.mcal + .legend{max-width:560px}

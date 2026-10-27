@@ -1587,40 +1587,127 @@ async function showAttempt(aid) {
 $("#openHist").onclick = openHistory;
 $("#histBack").onclick = () => { $(".hist").classList.remove("detail"); show("home"); };
 
-/* ---------------- 프로필: 꾸준함 (잔디) ---------------- */
-// 한 칸이 하루. 색은 그날 코드를 실행한 문제 수: 0, 1, 2, 3~4, 5개 이상
+/* ---------------- 프로필: 꾸준함 (1년 · 월별 · 주간) ---------------- */
+// 한 칸이 하루. 그날 코드를 실행한 문제 수(0, 1, 2, 3~4, 5개 이상)를 칸 안 네모의 크기로 보인다(주간은 막대 높이).
+// 방향키로 칸을 옮겨 다니고, 옮기면 그날 푼 문제가 아래에 나온다. 달·주 끝을 넘으면 앞뒤 달·주로 넘어간다
 const WD = ["일", "월", "화", "수", "목", "금", "토"];
 const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const toDate = s => new Date(s + "T00:00:00");
+const addDays = (s, n) => { const d = toDate(s); d.setDate(d.getDate() + n); return ymd(d); };
 const heatLv = n => !n ? 0 : n === 1 ? 1 : n === 2 ? 2 : n <= 4 ? 3 : 4;
-const dayLabel = s => { const d = new Date(s + "T00:00:00"); return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${WD[d.getDay()]})`; };
+const dayLabel = s => { const d = toDate(s); return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${WD[d.getDay()]})`; };
+const mdLabel = s => { const d = toDate(s); return `${d.getMonth() + 1}월 ${d.getDate()}일`; };
 function heatTip(s, v) {
-  return v ? `${dayLabel(s)} · 문제 ${v.problems}개${v.passed ? ` · 통과 ${v.passed}개` : ""} · 실행 ${v.runs}번` : `${dayLabel(s)} · 기록 없음`;
+  return v?.problems ? `${dayLabel(s)} · 문제 ${v.problems}개${v.passed ? ` · 통과 ${v.passed}개` : ""} · 실행 ${v.runs}번` : `${dayLabel(s)} · 기록 없음`;
 }
-function heatmap(p) {
-  const today = new Date(p.today + "T00:00:00");
-  const start = new Date(today); start.setDate(start.getDate() - 7 * 52 - today.getDay());  // 52주 전 일요일부터 오늘까지 53줄
+const PVIEWS = [["year", "1년"], ["month", "월별"], ["week", "주간"]];
+// 보기마다 칸이 덮는 날짜 범위
+function pvRange(view, sel, today) {
+  if (view === "year") { const t = toDate(today); return [addDays(today, -7 * 52 - t.getDay()), today]; }  // 52주 전 일요일부터
+  if (view === "month") { const d = toDate(sel); return [ymd(new Date(d.getFullYear(), d.getMonth(), 1)), ymd(new Date(d.getFullYear(), d.getMonth() + 1, 0))]; }
+  const mon = addDays(sel, -((toDate(sel).getDay() + 6) % 7));  // 주간은 월요일부터
+  return [mon, addDays(mon, 6)];
+}
+const cellAttrs = (s, p) => `data-d="${s}" title="${esc(heatTip(s, p.days[s]))}" aria-label="${esc(heatTip(s, p.days[s]))}" aria-pressed="false" tabindex="-1"${s > p.today ? " disabled" : ""}`;
+const sizeLegend = cls => `<div class="legend"><span>적음</span>${[0, 1, 2, 3, 4].map(l => `<b class="${cls}"><i class="l${l}"></i></b>`).join("")}<span>많음</span></div>`;
+
+function yearView(p) {
+  const [start] = pvRange("year", p.today, p.today);
   let cells = "", months = "", lastMon = -1, lastCol = -9;
   for (let w = 0; w < 53; w++) {
-    const sun = new Date(start); sun.setDate(start.getDate() + 7 * w);
-    if (sun.getMonth() !== lastMon && w - lastCol >= 3 && w < 51) {  // 달이 바뀐 주에 이름표 (겹치지 않게 3줄 띄운다)
-      if (w > 0 || sun.getDate() <= 7) { months += `<span class="mon" style="grid-column:${w + 2}">${sun.getMonth() + 1}월</span>`; lastCol = w; }
-      lastMon = sun.getMonth();
+    const sun = addDays(start, 7 * w), sd = toDate(sun);
+    if (sd.getMonth() !== lastMon && w - lastCol >= 3 && w < 51) {  // 달이 바뀐 주에 이름표 (겹치지 않게 3줄 띄운다)
+      if (w > 0 || sd.getDate() <= 7) { months += `<span class="mon" style="grid-column:${w + 2}">${sd.getMonth() + 1}월</span>`; lastCol = w; }
+      lastMon = sd.getMonth();
     }
     for (let k = 0; k < 7; k++) {
-      const d = new Date(sun); d.setDate(sun.getDate() + k);
-      const s = ymd(d), v = p.days[s], future = d > today;
-      cells += `<button class="c l${heatLv(v?.problems)}${future ? " future" : ""}" style="grid-column:${w + 2};grid-row:${k + 2}" data-d="${s}" title="${esc(heatTip(s, v))}" aria-label="${esc(heatTip(s, v))}" aria-pressed="false"${future ? " tabindex=\"-1\"" : ""}></button>`;
+      const s = addDays(sun, k);
+      cells += s > p.today ? `<span style="grid-column:${w + 2};grid-row:${k + 2}"></span>`
+        : `<button class="c" style="grid-column:${w + 2};grid-row:${k + 2}" ${cellAttrs(s, p)}><i class="l${heatLv(p.days[s]?.problems)}"></i></button>`;
     }
   }
   const wds = [1, 3, 5].map(k => `<span class="wd" style="grid-row:${k + 2}">${WD[k]}</span>`).join("");
-  const legend = [0, 1, 2, 3, 4].map(l => `<i style="background:var(--heat${l})"></i>`).join("");
-  return `<div class="heat"><div class="grid">${months}${wds}${cells}</div>
-    <div class="legend"><span>적음</span>${legend}<span>많음</span></div></div>`;
+  return `<div class="heat"><div class="grid">${months}${wds}${cells}</div>${sizeLegend("c")}</div>`;
 }
+function monthView(p, sel) {
+  const [first, last] = pvRange("month", sel, p.today);
+  let cells = WD.map(w => `<span class="mh">${w}</span>`).join("") + "<span></span>".repeat(toDate(first).getDay());
+  for (let s = first; s <= last; s = addDays(s, 1)) {
+    const v = p.days[s];
+    cells += `<button class="md${s === p.today ? " today" : ""}" ${cellAttrs(s, p)}><span class="n">${toDate(s).getDate()}</span>
+      <i class="l${heatLv(v?.problems)}"></i>${v?.problems ? `<span class="k">${v.problems}</span>` : ""}</button>`;
+  }
+  return `<div class="mcal">${cells}</div>${sizeLegend("md")}`;
+}
+function weekView(p, sel) {
+  const [mon] = pvRange("week", sel, p.today);
+  const days = [...Array(7)].map((_, i) => addDays(mon, i));
+  const top = Math.max(5, ...days.map(s => p.days[s]?.problems || 0));  // 5문제 아래인 주는 5를 꼭대기로 둔다
+  return `<div class="wk">${days.map(s => { const n = p.days[s]?.problems || 0, d = toDate(s);
+    return `<button class="wd${s === p.today ? " today" : ""}" ${cellAttrs(s, p)}><span class="k">${n ? `${n}개` : ""}</span>
+      <span class="bar"><i style="height:${n / top * 100}%"></i></span><span class="lbl">${WD[d.getDay()]}<br>${d.getMonth() + 1}/${d.getDate()}</span></button>`; }).join("")}</div>`;
+}
+// 위쪽 줄: 보기 고르기, 월·주는 앞뒤로 넘기기와 합계
+async function renderPv() {
+  const p = S.prof, {view, sel} = S.pv, [a, b] = pvRange(view, sel, p.today);
+  const seg = `<div class="seg plain" id="pvSeg" role="group" aria-label="보기">${PVIEWS.map(([k, t]) => `<button data-v="${k}" aria-pressed="${k === view}">${t}</button>`).join("")}</div>`;
+  const nav = label => `<div class="pvnav"><button class="btn" data-nav="-1" aria-label="이전">◀</button><b>${label}</b><button class="btn" data-nav="1" aria-label="다음" ${b >= p.today ? "disabled" : ""}>▶</button>
+    <button class="btn" data-nav="0" ${a <= p.today && p.today <= b ? "disabled" : ""}>${view === "month" ? "이번 달" : "이번 주"}</button></div>`;
+  const yearDays = Object.keys(p.days).filter(d => d >= a && p.days[d].problems).length;
+  $("#pvHead").innerHTML = view === "year" ? `<h2>지난 1년 동안 ${yearDays}일 풀었습니다</h2>${seg}`
+    : `${nav(view === "month" ? `${toDate(a).getFullYear()}년 ${toDate(a).getMonth() + 1}월` : `${mdLabel(a)} – ${mdLabel(b)}`)}${seg}`;
+  $("#pvBody").innerHTML = view === "year" ? yearView(p) : view === "month" ? monthView(p, sel) : weekView(p, sel);
+  $("#pvSum").innerHTML = "";
+  $$("#pvSeg button").forEach(x => x.onclick = () => { S.pv.view = x.dataset.v; try { localStorage.setItem("kt-prof-view", x.dataset.v); } catch (_) {} renderPv(); });
+  $$("#pvHead [data-nav]").forEach(x => x.onclick = () => {
+    const n = +x.dataset.nav;
+    if (!n) return pickDay(p.today, false, true);
+    let s;
+    if (view === "week") s = addDays(sel, 7 * n);
+    else { const d = toDate(sel), m = new Date(d.getFullYear(), d.getMonth() + n, 1); m.setDate(Math.min(d.getDate(), new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate())); s = ymd(m); }
+    pickDay(s > p.today ? p.today : s, false, true);
+  });
+  $$("#pvBody [data-d]").forEach(c => c.onclick = () => pickDay(c.dataset.d, true));
+  markPv();
+  profileDay(S.pv.sel);
+  if (view !== "year") {  // 합계는 여러 날 푼 문제를 한 번만 센다. 바로 앞 달·주와 견준다
+    const prev = pvRange(view, view === "week" ? addDays(a, -7) : addDays(a, -1), p.today);
+    const [cur, before] = await Promise.all([API.profile_range(a, b), API.profile_range(...prev)]);
+    if (S.pv.view !== view || pvRange(view, S.pv.sel, p.today)[0] !== a) return;  // 그 사이에 넘겼으면 버린다
+    $("#pvSum").innerHTML = `<span>푼 날 <b>${cur.days}일</b></span><span>문제 <b>${cur.problems}개</b></span><span>통과 <b>${cur.passed}개</b></span><span>실행 <b>${cur.runs}번</b></span>
+      <span class="note">${view === "month" ? "지난달" : "지난주"} 문제 ${before.problems}개</span>`;
+  }
+}
+function markPv() {
+  $$("#pvBody [data-d]").forEach(c => { const on = c.dataset.d === S.pv.sel; c.setAttribute("aria-pressed", on); c.tabIndex = on ? 0 : -1; });
+}
+// 날 고르기. 지금 보기의 범위를 벗어나면 그 날이 들어 있는 달·주로 다시 그린다
+function pickDay(s, focus, redraw) {
+  const p = S.prof, [a, b] = pvRange(S.pv.view, S.pv.sel, p.today);
+  if (s > p.today) return;
+  if (S.pv.view === "year" && s < a) return;
+  S.pv.sel = s;
+  if (redraw || s < a || s > b) renderPv(); else { markPv(); profileDay(s); }
+  if (focus) $(`#pvBody [data-d="${s}"]`)?.focus();
+}
+// 방향키: 1년은 위아래가 하루·좌우가 한 주(세로가 요일), 월별·주간은 좌우가 하루·위아래가 한 주
+// 프로필을 열자마자 쓸 수 있게 문서 전체에서 받는다(맥 WebView는 누른 버튼에 초점을 주지 않는다). 글자를 쓰는 중이거나 창이 떠 있으면 두지 않는다
+function pvKeys(e) {
+  if ($("#profile").hidden || !S.pv || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.closest?.("input, textarea, select, [contenteditable]") || $$(".palette").some(x => !x.hidden)) return;
+  const yr = S.pv.view === "year";
+  const step = {ArrowUp: yr ? -1 : -7, ArrowDown: yr ? 1 : 7, ArrowLeft: yr ? -7 : -1, ArrowRight: yr ? 7 : 1}[e.key];
+  if (!step) return;
+  e.preventDefault();
+  pickDay(addDays(S.pv.sel, step), true);
+}
+document.addEventListener("keydown", pvKeys);
 async function openProfile() {
   const p = S.prof = await API.profile();
-  const active = Object.values(p.days).filter(v => v.problems).length;
   const doneToday = !!p.days[p.today]?.problems;
+  let view = "year"; try { view = localStorage.getItem("kt-prof-view") || "year"; } catch (_) {}
+  const lastDay = Object.keys(p.days).filter(d => p.days[d].problems).sort().at(-1);
+  S.pv = {view: PVIEWS.some(([k]) => k === view) ? view : "year", sel: doneToday ? p.today : lastDay || p.today};
   const stat = (n, label, sub, cls = "") => `<div class="stat ${cls}"><b>${n}</b><span>${label}</span>${sub ? `<br><span>${sub}</span>` : ""}</div>`;
   $("#profBody").innerHTML = `<div class="wrap">
     <div class="card who">
@@ -1634,7 +1721,8 @@ async function openProfile() {
       ${stat(`${p.solved + p.helped} / ${p.total}`, "통과한 문제", `힌트 없이 ${p.solved} · 힌트로 ${p.helped}`)}
       ${stat(p.exam, "실전 통과", "반례·코치·힌트 없이")}
     </div>
-    <div class="card"><h2>지난 1년 동안 ${active}일 풀었습니다</h2>${heatmap(p)}<div class="day" id="profDay"></div></div>
+    <div class="card"><div class="pvhead" id="pvHead"></div><div class="pvsum" id="pvSum"></div><div id="pvBody"></div>
+      <p class="note pvkeys">칸을 누르거나 방향키로 옮기면 그날 푼 문제가 아래에 나옵니다.</p><div class="day" id="profDay"></div></div>
     <div class="card"><h2>레벨별 진도</h2>
       ${p.levels.map(l => `<div class="lvrow"><span>Lv${l.level}</span>
         <span class="lvbar"><i class="s" style="width:${l.solved / l.total * 100}%"></i><i class="h" style="width:${l.helped / l.total * 100}%"></i></span>
@@ -1644,13 +1732,12 @@ async function openProfile() {
   show("profile");
   $("#profName").onchange = async e => { e.target.value = await API.set_profile_name(e.target.value); };
   $("#profName").onkeydown = e => { if (e.key === "Enter") e.target.blur(); };
-  $$("#profBody .heat .c:not(.future)").forEach(c => c.onclick = () => profileDay(c.dataset.d));
-  const days = Object.keys(p.days).filter(d => p.days[d].problems).sort();
-  profileDay(doneToday ? p.today : days.at(-1) || p.today);
+  renderPv();
 }
 async function profileDay(d) {
-  $$("#profBody .heat .c").forEach(c => c.setAttribute("aria-pressed", c.dataset.d === d));
+  const tok = S.pvTok = (S.pvTok || 0) + 1;
   const rows = await API.profile_day(d);
+  if (tok !== S.pvTok) return;  // 방향키로 빨리 넘기면 마지막 날만 그린다
   $("#profDay").innerHTML = `<h3>${dayLabel(d)}${rows.length ? ` · 문제 ${rows.length}개` : ""}</h3>` + (rows.length
     ? rows.map(r => `<div class="dayrow" data-pid="${esc(r.problem_id)}" title="이 문제 열기"><span class="lv">Lv${r.level ?? "?"}</span><span>${esc(r.title)}</span>
         <span class="r">실행 ${r.runs}번</span><span class="pill ${r.passed ? (r.status === "helped" ? "helped" : "solved") : "tried"}">${r.passed ? STATUS[r.status === "helped" ? "helped" : "solved"] : "시도"}</span></div>`).join("")
