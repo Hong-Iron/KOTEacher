@@ -92,9 +92,13 @@ def problems():
         parts = [p.strip() for p in FOOT.sub("", head).split("·")]
         source = parts[2] if len(parts) > 2 and not parts[2].startswith("정답률") else ""
         url = re.search(r"\((https?://[^)]+)\)", head)
+        # 머리줄의 '정답률 37% · 푼 사람 5,638명' (홈 목록 정렬에 쓴다). 없으면 None
+        rate = re.search(r"정답률\s*(\d+)%", head)
+        solvers = re.search(r"푼 사람\s*([\d,]+)명", head)
         items.append({
             "id": meta["id"], "title": meta.get("title", f.stem.split(".", 1)[1]),
             "level": int(meta.get("level", 0)), "source": source,
+            "rate": int(rate.group(1)) if rate else None, "solvers": int(solvers.group(1).replace(",", "")) if solvers else None,
             "url": url.group(1) if url else "", "doc": f.name, "num": f.name[:2],
             "concepts": [name for _, name in _concept_links(meta.get("concepts", ""))],
             "concept_files": [p for p, _ in _concept_links(meta.get("concepts", ""))],

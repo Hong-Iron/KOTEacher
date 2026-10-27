@@ -117,3 +117,11 @@ mark.qa-mark{background:color-mix(in srgb, var(--coach-dot) 32%, transparent);co
 .qa-note.in-code{display:block;white-space:normal;font-family:var(--f-ui);font-size:13px;line-height:1.6;margin:4px 0 6px;
   width:min(640px, calc(100% - 4px));position:sticky;left:0}
 .qa-note.in-code .qa{white-space:pre-wrap}
+/* 문서 질문 상자의 이어서 묻기 */
+.qa-note .fq{font-weight:600;color:var(--coach);padding:4px 10px 0}
+.qa-note .fq::before{content:"Q. ";opacity:.8}
+.qa-note .qa2{padding:0 10px 8px;white-space:pre-wrap;color:var(--ink)}
+.qa-note .qa2.thinking{color:var(--muted)}
+.qa-note form.dfollow{display:flex;gap:6px;padding:0 10px 8px}
+.qa-note form.dfollow input{flex:1;min-width:0;font-size:12.5px;border:1px solid var(--coach-line);border-radius:7px;padding:4px 8px;background:var(--panel);color:var(--ink)}
+.qa-note.folded .fq,.qa-note.folded .qa2,.qa-note.folded form.dfollow{display:none}

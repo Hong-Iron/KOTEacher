@@ -33,6 +33,11 @@
         <div class="seg plain" id="lvSeg" role="group" aria-label="레벨">
           <button data-lv="0" aria-pressed="true">전체</button><button data-lv="1" aria-pressed="false">Lv1</button><button data-lv="2" aria-pressed="false">Lv2</button><button data-lv="3" aria-pressed="false">Lv3</button><button data-lv="4" aria-pressed="false">Lv4</button><button data-lv="5" aria-pressed="false">Lv5</button>
         </div>
+        <select id="sortSel" class="sortsel" aria-label="정렬" title="문제 정렬">
+          <option value="order">학습 순서</option><option value="easy">쉬운 것부터</option><option value="hard">어려운 것부터</option>
+          <option value="rate_hi">정답률 높은 순</option><option value="rate_lo">정답률 낮은 순</option><option value="popular">많이 푼 순</option>
+          <option value="todo">안 푼 것 먼저</option><option value="recent">최근에 푼 순</option><option value="name">이름순</option>
+        </select>
         <input id="search" type="search" placeholder="문제나 개념 이름" aria-label="찾기">
       </div>
       <div class="plist" id="plist"></div>

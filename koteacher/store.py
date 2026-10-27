@@ -32,6 +32,10 @@ class Store:
         self.lock = threading.Lock()
         with self.lock:
             self.db.executescript(SCHEMA)
+            # 문서 질문 상자의 이어서 묻기(JSON 목록 [{question, answer, t}]). 예전 기록 파일에는 이 칸이 없어 더한다
+            if "followups" not in {r[1] for r in self.db.execute("PRAGMA table_info(doc_notes)")}:
+                self.db.execute("ALTER TABLE doc_notes ADD COLUMN followups TEXT")
+                self.db.commit()
 
     def _ex(self, sql, args=()):
         with self.lock:
@@ -123,6 +127,11 @@ class Store:
             FROM snapshots s JOIN attempts a ON a.id=s.attempt_id WHERE {self.DAY}=? AND {self.RUN}
             GROUP BY a.problem_id ORDER BY last""", (day,))
 
+    def last_runs(self):
+        """문제마다 마지막으로 코드를 실행한 시각 (홈 목록의 '최근에 푼 순')."""
+        return {r["problem_id"]: r["t"] for r in self.rows(
+            f"SELECT a.problem_id, MAX(s.t) t FROM snapshots s JOIN attempts a ON a.id=s.attempt_id WHERE {self.RUN} GROUP BY a.problem_id")}
+
     def exam_passes(self):
         """반례·코치·힌트 없이 실전 모드에서 통과한 문제."""
         return {r["problem_id"] for r in self.rows(
@@ -134,7 +143,28 @@ class Store:
                         (doc, quote, prefix, question, answer, time.time())).lastrowid
 
     def notes(self, doc):
-        return self.rows("SELECT * FROM doc_notes WHERE doc=? ORDER BY t", (doc,))
+        return [self._with_followups(n) for n in self.rows("SELECT * FROM doc_notes WHERE doc=? ORDER BY t", (doc,))]
+
+    def note(self, nid):
+        r = self.rows("SELECT * FROM doc_notes WHERE id=?", (nid,))
+        return self._with_followups(r[0]) if r else None
+
+    @staticmethod
+    def _with_followups(n):
+        try:
+            n["followups"] = json.loads(n.get("followups") or "[]")
+        except ValueError:
+            n["followups"] = []
+        return n
+
+    def add_followup(self, nid, question, answer):
+        """같은 상자에서 이어서 물은 질문과 답을 그 기록 뒤에 붙인다."""
+        n = self.note(nid)
+        if not n:
+            return False
+        fs = n["followups"] + [{"question": question, "answer": answer, "t": time.time()}]
+        self._ex("UPDATE doc_notes SET followups=? WHERE id=?", (json.dumps(fs, ensure_ascii=False), nid))
+        return True
 
     def delete_note(self, nid):
         self._ex("DELETE FROM doc_notes WHERE id=?", (nid,))

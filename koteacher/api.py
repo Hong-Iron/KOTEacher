@@ -63,9 +63,9 @@ class Api:
 
     # ------------------------------------------------------------ 목록과 열기
     def boot(self):
-        st = self.store.problem_status()
-        items = [{k: p[k] for k in ("id", "title", "level", "source", "concepts", "num")} | {"status": st.get(p["id"], "new")}
-                 for p in vault.problems()]
+        st, last = self.store.problem_status(), self.store.last_runs()
+        items = [{k: p[k] for k in ("id", "title", "level", "source", "concepts", "num", "rate", "solvers")}
+                 | {"status": st.get(p["id"], "new"), "last": last.get(p["id"])} for p in vault.problems()]
         from . import config
         return {"problems": items, "ai": ollama.status(), "mode": self.mode, "exam": bool(config.settings().get("exam")),
                 "exam_minutes": int(config.settings().get("exam_minutes") or 0),
@@ -783,9 +783,10 @@ class Api:
         threading.Thread(target=work, daemon=True).start()
         return True
 
-    def ask(self, question, code, sel=None, rid=None):
+    def ask(self, question, code, sel=None, rid=None, thread=None):
         """코치에게 묻기. sel={'start','end','text'}면 편집기에서 드래그한 코드에 대해 묻는다.
         rid는 화면이 붙인 질문 번호다. 흘려 쓰는 글과 답이 그 질문의 말풍선으로 간다.
+        thread=[{'q','a'}]는 같은 상자에서 앞서 나눈 말이다(이어서 묻기). 최근 4번만 넣는다.
         어떤 경우에도 'answer'를 한 번 보낸다. 안 보내면 화면의 '생각하고 있습니다'가 끝나지 않는다."""
         s = self.s
         s.code = code
@@ -802,7 +803,12 @@ class Api:
                     a, b = int(sel.get("start") or 0), int(sel.get("end") or 0)
                     picked = (f"[학생이 고른 코드: {a}번 줄" + (f"~{b}번 줄" if b != a else "") + f"]\n{sel['text'][:1500]}\n"
                               "고른 코드가 무엇을 하는지, 질문에 맞춰 쉬운 말로 3~4문장 답한다. 필요하면 작은 입력으로 값이 어떻게 바뀌는지 보여 준다. ")
-                task = (f"[학생 질문] {question}\n{picked}학생 질문에 바로 답한다(머리말 없이). 규칙 1을 지킨다. "
+                # q가 빈 차례는 코치가 먼저 한 말(검사 뒤 말풍선)이다
+                talk = "".join((f"학생: {str(t_.get('q'))[:300]}\n" if t_.get("q") else "") + f"코치: {str(t_.get('a', ''))[:400]}\n"
+                               for t_ in (thread or [])[-4:])
+                if talk:
+                    talk = f"[앞서 이 상자에서 나눈 말]\n{talk}앞의 말을 이어받아 답한다. 이미 한 말은 되풀이하지 않는다.\n"
+                task = (f"{talk}[학생 질문] {question}\n{picked}학생 질문에 바로 답한다(머리말 없이). 규칙 1을 지킨다. "
                         "질문이 정답이나 고친 코드를 달라는 것이면, 왼쪽 힌트 사다리의 다음 단계를 열어 보라고 권한다.")
                 # 예제 코드를 원하는지 먼저 가른다 (examples.py: 문법 예제·알고리즘 틀·정답 요청)
                 kind, concept = examples.classify(question)
@@ -884,8 +890,11 @@ class Api:
                   "- 학생이 지금 풀고 있는 문제의 정답 코드는 쓰지 않는다.\n"
                   "- 고른 부분이 코드면, 그 줄이 무엇을 하는지와 왜 그렇게 쓰는지를 설명한다. 필요하면 작은 입력으로 값이 어떻게 바뀌는지 보여 준다.")
 
-    def ask_doc(self, rid, quote, context, doc, question, prefix="", code=""):
-        """고른 부분에 대해 묻는다. 답은 doc_stream으로 흘려 보내고, 끝나면 기록해 doc_answer로 알린다."""
+    def ask_doc(self, rid, quote, context, doc, question, prefix="", code="", parent=None):
+        """고른 부분에 대해 묻는다. 답은 doc_stream으로 흘려 보내고, 끝나면 기록해 doc_answer로 알린다.
+        parent가 있으면 그 기록 상자에서 이어서 묻는 것이다: 앞서 나눈 말을 함께 보내고, 답은 그 기록 뒤에 붙인다."""
+        base = self.store.note(int(parent)) if parent else None
+
         def work():
             title = ""
             if doc and doc.startswith("problem:"):
@@ -895,7 +904,13 @@ class Api:
             elif doc:
                 title = "개념 문서 " + doc.split(".", 1)[-1]
             where = "그 부분의 코드" if (doc or "").startswith("code:") or context.startswith("(코드 ") else "그 문단"
-            user = f"[{title}]\n[고른 부분] {quote}\n\n[{where}]\n{context}\n\n[질문] {question}"
+            talk = ""
+            if base:
+                turns = [(base["question"], base["answer"])] + [(f["question"], f["answer"]) for f in base["followups"]]
+                talk = "[앞서 이 부분에 대해 나눈 말]\n" + "".join(f"학생: {q[:300]}\n코치: {a[:500]}\n" for q, a in turns[-4:]) + \
+                       "앞의 말을 이어받아 답한다. 이미 한 말은 되풀이하지 않는다.\n\n"
+            # 이어서 묻기는 원문 표시가 여러 조각일 수 있으므로 기록에 남은 원래 고른 부분을 쓴다
+            user = f"[{title}]\n[고른 부분] {base['quote'] if base else quote}\n\n[{where}]\n{context}\n\n{talk}[질문] {question}"
             if code.strip() and self.s:
                 user += f"\n\n[학생이 지금 쓰는 코드, 참고만]\n{code[:1500]}"
             pieces = []
@@ -911,7 +926,11 @@ class Api:
                     msg = "그 부분은 지금 푸는 문제의 답과 너무 가까워서 말하지 않을게요. 왼쪽 힌트 사다리를 한 단계 열어 보세요."
             except Exception as e:
                 msg = f"코치가 지금 답할 수 없어요 ({str(e)[:80]}). Ollama가 켜져 있는지 확인해 주세요."
-                self._push("doc_answer", {"id": rid, "message": msg, "note": None})
+                self._push("doc_answer", {"id": rid, "message": msg, "note": None, "followup": bool(base)})
+                return
+            if base:
+                self.store.add_followup(base["id"], question, msg)
+                self._push("doc_answer", {"id": rid, "message": msg, "note": base["id"], "followup": True})
                 return
             nid = self.store.add_note(doc, quote, prefix, question, msg)
             self._push("doc_answer", {"id": rid, "message": msg, "note": nid})
@@ -952,6 +971,8 @@ class Api:
                                        "boost": sum(t in it["title"].lower() for t in terms)})
         out["content"].sort(key=lambda r: (-r.pop("boost"), -r["count"]))  # 제목에 검색어가 있으면 앞으로
         for n in self.store.rows("SELECT * FROM doc_notes ORDER BY t DESC"):
+            n = self.store._with_followups(n)  # 이어서 물은 질문과 답도 찾는다
+            n["answer"] = "\n".join([n["answer"]] + [f"{f['question']} — {f['answer']}" for f in n["followups"]])
             if hit(n["quote"], n["question"], n["answer"]):
                 title = (vault.problem(n["doc"].split(":", 1)[1])["title"] if n["doc"].startswith("problem:")
                          else n["doc"].split("/")[-1] if n["doc"].startswith("code:")

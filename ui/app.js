@@ -35,16 +35,43 @@ const S = {problems: [], lv: 0, q: "", p: null, mode: "normal", hints: 0, editor
 
 /* ---------------- 홈 ---------------- */
 const STATUS = {solved: "통과", helped: "힌트로 통과", tried: "시도", new: "새 문제"};
+// 목록 정렬. 같은 값끼리는 학습 순서(파일 번호)를 그대로 둔다(sort는 안정 정렬). 고른 정렬은 다음에 켤 때도 그대로
+const TODO_ORDER = {new: 0, tried: 1, helped: 2, solved: 3};
+const SORTS = {
+  order: null,
+  easy: (a, b) => a.level - b.level || (b.rate ?? 0) - (a.rate ?? 0),        // 레벨이 같으면 정답률 높은(쉬운) 것 먼저
+  hard: (a, b) => b.level - a.level || (a.rate ?? 101) - (b.rate ?? 101),
+  rate_hi: (a, b) => (b.rate ?? -1) - (a.rate ?? -1),
+  rate_lo: (a, b) => (a.rate ?? 101) - (b.rate ?? 101),
+  popular: (a, b) => (b.solvers ?? 0) - (a.solvers ?? 0),
+  todo: (a, b) => TODO_ORDER[a.status] - TODO_ORDER[b.status],
+  recent: (a, b) => (b.last ?? 0) - (a.last ?? 0),                          // 한 번도 안 푼 문제는 뒤로
+  name: (a, b) => a.title.localeCompare(b.title, "ko"),
+};
+try { S.sort = SORTS[localStorage.getItem("kt-sort")] !== undefined ? localStorage.getItem("kt-sort") : "order"; } catch (_) { S.sort = "order"; }
+$("#sortSel").value = S.sort;
+$("#sortSel").onchange = e => { S.sort = e.target.value; try { localStorage.setItem("kt-sort", S.sort); } catch (_) {} renderList(); };
+function ago(t) {
+  if (!t) return "";
+  const day = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const n = Math.round((day(new Date()) - day(new Date(t * 1000))) / 86400000);
+  return n <= 0 ? "오늘" : n === 1 ? "어제" : `${n}일 전`;
+}
 function renderList() {
   const q = S.q.trim();
   const items = S.problems.filter(p => (!S.lv || p.level === S.lv) &&
     (!q || p.title.includes(q) || p.concepts.some(c => c.includes(q)) || (p.source || "").includes(q)));
+  if (SORTS[S.sort]) items.sort(SORTS[S.sort]);
   const list = $("#plist"); list.innerHTML = "";
   for (const p of items) {
     const r = h("div", "prow");
     r.tabIndex = 0;
+    // 오른쪽 작은 칸: 정답률. '최근에 푼 순'일 때만 마지막으로 푼 날
+    const side = S.sort === "recent" ? ago(p.last) : p.rate != null ? `${p.rate}%` : "";
+    const tip = S.sort === "recent" ? (p.last ? `마지막 실행 ${new Date(p.last * 1000).toLocaleString()}` : "아직 실행하지 않음")
+      : p.rate != null ? `정답률 ${p.rate}%${p.solvers ? ` · 푼 사람 ${p.solvers.toLocaleString()}명` : ""}` : "";
     r.innerHTML = `<span class="lv">Lv${p.level}</span><span class="ti">${esc(p.title)}</span><span class="so">${esc(p.source)}</span>
-      <span class="co">${esc(p.concepts.join(", "))}</span><span class="pill ${p.status}">${STATUS[p.status]}</span>`;
+      <span class="co">${esc(p.concepts.join(", "))}</span><span class="rt" title="${esc(tip)}">${esc(side)}</span><span class="pill ${p.status}">${STATUS[p.status]}</span>`;
     r.onclick = () => openProblem(p.id);
     r.onkeydown = e => { if (e.key === "Enter") openProblem(p.id); };
     list.append(r);
@@ -215,11 +242,12 @@ function openCodeAsk() {
       <button class="chip" data-q="이 부분에서 틀릴 만한 곳이 있을까?">틀릴 만한 곳?</button></div>
     <form class="codeq"><input placeholder="이 코드에서 궁금한 것" aria-label="고른 코드에 대한 질문"><button class="chip pri">묻기</button></form>`;
   placeBubble(p.end, el);
+  el._askSel = {start: p.start, end: p.end, text: p.text};  // 이어서 물을 때도 같은 코드에 대해 묻는다
   const send = q => {
     addLog("me", "나", `${where}: ${q}`);
     const wait = askThinking();
-    el.querySelector(".quick").remove(); el.querySelector("form").replaceWith(wait);
-    API.ask(q, S.editor.getValue(), {start: p.start, end: p.end, text: p.text}, wait.dataset.rid);
+    el.querySelector(".quick").remove(); el.querySelector("form").replaceWith(askLine(q), wait);
+    API.ask(q, S.editor.getValue(), el._askSel, wait.dataset.rid, []);
   };
   el.querySelectorAll(".quick [data-q]").forEach(b => b.onclick = () => send(b.dataset.q));
   el.querySelector("form").onsubmit = e => { e.preventDefault(); const v = e.target.querySelector("input").value.trim(); send(v || "이 코드가 하는 일을 쉬운 말로 설명해 줘"); };
@@ -381,7 +409,7 @@ $("#edwrap").addEventListener("click", async e => {
   }
   if (act === "rate") { API.rate(t.dataset.id, t.dataset.r); t.textContent += " ✓"; }
   if (act === "ask") {
-    if (S.bubble.querySelector(".ask")) return;
+    if (S.bubble.querySelector(".ask")) return S.bubble.querySelector(".ask input")?.focus();
     const f = h("form", "ask", `<input placeholder="길이가 같은 구간은 어떻게 다뤄야 해?" aria-label="코치에게 물을 말"><button class="chip pri">묻기</button>`);
     S.bubble.append(f); f.querySelector("input").focus();
   }
@@ -392,9 +420,11 @@ $("#edwrap").addEventListener("submit", async e => {
   if (f.classList.contains("ask")) {
     if (!v) { input.focus(); return; }
     addLog("me", "나", v);
-    const wait = askThinking();
-    f.replaceWith(wait);
-    API.ask(v, S.editor.getValue(), null, wait.dataset.rid);
+    // 같은 말풍선에서 앞서 나눈 말을 함께 보낸다. 코치가 먼저 한 말이 있으면 그것부터
+    const host = f.closest(".bubble"), wait = askThinking();
+    if (host && !host._thread) { const said = host.querySelector(".msgtext")?.textContent.trim(); host._thread = said ? [{q: "", a: said}] : []; }
+    f.replaceWith(askLine(v), wait);
+    API.ask(v, S.editor.getValue(), host?._askSel || null, wait.dataset.rid, host?._thread || []);
   } else if (f.classList.contains("memo")) {
     if (!v) { input.focus(); return; }
     await API.note(f.dataset.id, v);
@@ -670,9 +700,20 @@ handlers.answer = d => {
   const t = d.rid ? $(`[data-rid="${d.rid}"]`) : S.bubble?.querySelector(".live") || S.bubble?.querySelector(".thinking");
   let host = t?.closest(".bubble");
   if (t) { t.className = ""; t.textContent = d.message; }  // 흘려 쓰던 점(.live)도 같이 사라진다
-  else { const el = h("div", "bubble"); el.innerHTML = bubbleHead("코치", "질문에 답") + `<div>${esc(d.message)}</div>`; placeBubble(S.lastDiag?.line, el); host = S.bubble; }
-  if (host && ["example", "template", "answer"].includes(d.kind)) answerExtras(host, d);
+  else { const el = h("div", "bubble"); el.innerHTML = bubbleHead("코치", "질문에 답") + askLine(d.q).outerHTML + `<div>${esc(d.message)}</div>`; placeBubble(S.lastDiag?.line, el); host = S.bubble; }
+  if (!host) return;
+  (host._thread ||= []).push({q: d.q, a: d.message});
+  addFollowUp(host);
+  if (["example", "template", "answer"].includes(d.kind)) answerExtras(host, d);
 };
+// 묻기 말풍선의 질문 줄 (이어서 묻기를 하면 질문과 답이 차례로 쌓인다)
+const askLine = q => h("div", "fq", esc(q || ""));
+// 답 뒤에 이어서 묻기: 같은 말풍선에서 다음 질문을 하면 앞서 나눈 말(host._thread)을 코치가 함께 본다.
+// 편집기에서 타이핑 중일 수 있으므로 초점은 옮기지 않는다
+function addFollowUp(host) {
+  if (!document.contains(host) || host.querySelector("form.ask")) return;
+  host.append(h("form", "ask follow", `<input placeholder="이어서 묻기" aria-label="이어서 묻기"><button class="chip pri">묻기</button>`));
+}
 // 예제 코드: ① 문법·디버깅 예제는 실행 결과와 함께 바로, ③ 알고리즘 틀은 접어서(펼치면 힌트 1개), ④ 정답 요청은 힌트 사다리로
 async function answerExtras(el, d) {
   const box = h("div", "exbox");
@@ -690,7 +731,8 @@ async function answerExtras(el, d) {
     box.innerHTML = `<div class="exrow">${S.hints < FIN - 1 ? `<button class="chip pri" data-act="hint">힌트 ${S.hints + 1}단계 열기</button>` : ""}
       <button class="chip ghost" data-act="solution">풀이 보기 · 기록에 남음</button></div>`;
   }
-  el.append(box);
+  const follow = el.querySelector("form.follow");  // 이어서 묻기 칸은 늘 맨 아래에
+  follow ? el.insertBefore(box, follow) : el.append(box);
 }
 // 코치가 실패하면 기다리던 점을 알림으로 바꾼다 (예전에는 기록에만 남고 말풍선의 점은 끝없이 돌았다)
 const COACH_FAIL = "코치가 답하지 못했어요. 다시 실행하거나 다시 물어봐 주세요.";
@@ -897,7 +939,7 @@ S.list = "problems"; S.concepts = [];
 $$("#homeSeg button").forEach(b => b.onclick = async () => {
   S.list = b.dataset.list; $$("#homeSeg button").forEach(x => x.setAttribute("aria-pressed", x === b));
   $("#plist").hidden = S.list !== "problems"; $("#clist").hidden = S.list !== "concepts"; $("#lvSeg").hidden = S.list !== "problems";
-  $("#search").hidden = S.list !== "problems";
+  $("#search").hidden = S.list !== "problems"; $("#sortSel").hidden = S.list !== "problems";
   if (S.list === "concepts") await renderRoadmap();
 });
 // 블로그 로드맵처럼: 단원마다 읽기 전에 · 개념 표 · 떠올려 보기, 끝에 흐름 그림. 문제 옆에는 내 풀이 상태 점
@@ -1180,7 +1222,9 @@ function placeNote(host, note, fresh = false) {
   }
   const box = h("div", "qa-note" + (fresh ? "" : " folded"));
   box.dataset.note = note.id;
-  box.innerHTML = `<div class="qh"><span class="q">${esc(note.question)}</span><button class="qx" title="이 기록 지우기">지우기</button></div><div class="qa">${esc(note.answer)}</div>`;
+  box.innerHTML = `<div class="qh"><span class="q">${esc(note.question)}</span><button class="qx" title="이 기록 지우기">지우기</button></div><div class="qa">${esc(note.answer)}</div>` +
+    (note.followups || []).map(f => `<div class="fq">${esc(f.question)}</div><div class="qa2">${esc(f.answer)}</div>`).join("");
+  if (!fresh) noteFollowForm(box);
   // 기록 상자는 고른 글이 있는 문단 바로 아래에 둔다
   const anchor = last, inHost = e => e && host.contains(e) && e !== host;
   const codeBlock = anchor.closest("pre");
@@ -1245,20 +1289,43 @@ document.addEventListener("click", async e => {
     if (box) { box.classList.remove("folded"); box.scrollIntoView({block: "nearest", behavior: "smooth"}); box.classList.add("flash"); setTimeout(() => box.classList.remove("flash"), 900); }
   }
 });
+// 기록 상자 아래 '이어서 묻기'. 앞서 나눈 말은 서버가 기록에서 꺼내 함께 보내고, 답은 그 기록 뒤에 붙는다
+function noteFollowForm(box) {
+  if (box.querySelector("form.dfollow") || String(box.dataset.note).startsWith("tmp")) return;
+  const f = h("form", "dfollow", `<input placeholder="이어서 묻기" aria-label="이어서 묻기"><button class="chip pri">묻기</button>`);
+  f.onsubmit = e => {
+    e.preventDefault();
+    const q = f.querySelector("input").value.trim(); if (!q) return f.querySelector("input").focus();
+    const host = box.closest(".dpanel, #lDoc"), mark = $(`mark.qa-mark[data-note="${box.dataset.note}"]`, host);
+    // 그 문단의 글(기록 상자는 빼고)을 다시 모아 함께 보낸다
+    const blk = (mark || box).closest("p, li, td, .cbody, pre, h2, h3") || host;
+    const clone = blk.cloneNode(true); clone.querySelectorAll(".qa-note").forEach(x => x.remove());
+    const id = ++askSeq, wait = h("div", "qa2 thinking", waiting("코치가 생각하고 있습니다"));
+    wait.dataset.frid = id;
+    f.replaceWith(h("div", "fq", esc(q)), wait);
+    API.ask_doc(id, mark ? mark.textContent : "", clone.textContent.slice(0, 1500), docKeyOf(host), q, "",
+                S.editor && !$("#solve").hidden ? S.editor.getValue() : "", box.dataset.note);
+  };
+  box.append(f);
+}
 handlers.doc_stream = d => {
-  const box = $(`.qa-note[data-rid="${d.id}"]`); if (!box) return;
-  const qa = box.querySelector(".qa");
+  const fu = $(`[data-frid="${d.id}"]`);  // 이어서 물은 답
+  const box = fu ? null : $(`.qa-note[data-rid="${d.id}"]`); if (!fu && !box) return;
+  const qa = fu || box.querySelector(".qa");
   if (qa.classList.contains("thinking")) { qa.classList.remove("thinking"); qa.textContent = ""; qa.classList.add("live"); }
   qa.textContent += d.text;
 };
 handlers.doc_answer = d => {
+  const fu = $(`[data-frid="${d.id}"]`);
+  if (fu) { fu.classList.remove("thinking", "live"); fu.textContent = d.message; noteFollowForm(fu.closest(".qa-note")); return; }
   const box = $(`.qa-note[data-rid="${d.id}"]`); if (!box) return;
   const qa = box.querySelector(".qa");
   qa.classList.remove("thinking", "live"); qa.textContent = d.message;
-  if (d.note) {  // 기록 번호로 바꿔 단다 (지우기·다시 열기에 쓴다)
+  if (d.note) {  // 기록 번호로 바꿔 단다 (지우기·다시 열기·이어서 묻기에 쓴다)
     const old = box.dataset.note;
     box.dataset.note = d.note;
     $$(`mark.qa-mark[data-note="${old}"]`).forEach(m => m.dataset.note = d.note);
+    noteFollowForm(box);
   }
 };
 
