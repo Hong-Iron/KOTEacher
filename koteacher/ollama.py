@@ -4,9 +4,15 @@
 """
 import json
 import os
+import shutil
+import subprocess
+import sys
+import tempfile
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
+from pathlib import Path
 
 from . import config
 
@@ -175,6 +181,77 @@ def pull(model, on_progress):
                 if d.get("error"):
                     raise RuntimeError(d["error"])
                 on_progress(d.get("status", ""), d.get("completed") or 0, d.get("total") or 0, d.get("digest"))
+
+
+# ---------------------------------------------------------------- 처음 실행: Ollama 찾기·켜기·설치
+OLLAMA_ZIP = "https://ollama.com/download/Ollama-darwin.zip"  # install.sh와 같은 곳
+
+
+def _host():
+    u = urllib.parse.urlparse(config.OLLAMA)
+    return u.hostname, u.port or 11434
+
+
+def find():
+    """설치된 Ollama. ('app', 앱 경로) 또는 ('cli', 실행 파일), 없으면 None.
+    Finder에서 연 앱은 PATH가 짧아 Homebrew가 까는 곳을 직접 찾는다."""
+    if sys.platform == "darwin":
+        for p in (Path("/Applications/Ollama.app"), Path.home() / "Applications/Ollama.app"):
+            if p.exists():
+                return "app", p
+    if os.name == "nt":
+        p = Path(os.environ.get("LOCALAPPDATA", "")) / "Programs" / "Ollama" / "ollama app.exe"
+        if p.exists():
+            return "app", p
+    for p in (shutil.which("ollama"), "/opt/homebrew/bin/ollama", "/usr/local/bin/ollama"):
+        if p and Path(p).exists():
+            return "cli", Path(p)
+    return None
+
+
+def start(wait=30):
+    """설치돼 있는데 꺼져 있으면 켜고, 서버가 뜰 때까지 기다린다. 떴으면 True.
+    다른 컴퓨터의 Ollama(KOTEACHER_OLLAMA)를 쓰는 중이면 켜지 않는다."""
+    host, port = _host()
+    found = find()
+    if host not in ("127.0.0.1", "localhost") or not found:
+        return False
+    kind, path = found
+    if kind == "app" and port == 11434:  # 앱은 기본 포트로만 뜬다
+        if sys.platform == "darwin":
+            subprocess.Popen(["open", "-g", "-a", str(path)])
+        else:
+            subprocess.Popen([str(path)], creationflags=getattr(subprocess, "DETACHED_PROCESS", 0))
+    else:
+        cli = path if kind == "cli" else (path / "Contents/Resources/ollama" if sys.platform == "darwin" else path.with_name("ollama.exe"))
+        kw = {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)} if os.name == "nt" else {"start_new_session": True}
+        subprocess.Popen([str(cli), "serve"], env={**os.environ, "OLLAMA_HOST": f"{host}:{port}"},
+                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **kw)
+    for _ in range(int(wait * 2)):
+        if local_status()["server"]:
+            return True
+        time.sleep(0.5)
+    return False
+
+
+def install_mac(on_progress, dest=None):
+    """맥: Ollama 앱을 받아 Applications에 푼다(install.sh와 같은 방법). 푼 앱 경로를 돌려준다.
+    urllib로 받은 파일에는 '인터넷에서 받음' 표시가 붙지 않으므로 Gatekeeper 경고가 뜨지 않는다."""
+    if dest is None:
+        dest = Path("/Applications") if os.access("/Applications", os.W_OK) else Path.home() / "Applications"
+    dest = Path(dest)
+    dest.mkdir(parents=True, exist_ok=True)
+    zf = Path(tempfile.mkdtemp()) / "Ollama.zip"
+    req = urllib.request.Request(OLLAMA_ZIP, headers={"User-Agent": "KOTEacher"})
+    with urllib.request.urlopen(req, timeout=60, context=config.ssl_context()) as r, open(zf, "wb") as f:
+        total, done = int(r.headers.get("Content-Length") or 0), 0
+        while chunk := r.read(1 << 20):
+            f.write(chunk)
+            done += len(chunk)
+            on_progress("pulling ollama-app", done, total, "ollama-app")
+    subprocess.run(["ditto", "-x", "-k", str(zf), str(dest)], check=True)
+    zf.unlink()
+    return dest / "Ollama.app"
 
 
 def source(model):

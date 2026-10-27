@@ -5,6 +5,7 @@
   --coach:#9a5f06; --coach-bg:#fbf0d9; --coach-line:#ebcf93; --coach-dot:#d99a1e;
   --ok:#2e7d4a; --ok-bg:#e2f2e7; --bad:#b93a27; --bad-bg:#fbe6e2;
   --ed-bg:#fbfbfd;
+  --heat0:#e6e9ef; --heat1:#c3e3cc; --heat2:#86c79a; --heat3:#4a9e66; --heat4:#2e7d4a;
   --f-ui:-apple-system,"Apple SD Gothic Neo","Malgun Gothic","맑은 고딕","Noto Sans KR",system-ui,sans-serif;
   --f-mono:"SF Mono",Menlo,Consolas,"D2Coding",ui-monospace,monospace;
   color-scheme:light;
@@ -15,6 +16,7 @@
   --coach:#f0b54e; --coach-bg:#2a2214; --coach-line:#5a4420; --coach-dot:#f0b54e;
   --ok:#66c486; --ok-bg:#16301f; --bad:#f2856f; --bad-bg:#371c17;
   --ed-bg:#13161c;
+  --heat0:#20252f; --heat1:#1d4529; --heat2:#2b6a3f; --heat3:#3f9558; --heat4:#66c486;
   color-scheme:dark;
 }}
 *{box-sizing:border-box}
@@ -437,3 +439,39 @@ mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);co
 .exbox .exrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .exbox .extag{font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 8px;background:var(--panel)}
 .exbox .exfold{border:1px dashed var(--coach-line);border-radius:8px;padding:8px 10px;font-size:12.5px;color:var(--muted)}
+
+/* 프로필: 꾸준함(잔디). 칸 색은 그날 코드를 실행한 문제 수 */
+.prof{overflow:auto;padding:18px 16px 40px}
+.prof .wrap{max-width:980px;margin:0 auto;display:grid;gap:14px}
+.prof .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.prof .card h2{font-size:15px;margin:0 0 10px}
+.prof .who{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.prof .who input{font-size:20px;font-weight:700;border:1px solid transparent;border-radius:8px;padding:2px 6px;margin-left:-7px;background:none;min-width:0;width:16em;max-width:100%}
+.prof .who input:hover{border-color:var(--line)} .prof .who input:focus{border-color:var(--accent);outline:none;background:var(--ed-bg)}
+.prof .who .since{color:var(--muted);font-size:13px}
+.prof .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.prof .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.prof .stat b{display:block;font-size:24px;line-height:1.2;font-variant-numeric:tabular-nums}
+.prof .stat span{font-size:12.5px;color:var(--muted)}
+.prof .stat.now b{color:var(--ok)}
+.heat{overflow-x:auto;padding-bottom:4px}
+.heat .grid{display:grid;grid-template-columns:28px repeat(53,12px);grid-template-rows:16px repeat(7,12px);gap:3px;width:max-content}
+.heat .mon{font-size:11px;color:var(--faint);grid-row:1;white-space:nowrap}
+.heat .wd{font-size:10.5px;color:var(--faint);grid-column:1;line-height:12px}
+.heat .c{width:12px;height:12px;border-radius:2px;background:var(--heat0);border:0;padding:0;cursor:pointer}
+.heat .c.l1{background:var(--heat1)} .heat .c.l2{background:var(--heat2)} .heat .c.l3{background:var(--heat3)} .heat .c.l4{background:var(--heat4)}
+.heat .c.future{visibility:hidden}
+.heat .c[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
+.heat .legend{display:flex;align-items:center;gap:3px;justify-content:flex-end;font-size:11.5px;color:var(--faint);margin-top:8px}
+.heat .legend i{width:12px;height:12px;border-radius:2px;display:inline-block}
+.heat .legend span{margin:0 4px}
+.prof .day h3{font-size:13.5px;margin:14px 0 6px;color:var(--muted);font-weight:600}
+.prof .dayrow{display:grid;grid-template-columns:38px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 4px;border-top:1px solid var(--line);cursor:pointer}
+.prof .dayrow:hover{background:var(--sunk)}
+.prof .dayrow .lv{font-size:12px;color:var(--faint)} .prof .dayrow .r{font-size:12px;color:var(--muted)}
+.prof .lvrow{display:grid;grid-template-columns:38px minmax(0,1fr) 92px;gap:10px;align-items:center;margin:6px 0;font-size:12.5px}
+.prof .lvbar{height:10px;background:var(--sunk);border-radius:5px;overflow:hidden;display:flex}
+.prof .lvbar i{display:block;height:100%} .prof .lvbar .s{background:var(--ok)} .prof .lvbar .h{background:var(--coach-dot)}
+.prof .lvrow .n{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.prof .key{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:8px}
+.prof .key i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}

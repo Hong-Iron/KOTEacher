@@ -20,6 +20,7 @@
     <span class="aistat" id="aiStat"><span class="dot"></span>코치 확인 중</span>
     <button class="btn" id="openHist">풀이 기록</button>
     <button class="btn" id="openBook">오답 노트 <span class="cnt coach" id="bookCnt">0</span></button>
+    <button class="btn" id="openProfile" title="날마다 푼 기록과 연속 일수">프로필 <span class="cnt" id="streakCnt" hidden></span></button>
   </header>
   <div class="home">
     <div class="home-inner">
@@ -123,6 +124,16 @@
       <p class="note">문제를 열면 이 개념 문서가 왼쪽 문서 창에 탭으로 함께 열립니다.</p>
     </aside>
   </div>
+</section>
+
+<!-- 프로필: 날마다 푼 기록(잔디)과 연속 일수 -->
+<section class="view" id="profile" hidden>
+  <header class="top">
+    <button class="btn" id="profBack">← 목록</button>
+    <span class="brand">프로필</span>
+    <span class="sp"></span>
+  </header>
+  <div class="prof" id="profBody"></div>
 </section>
 
 <!-- 풀이 기록 -->

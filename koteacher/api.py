@@ -12,6 +12,23 @@ def template_code(params):
     return f"def solution({', '.join(params)}):\n    answer = 0\n    return answer\n"
 
 
+def streaks(days, today=None):
+    """활동한 날짜들('YYYY-MM-DD') → (지금 연속 일수, 가장 긴 연속 일수).
+    오늘 아직 풀지 않았으면 어제까지 이어진 연속을 지금 연속으로 본다(GitHub 잔디와 같은 셈)."""
+    import datetime as dt
+    ds = sorted({dt.date.fromisoformat(d) for d in days})
+    longest = run = 0
+    for i, d in enumerate(ds):
+        run = run + 1 if i and (d - ds[i - 1]).days == 1 else 1
+        longest = max(longest, run)
+    have, today = set(ds), today or dt.date.today()
+    d = today if today in have else today - dt.timedelta(days=1)
+    cur = 0
+    while d in have:
+        cur, d = cur + 1, d - dt.timedelta(days=1)
+    return cur, longest
+
+
 class Session:
     def __init__(self, pid, aid):
         self.pid, self.aid = pid, aid
@@ -37,6 +54,7 @@ class Api:
         self.s = None
         self.mode = "normal"
         self.lock = threading.Lock()
+        self.pulling = False  # 모델을 받는 중인가 (한 번에 하나만 받는다)
 
     # ------------------------------------------------------------ 화면으로 보내기
     def _push(self, event, data):
@@ -51,7 +69,13 @@ class Api:
         from . import config
         return {"problems": items, "ai": ollama.status(), "mode": self.mode, "exam": bool(config.settings().get("exam")),
                 "exam_minutes": int(config.settings().get("exam_minutes") or 0),
-                "mistakes": len(self.store.mistakes(limit=10000))}
+                "mistakes": len(self.store.mistakes(limit=10000)), "streak": self._streak_now()}
+
+    def _streak_now(self):
+        """홈의 프로필 버튼에 붙이는 연속 일수와, 오늘 이미 풀었는지."""
+        import datetime as dt
+        act = self.store.activity(time.time() - 400 * 86400)
+        return {"days": streaks(act)[0], "today": dt.date.today().isoformat() in act}
 
     def open(self, pid, code_override=None, fresh=False, carry=None):
         """fresh=True면 지난 코드 없이 빈 틀로 연다 (오답 다시 풀기).
@@ -102,6 +126,43 @@ class Api:
             out.append(r | {"title": p.get("title", r["problem_id"]), "level": p.get("level"), "res": res,
                             "minutes": round(((r["ended"] or r["last_t"]) - r["started"]) / 60, 1)})
         return out
+
+    # ------------------------------------------------------------ 프로필 (꾸준함)
+    def profile(self):
+        """프로필: 이름, 지난 1년 날마다 활동(잔디), 연속 일수, 통과 수, 레벨별 진도."""
+        import datetime as dt
+        from . import config
+        act = self.store.activity()
+        since = (dt.date.today() - dt.timedelta(days=371)).isoformat()  # 53주
+        cur, longest = streaks(act)
+        st = self.store.problem_status()
+        probs = vault.problems()
+        levels = {}
+        for p in probs:
+            lv = levels.setdefault(p["level"], {"level": p["level"], "total": 0, "solved": 0, "helped": 0})
+            lv["total"] += 1
+            if st.get(p["id"]) in ("solved", "helped"):
+                lv[st[p["id"]]] += 1
+        return {"name": config.settings().get("profile_name") or "", "days": {d: v for d, v in act.items() if d >= since},
+                "first": min(act) if act else None, "active_days": len(act), "runs": sum(v["runs"] for v in act.values()),
+                "streak": cur, "longest": longest, "today": dt.date.today().isoformat(),
+                "solved": sum(v == "solved" for v in st.values()), "helped": sum(v == "helped" for v in st.values()),
+                "exam": len(self.store.exam_passes()), "total": len(probs),
+                "levels": sorted(levels.values(), key=lambda x: x["level"])}
+
+    def profile_day(self, day):
+        """그날 실행한 문제들 (잔디 한 칸을 누르면 보인다)."""
+        titles = {p["id"]: p for p in vault.problems()}
+        st = self.store.problem_status()
+        return [r | {"title": titles.get(r["problem_id"], {}).get("title", r["problem_id"]),
+                     "level": titles.get(r["problem_id"], {}).get("level"), "status": st.get(r["problem_id"], "tried")}
+                for r in self.store.day_detail(day)]
+
+    def set_profile_name(self, name):
+        from . import config
+        name = (name or "").strip()[:30]
+        config.save_settings(profile_name=name)
+        return name
 
     def attempt(self, aid):
         d = self.store.attempt_detail(int(aid))
@@ -167,9 +228,11 @@ class Api:
     def setup_info(self):
         st = ollama.status()
         from . import config
+        import sys
         return {**st, "recommend": ollama.recommend(), "download": "https://ollama.com/download",
                 "pull": {k: v["models"][0] for k, v in config.CHOICES.items()},  # 선택마다 받을 모델
-                "local": ollama.local_status() if st.get("external") else None}
+                "local": ollama.local_status() if st.get("external") else None,
+                "pulling": self.pulling, "found": bool(ollama.find()), "mac": sys.platform == "darwin"}
 
     def set_coach_model(self, choice):
         """'auto' | 'accurate' | 'fast' | 'custom'. 바꾸면 지금 모델을 내리고 새 모델을 뒤에서 올린다."""
@@ -268,6 +331,9 @@ class Api:
         """모델을 받는다. 진행은 'pull' 이벤트로(받은 양·속도·남은 시간·받는 곳), 끝나면 'pull_done'.
         GitHub 패키지 모델은 끊기면 config.PULL_TRIES번까지 다시 받고, 그래도 안 되면 Ollama 저장소의 원래 판을 받는다."""
         import koteacher.config as cfg
+        if self.pulling:  # 처음 실행의 자동 받기와 버튼이 겹쳐도 한 번만 받는다
+            return False
+        self.pulling = True
 
         def get(name):
             rate, last, src = ollama.Rate(), [0.0], ollama.source(name)
@@ -305,11 +371,53 @@ class Api:
                 st = ollama.status()
                 if st["model"]:
                     ollama.load()
+                self.pulling = False
                 self._push("pull_done", {"ok": True, "status": ollama.status()})
             except Exception as e:
+                self.pulling = False
                 self._push("pull_done", {"ok": False, "error": str(e)[:200]})
         threading.Thread(target=work, daemon=True).start()
         return True
+
+    def prepare_coach(self, install=False):
+        """처음 실행: 코치를 바로 쓸 수 있게 한다. Ollama가 꺼져 있으면 켜고, 없으면 install=True일 때(맥) 설치부터 한다.
+        서버가 뜨면 추천 모델(e4b)을 받기 시작한다. 단계는 'prep' 이벤트, 받기는 'pull'·'pull_done' 이벤트로 알린다.
+        돌려주는 state: ready(이미 됨) | external(외부 API) | need_install(설치가 필요하고 install=False) | working."""
+        import sys
+        if ollama.external():
+            return {"state": "external"}
+        st = ollama.local_status()
+        if st["server"] and st["model"]:
+            return {"state": "ready"}
+        found = ollama.find()
+        if not st["server"] and not found and not (install and sys.platform == "darwin"):
+            return {"state": "need_install", "can_install": sys.platform == "darwin"}
+        if self.pulling:
+            return {"state": "working"}
+
+        def work():
+            try:
+                if not ollama.local_status()["server"]:
+                    if not ollama.find():
+                        self._push("prep", {"stage": "install", "text": "Ollama를 받아 설치하는 중"})
+                        rate = ollama.Rate()
+
+                        def prog(status, done, total, digest):
+                            self._push("pull", {"status": status, "source": "ollama.com", **rate.add(done, total, digest, time.time())})
+                        ollama.install_mac(prog)
+                    self._push("prep", {"stage": "start", "text": "Ollama를 켜는 중"})
+                    if not ollama.start():
+                        self._push("prep", {"stage": "error", "text": "Ollama를 켜지 못했습니다. Ollama를 직접 실행한 뒤 '다시 확인'을 눌러 주세요."})
+                        return
+                self._push("prep", {"stage": "pull", "text": "코치 모델을 받는 중", "status": ollama.local_status()})
+                if ollama.local_status()["model"]:
+                    self._push("pull_done", {"ok": True, "status": ollama.status()})
+                else:
+                    self.pull_model(ollama.recommend()["model"])
+            except Exception as e:
+                self._push("prep", {"stage": "error", "text": f"준비하지 못했습니다: {str(e)[:160]}"})
+        threading.Thread(target=work, daemon=True).start()
+        return {"state": "working"}
 
     # ------------------------------------------------------------ 힌트
     def hint(self, step):

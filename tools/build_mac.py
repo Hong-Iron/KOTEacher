@@ -105,8 +105,9 @@ def main():
         "3. '확인되지 않은 개발자' 경고가 뜨면: '완료'를 누른 뒤\n"
         "   시스템 설정 → 개인정보 보호 및 보안 → 맨 아래 KOTEacher 옆 '그래도 열기'를 누르면 됩니다.\n"
         "   (macOS 15부터는 오른쪽 클릭 → 열기로는 넘어가지 않습니다. 2번의 터미널 한 줄로도 됩니다.)\n"
-        "4. 앱이 코치(AI) 준비를 안내합니다: Ollama 설치(ollama.com/download) → 앱 안에서 모델 받기.\n"
-        "   AI 없이도 문제 풀기, 테스트, 반례 찾기, 개념 문서는 바로 쓸 수 있습니다.\n", encoding="utf-8")
+        "4. 앱을 열면 코치(AI) 준비 창이 뜨고, 코치 모델(5.2GB)을 바로 받기 시작합니다.\n"
+        "   Ollama가 꺼져 있으면 켜고, 없으면 창의 'Ollama 설치하고 모델 받기' 버튼 하나로 설치까지 합니다.\n"
+        "   받는 동안에도 문제 풀기, 테스트, 반례 찾기, 개념 문서는 바로 쓸 수 있습니다.\n", encoding="utf-8")
     if dmg.exists():
         dmg.unlink()
     run(["hdiutil", "create", "-volname", "KOTEacher", "-srcfolder", str(dmgsrc), "-ov", "-format", "UDZO", str(dmg)])

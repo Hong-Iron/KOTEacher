@@ -75,12 +75,16 @@ function setAi(st) {
     el.innerHTML = `<span class="dot ${dot}"></span><span class="t">${esc(txt)}</span>`;
     el.title = st.name ? `코치 모델: ${st.name}` : "";
   }
+  if (!st.model && !st.external) showPullInBar();  // 받는 중이면 상태 확인이 덮어쓰지 않게
 }
 async function boot() {
   const b = await API.boot();
   S.problems = b.problems; S.mode = b.mode; S.examMin = b.exam_minutes || 0; $("#examTime").value = String(S.examMin); setExam(!!b.exam, false);
   renderRecs();
   $("#bookCnt").textContent = b.mistakes;
+  // 프로필 버튼의 연속 일수: 오늘 이미 풀었으면 초록, 아직이면 회색(오늘 풀어야 이어진다)
+  const sc = $("#streakCnt"); sc.hidden = !b.streak?.days;
+  if (b.streak?.days) { sc.textContent = `${b.streak.days}일`; sc.className = "cnt" + (b.streak.today ? " ok" : ""); sc.title = b.streak.today ? "오늘도 풀었습니다" : "오늘 풀면 연속이 이어집니다"; }
   setAi(b.ai);
   renderList();
   // 불러오는 동안은 자주, 준비되면 가끔 확인한다
@@ -95,7 +99,7 @@ $$("#lvSeg button").forEach(b => b.onclick = () => {
 });
 $("#search").oninput = e => { S.q = e.target.value; renderList(); };
 
-function show(id) { for (const v of ["home", "solve", "book", "learn", "history"]) $("#" + v).hidden = v !== id; if (id === "solve") S.editor?.layout(); hideAsk(); }
+function show(id) { for (const v of ["home", "solve", "book", "learn", "history", "profile"]) $("#" + v).hidden = v !== id; if (id === "solve") S.editor?.layout(); hideAsk(); }
 
 /* ---------------- Monaco ---------------- */
 let monacoReady;
@@ -1310,6 +1314,14 @@ function flashTerm(host, term) {
 
 
 /* ---------------- 코치(AI) 준비 안내 ---------------- */
+// 처음 실행: 코치 모델이 없으면 팝업을 띄우고 바로 받기 시작한다. Ollama가 꺼져 있으면 켜고 받는다.
+// Ollama가 아예 없으면 팝업만 띄운다(맥은 버튼 하나로 설치까지). '나중에'를 누른 적이 있으면 이때만 띄우지 않는다
+async function autoSetup() {
+  const r = await API.prepare_coach(false);
+  if (r.state === "ready" || r.state === "external") return;
+  if (r.state === "need_install") return openSetup(false, "local");
+  await openSetup(true, "local");
+}
 async function openSetup(force, tab) {
   const info = await API.setup_info();
   if (!force && info.server && info.model) return;
@@ -1327,15 +1339,24 @@ function setupLocal(outer, seg) {
   // 외부 API를 쓰는 중이면 내 컴퓨터 Ollama의 상태(local)를 보여 준다
   const local = !outer.external, info = local ? outer : {...outer.local, recommend: outer.recommend, download: outer.download, pull: outer.pull};
   const r = info.recommend, installed = info.installed || [];
+  const up = installed.length || (info.server && local);
+  const busy = S.prep && ["install", "start"].includes(S.prep.stage);  // Ollama를 설치하거나 켜는 중
+  const bar = show => `<div class="bar" id="pullBar" ${show ? "" : "hidden"}><i style="width:${show && S.pull ? S.pull.pct : 0}%"></i></div><span class="d" id="pullText">${show && S.pull ? esc(S.pull.text) : ""}</span>`;
+  const ollamaText = up ? "켜져 있습니다."
+    : busy ? esc(S.prep.text)
+    : S.prep?.stage === "error" ? esc(S.prep.text)
+    : outer.found ? "설치되어 있지만 꺼져 있습니다. 아래 버튼을 누르면 켜고 모델을 받습니다."
+    : outer.mac ? `이 컴퓨터에 Ollama가 없습니다. 아래 버튼을 누르면 ollama.com에서 받아 응용 프로그램 폴더에 설치합니다. 직접 설치하려면 <a href="${info.download}" target="_blank" rel="noopener">ollama.com/download</a>에서 받습니다.`
+    : `<a href="${info.download}" target="_blank" rel="noopener">ollama.com/download</a>에서 받아 설치하고 실행해 주세요. 작업 표시줄에 라마 아이콘이 뜨면 됩니다.`;
   $("#setupBody").innerHTML = `
     <h2>코치(AI)를 준비해요</h2>${seg}
     <p>문제 풀기, 테스트, 반례 찾기는 지금도 쓸 수 있습니다. 코치의 말과 문서 질문에는 AI가 필요합니다. 내 컴퓨터에서 도는 AI(Ollama)를 쓰면 코드와 질문을 인터넷으로 보내지 않습니다.</p>
     <div class="steps">
-      <div class="step ${info.server && local || installed.length ? "done" : ""}"><span class="n">${installed.length ? "✓" : "1"}</span><b>Ollama 설치</b>
-        <span class="d">${installed.length || (info.server && local) ? "켜져 있습니다." : `<a href="${info.download}" target="_blank" rel="noopener">ollama.com/download</a>에서 받아 설치하고 실행해 주세요. 메뉴 막대에 라마 아이콘이 뜨면 됩니다.`}</span></div>
+      <div class="step ${up ? "done" : ""}"><span class="n">${up ? "✓" : "1"}</span><b>Ollama 설치</b>
+        <span class="d">${ollamaText}</span>${busy && S.prep.stage === "install" ? bar(true) : ""}</div>
       <div class="step ${local && info.model ? "done" : ""}" id="stepModel"><span class="n">${local && info.model ? "✓" : "2"}</span><b>코치 모델 받기</b>
         <span class="d">${local && info.model ? `${esc(modelLabel(info.name))}이(가) 준비되어 있습니다.` : `이 컴퓨터 메모리 ${r.ram}GB → <code>${esc(r.model)}</code> (${r.size}) 를 추천합니다. 한 번만 받으면 됩니다.`}</span>
-        <div class="bar" id="pullBar" hidden><i></i></div><span class="d" id="pullText"></span></div>
+        ${busy && S.prep.stage === "install" ? "" : bar(outer.pulling)}</div>
     </div>
     ${installed.length || (info.server && local) ? `<h3 class="ch">코치 모델</h3><div class="choices" id="modelChoices">
       ${[["auto", "자동 (추천)", "속도 우선(gemma4 e4b)을 씁니다"],
@@ -1350,11 +1371,15 @@ function setupLocal(outer, seg) {
         <datalist id="olList">${installed.map(n => `<option value="${esc(n)}">`).join("")}</datalist><button class="btn" id="olUse">이 모델 쓰기</button></div></div>
     </div>` : ""}
     <div class="acts">
-      <button class="btn" id="setupLater">나중에</button>
-      ${!installed.length && !(info.server && local) ? `<button class="btn" id="setupRetry">다시 확인</button>` : ""}
-      ${local && info.server && !info.model ? `<button class="run" id="setupPull">모델 받기 (${r.size})</button>` : ""}
+      <button class="btn" id="setupLater">${outer.pulling || busy ? "닫기 · 받기는 계속됩니다" : "나중에"}</button>
+      ${!up && !busy ? `<button class="btn" id="setupRetry">다시 확인</button>` : ""}
+      ${local && !up && !busy && !outer.found && outer.mac ? `<button class="run" id="setupInstall">Ollama 설치하고 모델 받기</button>` : ""}
+      ${local && !up && !busy && outer.found ? `<button class="run" id="setupStart">Ollama 켜고 모델 받기</button>` : ""}
+      ${local && info.server && !info.model ? `<button class="run" id="setupPull" ${outer.pulling ? "disabled" : ""}>${outer.pulling ? waiting("받고 있습니다") : `모델 받기 (${r.size})`}</button>` : ""}
       ${local && info.server && info.model ? `<button class="run" id="setupOk">시작하기</button>` : ""}
     </div>`;
+  $("#setupInstall") && ($("#setupInstall").onclick = async () => { await API.prepare_coach(true); });
+  $("#setupStart") && ($("#setupStart").onclick = async () => { await API.prepare_coach(false); });
   $$("#modelChoices .choice[data-choice]").forEach(b => b.onclick = async () => {
     await API.set_coach_model(b.dataset.choice);
     const want = b.dataset.choice === "auto" ? r.choice : b.dataset.choice;
@@ -1444,17 +1469,32 @@ const fmtEta = s => s < 60 ? "1분 안" : s < 3600 ? `약 ${Math.round(s / 60)}�
 const PULL_STATUS = {"pulling manifest": "모델 정보를 받는 중", "verifying sha256 digest": "받은 파일을 확인하는 중", "writing manifest": "마무리하는 중", "success": "다 받았습니다"};
 // 받기 진행: 받은 양 · 속도 · 남은 시간 · 받는 곳 (Ollama 서버는 GitHub보다 훨씬 느릴 때가 있어 어디서 받는지도 보인다)
 handlers.pull = d => {
-  if (!$("#pullBar")) return;
-  if (d.total) $("#pullBar i").style.width = `${Math.round(d.done / d.total * 100)}%`;
-  const receiving = d.total && /^pulling [0-9a-f]/.test(d.status);
-  $("#pullText").textContent = receiving
+  const receiving = d.total && d.status.startsWith("pulling ") && d.status !== "pulling manifest";
+  const pct = d.total ? Math.round(d.done / d.total * 100) : S.pull?.pct || 0;
+  const text = receiving
     ? [`${fmtGB(d.done)} / ${fmtGB(d.total)} GB`, d.speed ? `초당 ${(d.speed / 1e6).toFixed(1)}MB` : "",
        d.eta != null ? `남은 시간 ${fmtEta(d.eta)}` : "", d.source ? `${d.source}에서 받는 중` : ""].filter(Boolean).join(" · ")
     : PULL_STATUS[d.status] || d.status;
+  S.pull = {pct, text, eta: receiving ? d.eta : null, app: d.digest === "ollama-app" || d.source === "ollama.com"};
+  if ($("#pullBar")) { $("#pullBar").hidden = false; $("#pullBar i").style.width = `${pct}%`; $("#pullText").textContent = text; }
+  showPullInBar();
+};
+// 팝업을 닫아도 받는 중인 것이 보이게 위 막대의 코치 상태에 몇 %인지 적는다
+function showPullInBar() {
+  if (!S.pull) return;
+  for (const el of [$("#aiStat"), $("#aiStat2")]) {
+    const what = S.pull.app ? "Ollama 설치 중" : "코치 모델 받는 중";
+    el.innerHTML = `<span class="dot wait"></span><span class="t">${what} ${S.pull.pct}%${S.pull.eta != null ? ` · 남은 시간 ${fmtEta(S.pull.eta)}` : ""}</span>`;
+  }
+}
+handlers.prep = d => {
+  S.prep = d;
+  if (!$("#setup").hidden) openSetup(true, "local");  // 단계가 바뀌면 팝업을 다시 그린다
 };
 handlers.model_ready = st => setAi(st);
 handlers.pull_done = d => {
-  if (d.ok) { setAi(d.status); openSetup(true); }
+  S.pull = null; S.prep = null;
+  if (d.ok) { setAi(d.status); openSetup(true, "local"); }
   else if ($("#pullText")) { $("#pullText").textContent = `받지 못했습니다: ${d.error}`; const b = $("#setupPull"); if (b) { b.disabled = false; b.textContent = "다시 받기"; } }
 };
 $$(".aistat").forEach(el => el.addEventListener("click", () => openSetup(true)));
@@ -1547,6 +1587,79 @@ async function showAttempt(aid) {
 $("#openHist").onclick = openHistory;
 $("#histBack").onclick = () => { $(".hist").classList.remove("detail"); show("home"); };
 
+/* ---------------- 프로필: 꾸준함 (잔디) ---------------- */
+// 한 칸이 하루. 색은 그날 코드를 실행한 문제 수: 0, 1, 2, 3~4, 5개 이상
+const WD = ["일", "월", "화", "수", "목", "금", "토"];
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const heatLv = n => !n ? 0 : n === 1 ? 1 : n === 2 ? 2 : n <= 4 ? 3 : 4;
+const dayLabel = s => { const d = new Date(s + "T00:00:00"); return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${WD[d.getDay()]})`; };
+function heatTip(s, v) {
+  return v ? `${dayLabel(s)} · 문제 ${v.problems}개${v.passed ? ` · 통과 ${v.passed}개` : ""} · 실행 ${v.runs}번` : `${dayLabel(s)} · 기록 없음`;
+}
+function heatmap(p) {
+  const today = new Date(p.today + "T00:00:00");
+  const start = new Date(today); start.setDate(start.getDate() - 7 * 52 - today.getDay());  // 52주 전 일요일부터 오늘까지 53줄
+  let cells = "", months = "", lastMon = -1, lastCol = -9;
+  for (let w = 0; w < 53; w++) {
+    const sun = new Date(start); sun.setDate(start.getDate() + 7 * w);
+    if (sun.getMonth() !== lastMon && w - lastCol >= 3 && w < 51) {  // 달이 바뀐 주에 이름표 (겹치지 않게 3줄 띄운다)
+      if (w > 0 || sun.getDate() <= 7) { months += `<span class="mon" style="grid-column:${w + 2}">${sun.getMonth() + 1}월</span>`; lastCol = w; }
+      lastMon = sun.getMonth();
+    }
+    for (let k = 0; k < 7; k++) {
+      const d = new Date(sun); d.setDate(sun.getDate() + k);
+      const s = ymd(d), v = p.days[s], future = d > today;
+      cells += `<button class="c l${heatLv(v?.problems)}${future ? " future" : ""}" style="grid-column:${w + 2};grid-row:${k + 2}" data-d="${s}" title="${esc(heatTip(s, v))}" aria-label="${esc(heatTip(s, v))}" aria-pressed="false"${future ? " tabindex=\"-1\"" : ""}></button>`;
+    }
+  }
+  const wds = [1, 3, 5].map(k => `<span class="wd" style="grid-row:${k + 2}">${WD[k]}</span>`).join("");
+  const legend = [0, 1, 2, 3, 4].map(l => `<i style="background:var(--heat${l})"></i>`).join("");
+  return `<div class="heat"><div class="grid">${months}${wds}${cells}</div>
+    <div class="legend"><span>적음</span>${legend}<span>많음</span></div></div>`;
+}
+async function openProfile() {
+  const p = S.prof = await API.profile();
+  const active = Object.values(p.days).filter(v => v.problems).length;
+  const doneToday = !!p.days[p.today]?.problems;
+  const stat = (n, label, sub, cls = "") => `<div class="stat ${cls}"><b>${n}</b><span>${label}</span>${sub ? `<br><span>${sub}</span>` : ""}</div>`;
+  $("#profBody").innerHTML = `<div class="wrap">
+    <div class="card who">
+      <input id="profName" value="${esc(p.name)}" placeholder="이름을 적어 주세요" maxlength="30" spellcheck="false" autocomplete="off" aria-label="이름">
+      <span class="since">${p.first ? `${dayLabel(p.first)}부터 · 코드 실행 ${p.runs.toLocaleString()}번` : "아직 기록이 없습니다. 문제를 하나 열어 실행해 보세요."}</span>
+    </div>
+    <div class="stats">
+      ${stat(`${p.streak}일`, "지금 연속", doneToday ? "오늘도 풀었습니다" : p.streak ? "오늘 풀면 이어집니다" : "오늘 시작해 보세요", "now")}
+      ${stat(`${p.longest}일`, "가장 긴 연속")}
+      ${stat(`${p.active_days}일`, "푼 날")}
+      ${stat(`${p.solved + p.helped} / ${p.total}`, "통과한 문제", `힌트 없이 ${p.solved} · 힌트로 ${p.helped}`)}
+      ${stat(p.exam, "실전 통과", "반례·코치·힌트 없이")}
+    </div>
+    <div class="card"><h2>지난 1년 동안 ${active}일 풀었습니다</h2>${heatmap(p)}<div class="day" id="profDay"></div></div>
+    <div class="card"><h2>레벨별 진도</h2>
+      ${p.levels.map(l => `<div class="lvrow"><span>Lv${l.level}</span>
+        <span class="lvbar"><i class="s" style="width:${l.solved / l.total * 100}%"></i><i class="h" style="width:${l.helped / l.total * 100}%"></i></span>
+        <span class="n">${l.solved + l.helped} / ${l.total}</span></div>`).join("")}
+      <div class="key"><span><i style="background:var(--ok)"></i>통과</span><span><i style="background:var(--coach-dot)"></i>힌트로 통과</span></div>
+    </div></div>`;
+  show("profile");
+  $("#profName").onchange = async e => { e.target.value = await API.set_profile_name(e.target.value); };
+  $("#profName").onkeydown = e => { if (e.key === "Enter") e.target.blur(); };
+  $$("#profBody .heat .c:not(.future)").forEach(c => c.onclick = () => profileDay(c.dataset.d));
+  const days = Object.keys(p.days).filter(d => p.days[d].problems).sort();
+  profileDay(doneToday ? p.today : days.at(-1) || p.today);
+}
+async function profileDay(d) {
+  $$("#profBody .heat .c").forEach(c => c.setAttribute("aria-pressed", c.dataset.d === d));
+  const rows = await API.profile_day(d);
+  $("#profDay").innerHTML = `<h3>${dayLabel(d)}${rows.length ? ` · 문제 ${rows.length}개` : ""}</h3>` + (rows.length
+    ? rows.map(r => `<div class="dayrow" data-pid="${esc(r.problem_id)}" title="이 문제 열기"><span class="lv">Lv${r.level ?? "?"}</span><span>${esc(r.title)}</span>
+        <span class="r">실행 ${r.runs}번</span><span class="pill ${r.passed ? (r.status === "helped" ? "helped" : "solved") : "tried"}">${r.passed ? STATUS[r.status === "helped" ? "helped" : "solved"] : "시도"}</span></div>`).join("")
+    : `<p class="note">이날은 기록이 없습니다.</p>`);
+  $$("#profDay .dayrow").forEach(r => r.onclick = () => openProblem(r.dataset.pid));
+}
+$("#openProfile").onclick = openProfile;
+$("#profBack").onclick = () => show("home");
+
 // 풀기 화면의 '풀이 기록' 탭: 이 문제의 지난 코드 불러오기 (되돌리기 ⌘Z 가능)
 async function loadProblemHistory() {
   if (!S.p) return;
@@ -1634,7 +1747,7 @@ if (!/Mac|iPhone|iPad/.test(navigator.platform)) {
   $$("[title]").forEach(el => { el.title = el.title.replace(/⌘⇧/g, "Ctrl+Shift+").replace(/⌘/g, "Ctrl+"); });
 }
 function start() {
-  boot().then(() => { API.log(`boot ok · 문제 ${S.problems.length}개`); openSetup(false); }).catch(e => API.log("boot 실패 " + e));
+  boot().then(() => { API.log(`boot ok · 문제 ${S.problems.length}개`); autoSetup(); }).catch(e => API.log("boot 실패 " + e));
   loadMonaco().then(() => API.log("monaco ok")).catch(e => API.log("monaco 실패 " + e));
   window.addEventListener("error", e => API.log(`JS 오류 ${e.message} @${e.lineno}`));
 }

@@ -99,6 +99,28 @@ class Store:
                       "WHERE a.problem_id=? ORDER BY s.t DESC LIMIT 1", (pid,))
         return (r[0]["code"], r[0]["attempt_id"]) if r else (None, None)
 
+    # 프로필: 날마다 얼마나 풀었나. '처음부터' 전에 저장한 코드와 실전 시간 끝 표시는 실행이 아니므로 뺀다
+    RUN = "COALESCE(s.summary, '') NOT LIKE '%\"reset\": true%' AND COALESCE(s.summary, '') NOT LIKE '%\"timeup\"%'"
+    DAY = "date(s.t, 'unixepoch', 'localtime')"
+
+    def activity(self, since=0):
+        """날짜(내 컴퓨터 시각) → 그날 코드를 실행한 문제 수, 그날 통과한 문제 수, 실행 횟수."""
+        rows = self.rows(f"""SELECT {self.DAY} d, COUNT(DISTINCT a.problem_id) problems, COUNT(*) runs,
+                   COUNT(DISTINCT CASE WHEN s.passed THEN a.problem_id END) passed
+            FROM snapshots s JOIN attempts a ON a.id=s.attempt_id WHERE s.t >= ? AND {self.RUN} GROUP BY d""", (since,))
+        return {r["d"]: {"problems": r["problems"], "passed": r["passed"], "runs": r["runs"]} for r in rows}
+
+    def day_detail(self, day):
+        """그날 실행한 문제마다: 실행 횟수, 그날 통과했나, 처음·마지막 실행 시각."""
+        return self.rows(f"""SELECT a.problem_id, COUNT(*) runs, MAX(s.passed) passed, MIN(s.t) first, MAX(s.t) last
+            FROM snapshots s JOIN attempts a ON a.id=s.attempt_id WHERE {self.DAY}=? AND {self.RUN}
+            GROUP BY a.problem_id ORDER BY last""", (day,))
+
+    def exam_passes(self):
+        """반례·코치·힌트 없이 실전 모드에서 통과한 문제."""
+        return {r["problem_id"] for r in self.rows(
+            "SELECT DISTINCT problem_id FROM attempts WHERE mode='exam' AND result='pass' AND COALESCE(hints_opened,0)=0")}
+
     # 문서에서 골라 물은 기록
     def add_note(self, doc, quote, prefix, question, answer):
         return self._ex("INSERT INTO doc_notes(doc, quote, prefix, question, answer, t) VALUES(?,?,?,?,?,?)",
