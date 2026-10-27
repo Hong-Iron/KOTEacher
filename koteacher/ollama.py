@@ -167,11 +167,39 @@ def recommend():
 
 
 def pull(model, on_progress):
-    """모델 받기. on_progress(상태, 받은 바이트, 전체 바이트)."""
+    """모델 받기. on_progress(상태, 받은 바이트, 전체 바이트, 덩어리 digest)."""
     with _post("/api/pull", {"model": model, "stream": True}, 3600) as r:
         for line in r:
             if line.strip():
                 d = json.loads(line)
                 if d.get("error"):
                     raise RuntimeError(d["error"])
-                on_progress(d.get("status", ""), d.get("completed") or 0, d.get("total") or 0)
+                on_progress(d.get("status", ""), d.get("completed") or 0, d.get("total") or 0, d.get("digest"))
+
+
+def source(model):
+    """모델을 받는 곳 (화면 표시용). 'ghcr.io/…'는 GitHub, 주소 없는 이름은 Ollama 저장소."""
+    host = model.split("/")[0] if "/" in model and "." in model.split("/")[0] else ""
+    return {"ghcr.io": "GitHub", "hf.co": "Hugging Face", "huggingface.co": "Hugging Face"}.get(host, "Ollama 서버")
+
+
+class Rate:
+    """받기 진행. Ollama는 덩어리 여러 개를 함께 받으며 덩어리마다 진행을 따로 보내므로,
+    덩어리별 받은 양을 더해 전체 진행을 내고 최근 WINDOW초 동안 늘어난 양으로 속도와 남은 시간을 낸다."""
+    WINDOW = 8
+
+    def __init__(self):
+        self.layers, self.hist = {}, []
+
+    def add(self, done, total, digest, now):
+        if digest and total:
+            self.layers[digest] = (done, total)
+        got = sum(d for d, _ in self.layers.values())
+        size = sum(t for _, t in self.layers.values())
+        self.hist.append((now, got))
+        while len(self.hist) > 2 and now - self.hist[1][0] >= self.WINDOW:
+            self.hist.pop(0)
+        t0, g0 = self.hist[0]
+        speed = (got - g0) / (now - t0) if now - t0 >= 1 else 0.0
+        return {"done": got, "total": size, "speed": speed,
+                "eta": (size - got) / speed if speed > 0 and size > got else None}

@@ -70,35 +70,45 @@ class Ghcr:
         except urllib.error.HTTPError:
             return False
 
+    # 한 번에 보내는 양. 6.5GB(12B)를 요청 하나로 보내니 37%에서 GitHub가 연결을 끊었다(2026-10-27)
+    CHUNK = 128 * 2 ** 20
+    TRIES = 5
+
     def upload(self, digest, path):
+        """덩어리를 CHUNK씩 나눠 올린다. 한 조각이 끊기면 GitHub가 받은 데까지 확인하고 거기서 이어 보낸다."""
         size = path.stat().st_size
         if self.has(digest):
             print(f"  {digest[:19]} 이미 있음")
             return
         loc = self.call("POST", f"/v2/{self.repo}/blobs/uploads/", data=b"").headers["Location"]
-        f = Progress(path, size)
-        r = self.call("PATCH", loc, data=f, timeout=600,
-                      headers={"Content-Type": "application/octet-stream", "Content-Length": str(size)})
-        loc = r.headers["Location"]
+        t0, start, fails = time.time(), 0, 0
+        with open(path, "rb") as f:
+            while start < size:
+                f.seek(start)
+                body = f.read(self.CHUNK)
+                try:
+                    r = self.call("PATCH", loc, data=body, timeout=600, headers={
+                        "Content-Type": "application/octet-stream", "Content-Range": f"{start}-{start + len(body) - 1}"})
+                    loc, start, fails = r.headers["Location"], start + len(body), 0
+                except urllib.error.HTTPError as e:
+                    # GitHub는 올리던 곳의 진행을 GET으로 알려 주지 않는다(404). 끊긴 조각을 사실은 받았으면
+                    # 같은 자리를 다시 보낼 때 416과 함께 받은 데까지(Range: 0-<끝>)를 알려 준다
+                    if e.code != 416 or "-" not in (e.headers.get("Range") or ""):
+                        raise
+                    start = int(e.headers["Range"].rsplit("-", 1)[1]) + 1
+                except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+                    fails += 1
+                    if fails > self.TRIES:
+                        raise
+                    print(f"\n  끊겼습니다({e}). {5 * fails}초 뒤 같은 자리부터 다시 보냅니다 ({fails}/{self.TRIES})")
+                    time.sleep(5 * fails)
+                rate = start / max(time.time() - t0, 1e-9) / 2 ** 20
+                print(f"\r  {start / size:6.1%} · {rate:.1f}MB/s", end="", flush=True)
         sep = "&" if "?" in loc else "?"
-        self.call("PUT", f"{loc}{sep}digest={urllib.parse.quote(digest)}", data=b"",
+        # 확정할 때 GitHub가 받은 덩어리 전체의 digest를 다시 계산한다. 6.5GB(12B)는 1분을 넘겨 기본 시간 제한에 걸렸다(2026-10-27)
+        self.call("PUT", f"{loc}{sep}digest={urllib.parse.quote(digest)}", data=b"", timeout=1800,
                   headers={"Content-Length": "0", "Content-Type": "application/octet-stream"})
-        print(f"\r  {digest[:19]} 올림 ({size / 2 ** 20:,.1f}MB, {time.time() - f.t0:.0f}초)          ")
-
-
-class Progress:
-    """올리는 동안 몇 %인지 찍는 파일 읽기."""
-    def __init__(self, path, size):
-        self.f, self.size, self.done, self.t0, self.last = open(path, "rb"), size, 0, time.time(), 0
-
-    def read(self, n=-1):
-        b = self.f.read(1 << 20 if n is None or n < 0 else n)
-        self.done += len(b)
-        if time.time() - self.last > 2 or not b:
-            self.last = time.time()
-            rate = self.done / max(time.time() - self.t0, 1e-9) / 2 ** 20
-            print(f"\r  {self.done / self.size:6.1%} · {rate:.1f}MB/s", end="", flush=True)
-        return b
+        print(f"\r  {digest[:19]} 올림 ({size / 2 ** 20:,.1f}MB, {time.time() - t0:.0f}초)          ")
 
 
 def main():

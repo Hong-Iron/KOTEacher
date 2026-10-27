@@ -265,26 +265,41 @@ class Api:
         return ollama.status()
 
     def pull_model(self, model):
-        """모델을 받는다. 진행은 'pull' 이벤트로, 끝나면 'pull_done'."""
-        def work():
-            last = [0.0]
+        """모델을 받는다. 진행은 'pull' 이벤트로(받은 양·속도·남은 시간·받는 곳), 끝나면 'pull_done'.
+        GitHub 패키지 모델은 끊기면 config.PULL_TRIES번까지 다시 받고, 그래도 안 되면 Ollama 저장소의 원래 판을 받는다."""
+        import koteacher.config as cfg
 
-            def prog(status, done, total):
+        def get(name):
+            rate, last, src = ollama.Rate(), [0.0], ollama.source(name)
+
+            def prog(status, done, total, digest=None):
                 now = time.time()
+                r = rate.add(done, total, digest, now)
                 if now - last[0] > 0.25 or (total and done >= total):
                     last[0] = now
-                    self._push("pull", {"status": status, "done": done, "total": total})
+                    self._push("pull", {"status": status, "source": src, **r})
+            ollama.pull(name, prog)
+
+        def work():
             try:
-                import koteacher.config as cfg
                 name = model
-                try:
-                    ollama.pull(name, prog)
-                except RuntimeError:  # 텍스트 전용 e4b(ghcr.io)를 못 받으면 Ollama 저장소의 원래 e4b를 받는다
-                    if name != cfg.E4B_TEXT:
-                        raise
-                    name = cfg.E4B_FALLBACK
-                    self._push("pull", {"status": f"{name} 받기", "done": 0, "total": 0})
-                    ollama.pull(name, prog)
+                tries = cfg.PULL_TRIES if model in cfg.FALLBACK else 1
+                for i in range(1, tries + 1):
+                    try:
+                        get(name)
+                        break
+                    except Exception as e:
+                        if i < tries:  # Ollama는 받던 덩어리를 이어 받으므로 처음부터 다시 받지 않는다
+                            self._push("pull", {"status": f"GitHub에서 받다가 멈췄습니다({str(e)[:60]}). 다시 받습니다 ({i + 1}/{tries})",
+                                                "done": 0, "total": 0})
+                            time.sleep(2 * i)
+                        elif model in cfg.FALLBACK:
+                            name = cfg.FALLBACK[model]
+                            self._push("pull", {"status": f"GitHub에서 {tries}번 받지 못해 Ollama 서버에서 {name}을 받습니다",
+                                                "done": 0, "total": 0})
+                            get(name)
+                        else:
+                            raise
                 if name not in cfg.MODELS:
                     cfg.MODELS.insert(0, name)
                 st = ollama.status()

@@ -82,9 +82,17 @@ if [ "${KOTEACHER_SKIP_MODEL:-}" != "1" ] && curl -fsS http://127.0.0.1:11434/ap
   MODEL="${KOTEACHER_MODEL:-$(.venv/bin/python -c 'from koteacher import ollama; print(ollama.recommend()["model"])')}"
   say "코치 모델 받기: $MODEL (메모리에 맞춰 골랐습니다)"
   OLLAMA_BIN="$(command -v ollama || echo /Applications/Ollama.app/Contents/Resources/ollama)"
-  if "$OLLAMA_BIN" pull "$MODEL"; then ok "모델을 받았습니다"
-  elif [ -z "${KOTEACHER_MODEL:-}" ]; then  # 텍스트 전용 판을 못 받으면 원래 판
-    "$OLLAMA_BIN" pull gemma4:e4b-it-qat && ok "모델을 받았습니다"
+  # GitHub 패키지(ghcr.io)는 끊기면 config.PULL_TRIES번까지 다시 받고(받던 데서 잇는다), 그래도 안 되면 Ollama 저장소의 원래 판
+  read -r FALLBACK TRIES < <(.venv/bin/python -c "from koteacher import config as c; f = c.FALLBACK.get('$MODEL', ''); print(f or '-', c.PULL_TRIES if f else 1)")
+  GOT=""
+  for i in $(seq 1 "$TRIES"); do
+    if "$OLLAMA_BIN" pull "$MODEL"; then GOT=1; break; fi
+    if [ "$i" -lt "$TRIES" ]; then echo "  GitHub에서 받다가 멈췄습니다. 다시 받습니다 ($((i + 1))/$TRIES)"; sleep $((i * 2)); fi
+  done
+  if [ -n "$GOT" ]; then ok "모델을 받았습니다"
+  elif [ "$FALLBACK" != "-" ]; then
+    echo "  GitHub에서 받지 못해 Ollama 서버에서 $FALLBACK 을 받습니다"
+    "$OLLAMA_BIN" pull "$FALLBACK" && ok "모델을 받았습니다"
   fi
 fi
 

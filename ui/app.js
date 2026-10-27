@@ -1439,11 +1439,18 @@ async function setupApi(info, seg) {
   };
   draw();
 }
-const fmtGB = b => (b / 2 ** 30).toFixed(1);
+const fmtGB = b => (b / 1e9).toFixed(1);  // 모델 크기 표기(5.2GB, ollama list)와 같은 단위
+const fmtEta = s => s < 60 ? "1분 안" : s < 3600 ? `약 ${Math.round(s / 60)}분` : `약 ${Math.floor(s / 3600)}시간 ${Math.floor(s % 3600 / 60)}분`;
+const PULL_STATUS = {"pulling manifest": "모델 정보를 받는 중", "verifying sha256 digest": "받은 파일을 확인하는 중", "writing manifest": "마무리하는 중", "success": "다 받았습니다"};
+// 받기 진행: 받은 양 · 속도 · 남은 시간 · 받는 곳 (Ollama 서버는 GitHub보다 훨씬 느릴 때가 있어 어디서 받는지도 보인다)
 handlers.pull = d => {
   if (!$("#pullBar")) return;
   if (d.total) $("#pullBar i").style.width = `${Math.round(d.done / d.total * 100)}%`;
-  $("#pullText").textContent = d.total ? `${fmtGB(d.done)} / ${fmtGB(d.total)} GB · ${d.status}` : d.status;
+  const receiving = d.total && /^pulling [0-9a-f]/.test(d.status);
+  $("#pullText").textContent = receiving
+    ? [`${fmtGB(d.done)} / ${fmtGB(d.total)} GB`, d.speed ? `초당 ${(d.speed / 1e6).toFixed(1)}MB` : "",
+       d.eta != null ? `남은 시간 ${fmtEta(d.eta)}` : "", d.source ? `${d.source}에서 받는 중` : ""].filter(Boolean).join(" · ")
+    : PULL_STATUS[d.status] || d.status;
 };
 handlers.model_ready = st => setAi(st);
 handlers.pull_done = d => {

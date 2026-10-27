@@ -36,8 +36,14 @@ Say "문제 팩 만들기 (약 20초)"
 Say "코치 모델 받기"
 for ($i = 0; $i -lt 30; $i++) { try { Invoke-RestMethod http://127.0.0.1:11434/api/version | Out-Null; break } catch { Start-Sleep 1 } }
 $Model = if ($env:KOTEACHER_MODEL) { $env:KOTEACHER_MODEL } else { .\.venv\Scripts\python.exe -c "from koteacher import ollama; print(ollama.recommend()['model'])" }
-ollama pull $Model
-if ($LASTEXITCODE -ne 0 -and -not $env:KOTEACHER_MODEL) { $Model = "gemma4:e4b-it-qat"; ollama pull $Model }  # 텍스트 전용 판을 못 받으면 원래 판
+# GitHub 패키지(ghcr.io)는 끊기면 config.PULL_TRIES번까지 다시 받고(받던 데서 잇는다), 그래도 안 되면 Ollama 저장소의 원래 판
+$Fallback, $Tries = (.\.venv\Scripts\python.exe -c "from koteacher import config as c; f = c.FALLBACK.get('$Model', ''); print(f or '-', c.PULL_TRIES if f else 1)").Split(" ")
+for ($i = 1; $i -le [int]$Tries; $i++) {
+  ollama pull $Model
+  if ($LASTEXITCODE -eq 0) { break }
+  if ($i -lt [int]$Tries) { Write-Host "  GitHub에서 받다가 멈췄습니다. 다시 받습니다 ($($i + 1)/$Tries)"; Start-Sleep ($i * 2) }
+}
+if ($LASTEXITCODE -ne 0 -and $Fallback -ne "-") { Write-Host "  GitHub에서 받지 못해 Ollama 서버에서 $Fallback 을 받습니다"; $Model = $Fallback; ollama pull $Model }
 if ($LASTEXITCODE -eq 0) { Ok "모델 $Model 을 받았습니다" } else { Write-Host "  모델을 받지 못했습니다. 앱을 연 뒤 안내에 따라 받으면 됩니다." }
 
 Say "시작 메뉴 바로가기 만들기"

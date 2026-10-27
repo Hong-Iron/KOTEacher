@@ -34,6 +34,9 @@ OLLAMA = os.environ.get("KOTEACHER_OLLAMA", "http://127.0.0.1:11434")
 # (온도 0에서 글자까지 같고 견주기 9/12로 같음, eval/results/compare.md). 못 받으면 Ollama 저장소의 원래 판을 받는다(api.pull_model).
 E4B_TEXT = "ghcr.io/hong-iron/gemma4-e4b-text:latest"  # GitHub 패키지: 계정 없이 받는다 (tools/push_ghcr.py)
 E4B_FALLBACK = "gemma4:e4b-it-qat"
+# Ollama 저장소는 이 네트워크에서 초당 0.2MB까지 느려질 때가 있어(2026-10-27, GitHub는 초당 11.5MB) GitHub 패키지를 먼저 받는다.
+FALLBACK = {E4B_TEXT: E4B_FALLBACK}  # GitHub 패키지 → 끝내 못 받으면 받을 Ollama 저장소 판
+PULL_TRIES = 3  # GitHub 패키지 받기가 끊기면 이만큼 시도한 뒤에야 Ollama 저장소로 넘어간다 (다시 받을 때는 받던 데서 잇는다)
 # 앞에서부터 받아져 있는 첫 모델을 쓴다(ollama.status가 고른다). 메모리 8GB 기기는 e4b로 내려간다.
 MODELS = [m for m in [os.environ.get("KOTEACHER_MODEL"), "gemma4:12b-it-qat", "gemma4:12b",
                       E4B_TEXT, E4B_FALLBACK, "gemma4:e4b"] if m]
