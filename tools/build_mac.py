@@ -97,10 +97,15 @@ def main():
     (dmgsrc / "Applications").symlink_to("/Applications")
     (dmgsrc / "처음 열 때 읽어 주세요.txt").write_text(
         "1. KOTEacher를 Applications 폴더로 끌어다 놓아 주세요.\n"
-        "2. 처음 열 때 '확인되지 않은 개발자' 경고가 뜨면: '완료'를 누른 뒤\n"
+        "2. 처음 열 때 '손상되었기 때문에 열 수 없습니다'가 뜨면: 파일이 망가진 것이 아닙니다.\n"
+        "   휴지통으로 옮기지 말고 '취소'를 누른 뒤, 터미널(응용 프로그램 → 유틸리티 → 터미널)에\n"
+        "   아래 한 줄을 붙여 넣고 Enter를 누르고 앱을 다시 열어 주세요.\n"
+        "     xattr -dr com.apple.quarantine /Applications/KOTEacher.app\n"
+        "   (이 앱은 Apple 공증을 받지 않아, 인터넷에서 받은 파일에 붙는 표시 때문에 막힙니다. 이 명령이 그 표시를 지웁니다.)\n"
+        "3. '확인되지 않은 개발자' 경고가 뜨면: '완료'를 누른 뒤\n"
         "   시스템 설정 → 개인정보 보호 및 보안 → 맨 아래 KOTEacher 옆 '그래도 열기'를 누르면 됩니다.\n"
-        "   (macOS 15부터는 오른쪽 클릭 → 열기로는 넘어가지 않습니다.)\n"
-        "3. 앱이 코치(AI) 준비를 안내합니다: Ollama 설치(ollama.com/download) → 앱 안에서 모델 받기.\n"
+        "   (macOS 15부터는 오른쪽 클릭 → 열기로는 넘어가지 않습니다. 2번의 터미널 한 줄로도 됩니다.)\n"
+        "4. 앱이 코치(AI) 준비를 안내합니다: Ollama 설치(ollama.com/download) → 앱 안에서 모델 받기.\n"
         "   AI 없이도 문제 풀기, 테스트, 반례 찾기, 개념 문서는 바로 쓸 수 있습니다.\n", encoding="utf-8")
     if dmg.exists():
         dmg.unlink()
