@@ -665,8 +665,17 @@ class Api:
         s.open_fail.update(code=code, diag=diag)
 
     def _current(self, s, gen):
-        """이 응답이 아직 지금 화면의 것인가: 다른 문제를 열었거나 '처음부터'를 눌렀으면(새 시도) 버린다."""
-        return self.s is s and gen == s.gen
+        """이 응답이 아직 지금 화면의 것인가: 다른 문제를 열었거나 '처음부터'를 눌렀으면(새 시도) 버린다.
+        gen=None이면 학생이 직접 청한 답(묻기·설명)이라 그 사이에 검사가 다시 돌아도 버리지 않는다.
+        (예전에는 기다리는 동안 다시 실행하면 답을 버려 '생각하고 있습니다'가 끝나지 않았다, 2026-10-27)"""
+        return self.s is s and (gen is None or gen == s.gen)
+
+    def _ask_streamer(self, s, rid):
+        """묻기의 답을 그 질문의 말풍선(rid)에 흘려 쓴다."""
+        def emit(piece):
+            if self._current(s, None):
+                self._push("stream", {"rid": rid, "text": piece})
+        return emit
 
     def _streamer(self, gen):
         s = self.s
@@ -751,55 +760,61 @@ class Api:
         s = self.s
         if not s.diag:
             return False
-        gen, diag, code = s.gen, s.diag, s.code
+        diag, code = s.diag, s.code
 
         def work():
-            d = diag
-            # 조용히 모드라 AI 진단을 건너뛰었던 경우: 지금 진단한다
-            if d["tier"] == "rule" and not d.get("line") and d["fact"].get("kind") in ("wrong", "timeout"):
-                res = runner.check(code, s.pid)
-                fs = coach.facts(res)
-                if fs:
-                    d = coach.diagnose(s.pid, code, res, fs, hint_level=s.hints, history=s.history,
-                                       weak=self.store.weak_categories(), on_message=self._streamer(gen))
-                    s.diag = d
-            self._speak(gen, code, d, "ask")
+            # 학생이 직접 청한 설명이라 그 사이에 검사가 다시 돌아도 끝까지 말한다(gen=None). 실패하면 꼭 알린다
+            try:
+                d = diag
+                # 조용히 모드라 AI 진단을 건너뛰었던 경우: 지금 진단한다
+                if d["tier"] == "rule" and not d.get("line") and d["fact"].get("kind") in ("wrong", "timeout"):
+                    res = runner.check(code, s.pid)
+                    fs = coach.facts(res)
+                    if fs:
+                        d = coach.diagnose(s.pid, code, res, fs, hint_level=s.hints, history=s.history,
+                                           weak=self.store.weak_categories(), on_message=self._streamer(None))
+                        s.diag = d
+                self._speak(None, code, d, "ask")
+            except Exception as e:
+                if self._current(s, None):
+                    self._push("coach_error", {"error": str(e)[:300]})
 
-        self._push("thinking", {"gen": gen})
+        self._push("thinking", {"gen": s.gen})
         threading.Thread(target=work, daemon=True).start()
         return True
 
-    def ask(self, question, code, sel=None):
-        """코치에게 묻기. sel={'start','end','text'}면 편집기에서 드래그한 코드에 대해 묻는다."""
+    def ask(self, question, code, sel=None, rid=None):
+        """코치에게 묻기. sel={'start','end','text'}면 편집기에서 드래그한 코드에 대해 묻는다.
+        rid는 화면이 붙인 질문 번호다. 흘려 쓰는 글과 답이 그 질문의 말풍선으로 간다.
+        어떤 경우에도 'answer'를 한 번 보낸다. 안 보내면 화면의 '생각하고 있습니다'가 끝나지 않는다."""
         s = self.s
         s.code = code
-        gen = s.gen
 
         def work():
-            dyn = ""
-            if s.diag:
-                dyn = coach.evidence(s.diag["fact"], None, code, s.diag.get("line") if s.diag.get("confidence") == "확인됨" else None)
-            ex = coach.extras(s.pid, s.hints, s.history, [])
-            picked = ""
-            if sel and sel.get("text"):
-                a, b = int(sel.get("start") or 0), int(sel.get("end") or 0)
-                picked = (f"[학생이 고른 코드: {a}번 줄" + (f"~{b}번 줄" if b != a else "") + f"]\n{sel['text'][:1500]}\n"
-                          "고른 코드가 무엇을 하는지, 질문에 맞춰 쉬운 말로 3~4문장 답한다. 필요하면 작은 입력으로 값이 어떻게 바뀌는지 보여 준다. ")
-            task = (f"[학생 질문] {question}\n{picked}학생 질문에 바로 답한다(머리말 없이). 규칙 1을 지킨다. "
-                    "질문이 정답이나 고친 코드를 달라는 것이면, 왼쪽 힌트 사다리의 다음 단계를 열어 보라고 권한다.")
-            # 예제 코드를 원하는지 먼저 가른다 (examples.py: 문법 예제·알고리즘 틀·정답 요청)
-            kind, concept = examples.classify(question)
-            extra = {"kind": kind or "ask"}
-            if kind == "example":
-                task = examples.EXAMPLE_TASK.format(q=question)
-            elif kind == "template":
-                task = examples.TEMPLATE_TASK.format(q=question, concept=concept["title"])
-            msgs = coach.messages(s.pid, code, dyn + ("\n\n" + ex if ex else ""), task)
-            t = time.time()
+            t, tpl, extra = time.time(), None, {"kind": "ask"}
             try:
+                dyn = ""
+                if s.diag:
+                    dyn = coach.evidence(s.diag["fact"], None, code, s.diag.get("line") if s.diag.get("confidence") == "확인됨" else None)
+                ex = coach.extras(s.pid, s.hints, s.history, [])
+                picked = ""
+                if sel and sel.get("text"):
+                    a, b = int(sel.get("start") or 0), int(sel.get("end") or 0)
+                    picked = (f"[학생이 고른 코드: {a}번 줄" + (f"~{b}번 줄" if b != a else "") + f"]\n{sel['text'][:1500]}\n"
+                              "고른 코드가 무엇을 하는지, 질문에 맞춰 쉬운 말로 3~4문장 답한다. 필요하면 작은 입력으로 값이 어떻게 바뀌는지 보여 준다. ")
+                task = (f"[학생 질문] {question}\n{picked}학생 질문에 바로 답한다(머리말 없이). 규칙 1을 지킨다. "
+                        "질문이 정답이나 고친 코드를 달라는 것이면, 왼쪽 힌트 사다리의 다음 단계를 열어 보라고 권한다.")
+                # 예제 코드를 원하는지 먼저 가른다 (examples.py: 문법 예제·알고리즘 틀·정답 요청)
+                kind, concept = examples.classify(question)
+                extra = {"kind": kind or "ask"}
+                if kind == "example":
+                    task = examples.EXAMPLE_TASK.format(q=question)
+                elif kind == "template":
+                    task = examples.TEMPLATE_TASK.format(q=question, concept=concept["title"])
+                msgs = coach.messages(s.pid, code, dyn + ("\n\n" + ex if ex else ""), task)
                 live = kind not in ("example", "template")  # 코드가 섞이는 답은 흘려 쓰지 않는다
                 text, meta = ollama.chat(msgs, max_tokens=420 if kind == "example" else 220,
-                                         on_token=coach.RawStream(self._streamer(gen)).feed if live else None)
+                                         on_token=coach.RawStream(self._ask_streamer(s, rid)).feed if live else None)
                 if kind == "example":
                     msg, extra = self._example(question, text, msgs, s)
                 else:
@@ -809,19 +824,23 @@ class Api:
                         extra = {"kind": "answer"}
                 if kind == "template":
                     tpl = examples.template_of(concept)
-                    if tpl:
-                        extra = {"kind": "template", "concept": concept["title"], "doc": concept["name"],
-                                 "file": tpl[1], "lines": len(tpl[0].splitlines())}
+                    # 틀 파일이 없으면 보통 답으로 (예전에는 여기서 멈춰 답이 오지 않았다)
+                    extra = ({"kind": "template", "concept": concept["title"], "doc": concept["name"],
+                              "file": tpl[1], "lines": len(tpl[0].splitlines())} if tpl else {"kind": "ask"})
             except Exception as e:
                 msg = f"코치가 지금 답할 수 없어요 ({str(e)[:80]}). Ollama가 켜져 있는지 확인해 주세요."
                 extra, tpl = {"kind": "ask"}, None
-            mid = self.store.coach_msg(s.aid, signal=extra["kind"] if extra["kind"] != "ask" else "ask", tier="ask",
-                                       hint_level=s.hints, message=msg, ms=int((time.time() - t) * 1000))
-            if extra["kind"] == "template":
+            mid = None
+            try:
+                mid = self.store.coach_msg(s.aid, signal=extra["kind"] if extra["kind"] != "ask" else "ask", tier="ask",
+                                           hint_level=s.hints, message=msg, ms=int((time.time() - t) * 1000))
+            except Exception:
+                pass  # 기록에 못 남겨도 답은 보여 준다
+            if extra["kind"] == "template" and tpl and mid:
                 s.templates[mid] = tpl[0]  # 펼치기 전에는 화면에 보내지 않는다
             s.history.append(msg)
-            if self._current(s, gen):
-                self._push("answer", {"gen": gen, "id": mid, "q": question, "message": msg, **extra})
+            if self._current(s, None):
+                self._push("answer", {"rid": rid, "id": mid, "q": question, "message": msg, **extra})
 
         threading.Thread(target=work, daemon=True).start()
         return True

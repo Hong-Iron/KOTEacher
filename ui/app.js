@@ -217,8 +217,9 @@ function openCodeAsk() {
   placeBubble(p.end, el);
   const send = q => {
     addLog("me", "나", `${where}: ${q}`);
-    el.querySelector(".quick").remove(); el.querySelector("form").replaceWith(h("div", "thinking", waiting("코치가 생각하고 있습니다")));
-    API.ask(q, S.editor.getValue(), {start: p.start, end: p.end, text: p.text});
+    const wait = askThinking();
+    el.querySelector(".quick").remove(); el.querySelector("form").replaceWith(wait);
+    API.ask(q, S.editor.getValue(), {start: p.start, end: p.end, text: p.text}, wait.dataset.rid);
   };
   el.querySelectorAll(".quick [data-q]").forEach(b => b.onclick = () => send(b.dataset.q));
   el.querySelector("form").onsubmit = e => { e.preventDefault(); const v = e.target.querySelector("input").value.trim(); send(v || "이 코드가 하는 일을 쉬운 말로 설명해 줘"); };
@@ -391,8 +392,9 @@ $("#edwrap").addEventListener("submit", async e => {
   if (f.classList.contains("ask")) {
     if (!v) { input.focus(); return; }
     addLog("me", "나", v);
-    f.replaceWith(h("div", "thinking", waiting("코치가 생각하고 있습니다")));
-    API.ask(v, S.editor.getValue());
+    const wait = askThinking();
+    f.replaceWith(wait);
+    API.ask(v, S.editor.getValue(), null, wait.dataset.rid);
   } else if (f.classList.contains("memo")) {
     if (!v) { input.focus(); return; }
     await API.note(f.dataset.id, v);
@@ -606,7 +608,7 @@ function renderExam(r) {
 // AI가 맨 앞에 줄 번호를 쓰는 즉시(line) 그 줄에 띄운다. 말을 아껴 둘 경우(live=false)는 끝까지 상태줄에만
 function coachBusy(on) {
   const st = $("#autoStat");
-  if (on) { st.hidden = false; st.innerHTML = waiting("코치가 살펴보고 있습니다"); }
+  if (on) { st.hidden = false; st.innerHTML = waiting("코치가 살펴보고 있습니다"); S.busySince = Date.now(); }
   else if (st.textContent.includes("코치")) st.hidden = true;
 }
 handlers.thinking = d => {
@@ -634,7 +636,21 @@ handlers.say = d => {
   S.lastDiag = d.diag ? {...d.diag, line: d.diag.line || d.line} : d.diag;
   flagLine(d.line); bubbleSay(d); addLog("ai", "코치", d.message);
 };
+// 묻기는 질문마다 번호(rid)를 붙여, 그 사이에 검사가 다시 돌아 말풍선이 바뀌어도 답이 제 자리를 찾는다
+let askN = 0;
+function askThinking() {
+  const w = h("div", "thinking", waiting("코치가 생각하고 있습니다"));
+  w.dataset.rid = `q${Date.now()}-${++askN}`; w.dataset.t = Date.now();
+  return w;
+}
 handlers.stream = d => {
+  if (d.rid) {  // 묻기의 답: 그 질문의 자리에만 쓴다. 말풍선이 사라졌으면 답이 다 오면 새로 띄운다
+    let m = $(`[data-rid="${d.rid}"]`);
+    if (!m) return;
+    if (!m.classList.contains("live")) { m.className = "live"; m.textContent = ""; }
+    m.textContent += d.text.replace(/[`$]/g, ""); m.dataset.t = Date.now();
+    return;
+  }
   // 코치 말이 생성되는 대로 말풍선에 흘려 쓴다
   let el = S.bubble;
   coachBusy(false);
@@ -646,13 +662,16 @@ handlers.stream = d => {
   let m = el.querySelector(".live");
   if (!m) { m = h("div", "live"); const t = el.querySelector(".thinking"); t ? t.replaceWith(m) : el.append(m); }
   m.textContent += d.text.replace(/[`$]/g, "");  // 흘려 쓰는 동안에도 백틱·수식 기호는 감춘다 (끝나면 정리된 문장으로 바뀐다)
+  m.dataset.t = Date.now();
 };
 handlers.answer = d => {
   addLog("ai", "코치", d.message);
-  const t = S.bubble?.querySelector(".live") || S.bubble?.querySelector(".thinking");
+  // 그 질문의 자리(rid)를 먼저 찾는다. 시간 초과로 바꿔 둔 자리여도 늦게 온 답으로 채운다
+  const t = d.rid ? $(`[data-rid="${d.rid}"]`) : S.bubble?.querySelector(".live") || S.bubble?.querySelector(".thinking");
+  let host = t?.closest(".bubble");
   if (t) { t.className = ""; t.textContent = d.message; }  // 흘려 쓰던 점(.live)도 같이 사라진다
-  else { const el = h("div", "bubble"); el.innerHTML = bubbleHead("코치", "질문에 답") + `<div>${esc(d.message)}</div>`; placeBubble(S.lastDiag?.line, el); }
-  if (S.bubble && ["example", "template", "answer"].includes(d.kind)) answerExtras(S.bubble, d);
+  else { const el = h("div", "bubble"); el.innerHTML = bubbleHead("코치", "질문에 답") + `<div>${esc(d.message)}</div>`; placeBubble(S.lastDiag?.line, el); host = S.bubble; }
+  if (host && ["example", "template", "answer"].includes(d.kind)) answerExtras(host, d);
 };
 // 예제 코드: ① 문법·디버깅 예제는 실행 결과와 함께 바로, ③ 알고리즘 틀은 접어서(펼치면 힌트 1개), ④ 정답 요청은 힌트 사다리로
 async function answerExtras(el, d) {
@@ -673,7 +692,26 @@ async function answerExtras(el, d) {
   }
   el.append(box);
 }
-handlers.coach_error = d => { coachBusy(false); addLog("sys", "코치 오류", d.error); };
+// 코치가 실패하면 기다리던 점을 알림으로 바꾼다 (예전에는 기록에만 남고 말풍선의 점은 끝없이 돌았다)
+const COACH_FAIL = "코치가 답하지 못했어요. 다시 실행하거나 다시 물어봐 주세요.";
+function endThinking(el, text) { el.className = "coachfail"; el.textContent = text; }
+handlers.coach_error = d => {
+  coachBusy(false); addLog("sys", "코치 오류", d.error);
+  S.bubble?.querySelectorAll(".thinking:not([data-rid]), .live:not([data-rid])").forEach(el => endThinking(el, `${COACH_FAIL} (${d.error.slice(0, 80)})`));
+};
+// 안전망: 점이 90초 동안 한 글자도 받지 못하면 멈춘 것으로 본다(Ollama 요청 한도는 120초지만 그 전에 알린다).
+// 늦게 온 묻기 답은 rid로 그 자리를 다시 채운다
+const COACH_STALL_MS = 90000;
+setInterval(() => {
+  const now = Date.now();
+  $$(".bubble .thinking, .bubble .live").forEach(el => {
+    if (!el.dataset.t) { el.dataset.t = now; return; }
+    if (now - +el.dataset.t > COACH_STALL_MS) endThinking(el, COACH_FAIL);
+  });
+  const st = $("#autoStat");
+  if (!st.hidden && st.textContent.includes("코치")) { S.busySince ||= now; if (now - S.busySince > COACH_STALL_MS) coachBusy(false); }
+  else S.busySince = 0;
+}, 3000);
 handlers.mistake_named = d => { $$(`.mname[data-id="${d.id}"]`).forEach(e => e.textContent = d.name); loadMistakes(); };
 
 function addLog(kind, who, text) {
@@ -1588,7 +1626,7 @@ $("#openHist").onclick = openHistory;
 $("#histBack").onclick = () => { $(".hist").classList.remove("detail"); show("home"); };
 
 /* ---------------- 프로필: 꾸준함 (1년 · 월별 · 주간) ---------------- */
-// 한 칸이 하루. 그날 코드를 실행한 문제 수(0, 1, 2, 3~4, 5개 이상)를 칸 안 네모의 크기로 보인다(주간은 막대 높이).
+// 한 칸이 하루. 그날 코드를 실행한 문제 수(0, 1, 2, 3~4, 5개 이상)를 칸 색의 짙기로 보인다(크기로 견주는 판은 사용자가 되돌림).
 // 방향키로 칸을 옮겨 다니고, 옮기면 그날 푼 문제가 아래에 나온다. 달·주 끝을 넘으면 앞뒤 달·주로 넘어간다
 const WD = ["일", "월", "화", "수", "목", "금", "토"];
 const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -1609,7 +1647,7 @@ function pvRange(view, sel, today) {
   return [mon, addDays(mon, 6)];
 }
 const cellAttrs = (s, p) => `data-d="${s}" title="${esc(heatTip(s, p.days[s]))}" aria-label="${esc(heatTip(s, p.days[s]))}" aria-pressed="false" tabindex="-1"${s > p.today ? " disabled" : ""}`;
-const sizeLegend = cls => `<div class="legend"><span>적음</span>${[0, 1, 2, 3, 4].map(l => `<b class="${cls}"><i class="l${l}"></i></b>`).join("")}<span>많음</span></div>`;
+const heatLegend = () => `<div class="legend"><span>적음</span>${[0, 1, 2, 3, 4].map(l => `<i class="l${l}"></i>`).join("")}<span>많음</span></div>`;
 
 function yearView(p) {
   const [start] = pvRange("year", p.today, p.today);
@@ -1623,29 +1661,28 @@ function yearView(p) {
     for (let k = 0; k < 7; k++) {
       const s = addDays(sun, k);
       cells += s > p.today ? `<span style="grid-column:${w + 2};grid-row:${k + 2}"></span>`
-        : `<button class="c" style="grid-column:${w + 2};grid-row:${k + 2}" ${cellAttrs(s, p)}><i class="l${heatLv(p.days[s]?.problems)}"></i></button>`;
+        : `<button class="c l${heatLv(p.days[s]?.problems)}" style="grid-column:${w + 2};grid-row:${k + 2}" ${cellAttrs(s, p)}></button>`;
     }
   }
   const wds = [1, 3, 5].map(k => `<span class="wd" style="grid-row:${k + 2}">${WD[k]}</span>`).join("");
-  return `<div class="heat"><div class="grid">${months}${wds}${cells}</div>${sizeLegend("c")}</div>`;
+  return `<div class="heat"><div class="grid">${months}${wds}${cells}</div>${heatLegend()}</div>`;
 }
 function monthView(p, sel) {
   const [first, last] = pvRange("month", sel, p.today);
   let cells = WD.map(w => `<span class="mh">${w}</span>`).join("") + "<span></span>".repeat(toDate(first).getDay());
   for (let s = first; s <= last; s = addDays(s, 1)) {
     const v = p.days[s];
-    cells += `<button class="md${s === p.today ? " today" : ""}" ${cellAttrs(s, p)}><span class="n">${toDate(s).getDate()}</span>
-      <i class="l${heatLv(v?.problems)}"></i>${v?.problems ? `<span class="k">${v.problems}</span>` : ""}</button>`;
+    cells += `<button class="md l${heatLv(v?.problems)}${s === p.today ? " today" : ""}" ${cellAttrs(s, p)}><span class="n">${toDate(s).getDate()}</span>
+      ${v?.problems ? `<span class="k">${v.problems}개</span>` : ""}</button>`;
   }
-  return `<div class="mcal">${cells}</div>${sizeLegend("md")}`;
+  return `<div class="mcal">${cells}</div>${heatLegend()}`;
 }
 function weekView(p, sel) {
   const [mon] = pvRange("week", sel, p.today);
   const days = [...Array(7)].map((_, i) => addDays(mon, i));
-  const top = Math.max(5, ...days.map(s => p.days[s]?.problems || 0));  // 5문제 아래인 주는 5를 꼭대기로 둔다
   return `<div class="wk">${days.map(s => { const n = p.days[s]?.problems || 0, d = toDate(s);
-    return `<button class="wd${s === p.today ? " today" : ""}" ${cellAttrs(s, p)}><span class="k">${n ? `${n}개` : ""}</span>
-      <span class="bar"><i style="height:${n / top * 100}%"></i></span><span class="lbl">${WD[d.getDay()]}<br>${d.getMonth() + 1}/${d.getDate()}</span></button>`; }).join("")}</div>`;
+    return `<button class="wd l${heatLv(n)}${s === p.today ? " today" : ""}" ${cellAttrs(s, p)}><span class="lbl">${WD[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}</span>
+      <span class="k">${n ? `${n}개` : ""}</span></button>`; }).join("")}</div>${heatLegend()}`;
 }
 // 위쪽 줄: 보기 고르기, 월·주는 앞뒤로 넘기기와 합계
 async function renderPv() {
