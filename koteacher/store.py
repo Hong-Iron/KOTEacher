@@ -94,9 +94,10 @@ class Store:
         return out
 
     def last_code(self, pid):
-        r = self.rows("SELECT s.code FROM snapshots s JOIN attempts a ON a.id=s.attempt_id "
+        """마지막으로 실행한 코드와 그 코드를 쓴 시도 번호."""
+        r = self.rows("SELECT s.code, s.attempt_id FROM snapshots s JOIN attempts a ON a.id=s.attempt_id "
                       "WHERE a.problem_id=? ORDER BY s.t DESC LIMIT 1", (pid,))
-        return r[0]["code"] if r else None
+        return (r[0]["code"], r[0]["attempt_id"]) if r else (None, None)
 
     # 문서에서 골라 물은 기록
     def add_note(self, doc, quote, prefix, question, answer):

@@ -708,9 +708,21 @@ async function openStep(step) {
   const li = $(`.rung[data-step="${r.step}"]`);
   li.classList.add("open"); li.querySelector(".lock").textContent = "열었습니다";
   const body = li.querySelector(".body"); body.innerHTML = r.html; body.hidden = false;
-  S.hints = r.hints; $("#hintMeta").textContent = `힌트 ${S.hints} / ${S.p.hints_max}`;
+  S.hints = r.hints; showHintMeta();
   addLog("sys", "힌트", `${r.step === S.p.hints_max + 1 ? "풀이" : r.step + "단계"}를 열었습니다.`);
   li.scrollIntoView({block: "nearest", behavior: "smooth"});
+}
+// 위 막대의 힌트 수. 이어 쓴 지난 시도에서 받은 도움도 함께 보인다
+function showHintMeta() {
+  const c = S.p.carried || {};
+  const past = c.solution ? "지난 시도 풀이 봄" : c.hints ? `지난 시도 힌트 ${c.hints}개` : "";
+  $("#hintMeta").textContent = `힌트 ${S.hints} / ${S.p.hints_max}` + (past ? ` · ${past}` : "");
+  $("#hintMeta").title = past ? "지난 시도에서 받은 도움도 이 시도에 함께 기록됩니다. 통과 기록을 정할 때 같이 셉니다" : "";
+}
+// 이어 받은 도움 때문에 통과 기록이 '힌트로 통과'가 될 때만 알린다
+function carriedNote(c) {
+  if (!c || !(c.solution || c.hints >= 2)) return;
+  addLog("sys", "기록", `${c.solution ? "지난 시도에서 본 풀이가" : `지난 시도에서 연 힌트 ${c.hints}개가`} 이 시도에도 남아 있습니다. 이번에 통과해도 '힌트로 통과'로 기록됩니다.`);
 }
 $("#warnYes").onclick = () => { $("#warn").hidden = true; if (S.pendingStep) openStep(S.pendingStep); S.pendingStep = null; };
 $("#warnNo").onclick = () => { $("#warn").hidden = true; S.pendingStep = null; };
@@ -766,8 +778,9 @@ document.addEventListener("click", e => {
 $("#bookBack").onclick = () => show("home");
 
 /* ---------------- 문제 열기 ---------------- */
-async function openProblem(pid, withDoc, code, fresh = false) {
-  const p = await API.open(pid, code || null, fresh);
+// carry: 이어 받을 지난 시도 번호. 그 시도에서 연 힌트·본 풀이가 새 시도에도 남는다
+async function openProblem(pid, withDoc, code, fresh = false, carry = null) {
+  const p = await API.open(pid, code || null, fresh, carry);
   S.p = p; S.hints = 0; S.logN = 0; S.lastDiag = null; S.startT = Date.now();
   $("#pTitle").textContent = p.title; $("#pLevel").textContent = `Lv${p.level}`; $("#pSource").textContent = p.source || "연습문제";
   $("#pSource").hidden = !p.source;
@@ -777,7 +790,7 @@ async function openProblem(pid, withDoc, code, fresh = false) {
   $("#pExamples").innerHTML = `<tr><th>${esc(p.params.join(", "))}</th><th style="width:30%">result</th></tr>` +
     p.examples.map(e => `<tr><td>${esc(e.args)}</td><td>${esc(e.expected)}</td></tr>`).join("");
   renderLadder(p.ladder);
-  $("#hintMeta").textContent = `힌트 0 / ${p.hints_max}`;
+  showHintMeta();
   $("#log").innerHTML = ""; $("#logCnt").textContent = "0";
   $("#tests").innerHTML = S.exam ? examIntro() : `<p class="note">실행(⌘↵)하면 예시 ${p.examples.length}개와 숨은 검사 ${p.hidden_total}개를 돌립니다.</p>`;
   $("#testCnt").className = "cnt"; $("#testCnt").textContent = "–";
@@ -793,6 +806,7 @@ async function openProblem(pid, withDoc, code, fresh = false) {
   clearBubble(); flagLine(null);
   monaco.editor.setModelMarkers(S.editor.getModel(), "kg", []);
   S.editor.focus();
+  carriedNote(p.carried);
   loadMistakes();
   loadProblemHistory();
 }
@@ -805,11 +819,12 @@ $$("#modeSeg button").forEach(b => b.onclick = () => {
   if (S.mode === "quiet") clearTimeout(S.idleTimer);
 });
 $("#run").onclick = () => runCheck("run");
-// 처음부터: 지금 코드를 풀이 기록에 저장하고, 빈 틀로 새 시도를 연다 (힌트·코치 기록·제한 시간도 새로)
+// 처음부터: 지금 코드를 풀이 기록에 저장하고, 빈 틀로 새 시도를 연다 (코치 기록·제한 시간은 새로).
+// 이미 연 힌트·본 풀이는 새 시도에도 남긴다. 본 것을 지울 수는 없으니까
 $("#resetCode").onclick = async () => {
   if (!S.p || !S.editor) return;
   const saved = await API.save_before_reset(S.editor.getValue());
-  await openProblem(S.p.id, null, null, true);
+  await openProblem(S.p.id, null, null, true, S.p.aid);
   addLog("sys", "처음부터", saved ? "이전 코드는 풀이 기록에 저장했습니다. '풀이 기록' 탭에서 다시 불러올 수 있습니다." : "빈 틀로 다시 시작했습니다.");
   loadProblemHistory();
 };
@@ -1518,7 +1533,7 @@ async function showAttempt(aid) {
     if (li) { shown = snaps.find(s => s.id === +li.dataset.sid); draw(); return; }
     const b = e.target.closest("[data-h]");
     if (b?.dataset.h === "open") openProblem(meta.problem_id);
-    if (b?.dataset.h === "code") openProblem(meta.problem_id, null, shown.code);
+    if (b?.dataset.h === "code") openProblem(meta.problem_id, null, shown.code, false, meta.id);
   };
   $(".hist").classList.add("detail");
 }
@@ -1544,11 +1559,12 @@ async function loadProblemHistory() {
 }
 $("#histPanel").addEventListener("click", async e => {
   const b = e.target.closest("[data-load]"); if (!b) return;
-  const d = await API.attempt(+b.dataset.load), code = d.snapshots.at(-1)?.code;
+  const r = await API.load_code(+b.dataset.load), code = r.code;
   if (!code) return;
   const model = S.editor.getModel();
   S.editor.executeEdits("history", [{range: model.getFullModelRange(), text: code}]);  // ⌘Z로 되돌릴 수 있게
   addLog("sys", "기록", "지난 코드를 불러왔습니다. ⌘Z로 되돌릴 수 있습니다.");
+  S.p.carried = r.carried; showHintMeta(); carriedNote(r.carried);
 });
 
 

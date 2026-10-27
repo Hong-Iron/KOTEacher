@@ -26,6 +26,8 @@ class Session:
         self.code = ""
         self.gen = 0
         self.practiced = False     # 연습 검사(반례·코치)를 한 번이라도 봤나. 봤으면 실전 통과로 치지 않는다
+        self.carried_hints = 0     # 이어 쓴 지난 시도에서 연 힌트 수
+        self.carried_solution = False  # 이어 쓴 지난 시도에서 풀이를 봤나
 
 
 class Api:
@@ -51,14 +53,23 @@ class Api:
                 "exam_minutes": int(config.settings().get("exam_minutes") or 0),
                 "mistakes": len(self.store.mistakes(limit=10000))}
 
-    def open(self, pid, code_override=None, fresh=False):
-        """fresh=True면 지난 코드 없이 빈 틀로 연다 (오답 다시 풀기)."""
+    def open(self, pid, code_override=None, fresh=False, carry=None):
+        """fresh=True면 지난 코드 없이 빈 틀로 연다 (오답 다시 풀기).
+        carry: 이어 받을 지난 시도 번호. 지난 코드를 불러오면 그 코드를 쓴 시도가 저절로 carry가 된다."""
         p = vault.problem(pid)
         pk = packs.load(pid)
         aid = self.store.start_attempt(pid, mode="retry" if fresh else "practice")
         self.s = Session(pid, aid)
         ladder = vault.hint_ladder(pid)
-        code = template_code(pk["params"]) if fresh else code_override or self.store.last_code(pid) or template_code(pk["params"])
+        if fresh:
+            code = template_code(pk["params"])
+        elif code_override:
+            code = code_override
+        else:
+            code, carry = self.store.last_code(pid)
+            code = code or template_code(pk["params"])
+        if carry:
+            self._carry(carry)
         self.s.code = code
         if ollama.status()["model"]:  # 공통 앞부분(규칙·문제·코드)을 미리 읽혀 두어 첫 코치 응답을 빠르게
             threading.Thread(target=coach.warm, args=(pid, code), daemon=True).start()
@@ -69,7 +80,7 @@ class Api:
             "examples": [{"args": a[1:-1].rstrip(","), "expected": o} for a, o in pk["examples"]],
             "hidden_total": len(pk["hidden"]),
             "ladder": [{"step": l["step"], "title": l["title"]} for l in ladder], "hints_max": vault.HINTS,
-            "code": code, "template": template_code(pk["params"]),
+            "code": code, "template": template_code(pk["params"]), "carried": self._carried(),
             "mistakes": self.store.mistakes(pid),
         }
 
@@ -295,13 +306,41 @@ class Api:
         lad = vault.hint_ladder(s.pid)
         if step < final:
             s.hints = max(s.hints, step)
-            self.store.update_attempt(s.aid, hints_opened=s.hints + s.extra_hints)
+            self._save_help()
         else:
             s.solution_viewed = True
-            self.store.update_attempt(s.aid, solution_viewed=1)
+            self._save_help()
             if s.open_fail:
                 self._record_mistake(fixed=False, code_after=None)
         return {"step": step, "html": lad[step - 1]["html"], "hints": s.hints}
+
+    def _save_help(self):
+        """이 시도에서 받은 도움(힌트 수·풀이 봄)을 기록한다. 이어 쓴 지난 시도의 도움도 함께 센다."""
+        s = self.s
+        self.store.update_attempt(s.aid, hints_opened=max(s.carried_hints, s.hints + s.extra_hints),
+                                  solution_viewed=int(s.solution_viewed or s.carried_solution))
+
+    def _carry(self, aid):
+        """지난 시도의 코드를 이어 쓰면, 그 시도에서 연 힌트와 본 풀이도 이 시도에 남긴다.
+        그러지 않으면 힌트로 푼 코드를 새 시도에서 다시 돌리기만 해도 힌트 없이 통과한 것으로 남는다."""
+        s = self.s
+        r = self.store.rows("SELECT problem_id, hints_opened, solution_viewed FROM attempts WHERE id=?", (int(aid),))
+        if not r or r[0]["problem_id"] != s.pid or int(aid) == s.aid:
+            return
+        s.carried_hints = max(s.carried_hints, r[0]["hints_opened"] or 0)
+        s.carried_solution = s.carried_solution or bool(r[0]["solution_viewed"])
+        self._save_help()
+
+    def _carried(self):
+        return {"hints": self.s.carried_hints, "solution": self.s.carried_solution}
+
+    def load_code(self, aid):
+        """풀기 화면의 '풀이 기록'에서 지난 시도의 마지막 코드를 불러온다. 그 시도의 도움도 지금 시도에 남긴다."""
+        snaps = self.store.attempt_detail(int(aid))["snapshots"]
+        code = snaps[-1]["code"] if snaps else None
+        if code and self.s:
+            self._carry(aid)
+        return {"code": code, "carried": self._carried() if self.s else None}
 
     # ------------------------------------------------------------ 다시 풀기와 추천
     def recommend(self):
@@ -690,7 +729,7 @@ class Api:
         if code is None:
             return None
         s.extra_hints += 1
-        self.store.update_attempt(s.aid, hints_opened=s.hints + s.extra_hints)
+        self._save_help()
         return {"code": code, "hints": s.hints + s.extra_hints}
 
     # ------------------------------------------------------------ 문서에서 골라 묻기
