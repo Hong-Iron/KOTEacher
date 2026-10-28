@@ -15,7 +15,7 @@ bad = [p for p in res if not p["ok"]]
 no_ex = [p["id"] for p in res if p.get("ok") and not p["examples"]]
 no_hid = [p["id"] for p in res if p.get("ok") and not p["hidden"]]
 print(f"팩 {len(res)}개, {time.time() - t:.0f}초")
-print(f"예시 합계 {sum(len(p.get('examples', [])) for p in res)}, 숨은 검사 합계 {sum(len(p.get('hidden', [])) for p in res)}")
+print(f"예시 합계 {sum(len(p.get('examples', [])) for p in res)}, 히든 테스트 합계 {sum(len(p.get('hidden', [])) for p in res)}")
 print("실패:", [(p["id"], p.get("error", "")[:120]) for p in bad])
 print("예시 없음:", no_ex)
-print("숨은 검사 없음:", no_hid)
+print("히든 테스트 없음:", no_hid)

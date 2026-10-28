@@ -187,8 +187,10 @@ a{color:var(--accent)}
 .cat{font-size:11px;border-radius:4px;padding:0 6px;margin-left:6px;background:var(--sunk);color:var(--muted);font-weight:500;white-space:nowrap}
 
 /* 아래 패널 */
-.dock{background:var(--panel);border-top:1px solid var(--line);display:grid;grid-template-rows:auto minmax(0,1fr);height:230px;min-width:0}
+.dock{background:var(--panel);border-top:1px solid var(--line);display:grid;grid-template-rows:auto minmax(0,1fr);height:var(--dock-h,230px);min-width:0;position:relative}
 .dock.small{height:auto}
+.hsplitter{position:absolute;left:0;right:0;top:-4px;height:7px;cursor:row-resize;z-index:6}
+.hsplitter:hover,.hsplitter.drag,.hsplitter:focus-visible{background:color-mix(in srgb, var(--accent) 40%, transparent);outline:none}
 .dock.small .pbody{display:none}
 .tabs{display:flex;align-items:center;gap:2px;padding:4px 10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap;-webkit-user-select:none;user-select:none}
 .tabs [role=tab]{border:0;background:none;padding:6px 10px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;gap:6px;align-items:center}
@@ -217,6 +219,7 @@ a{color:var(--accent)}
 .sect{font-size:11px;letter-spacing:.06em;color:var(--faint);margin:8px 0 2px;font-weight:600}
 .statusbar{display:flex;gap:14px;align-items:center;padding:0 6px;font-size:11.5px;color:var(--faint);margin-left:auto}
 pre.out{margin:0;font:12px var(--f-mono);color:var(--muted);white-space:pre-wrap}
+.outnote{margin:0 0 8px;color:var(--bad)}
 
 /* 오답 노트 */
 .mbook{overflow:auto;padding:24px max(16px,4vw) 48px}
@@ -337,6 +340,7 @@ mark.search-hit{background:color-mix(in srgb, var(--accent) 30%, transparent);co
 /* 실전 모드: 자동 검사·코치·힌트를 끄고 예시 실행과 제출만 */
 .examtog{border:1px solid var(--line);background:var(--sunk);color:var(--muted);border-radius:7px;padding:3px 11px;font-size:12.5px;cursor:pointer}
 .examtog[aria-pressed="true"]{background:var(--bad-bg);color:var(--bad);border-color:currentColor;font-weight:600}
+.examtog.autotog[aria-pressed="true"]{background:var(--panel);color:var(--coach);border-color:var(--coach-line)}
 .exam-only{display:none !important}
 #solve.exam .exam-only{display:revert !important}
 #solve.exam .exam-hide{display:none !important}

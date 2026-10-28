@@ -2,7 +2,7 @@
 
     python -I harness.py  < {"code": ..., "pack": 경로, "repair": bool, "only": None | "examples" | "submit"}
 
-only="examples"는 예시만 돌린다 (실전 모드의 예시 실행). only="submit"은 숨은 검사를 실패해도 끝까지 돌리고
+only="examples"는 예시만 돌린다 (실전 모드의 예시 실행). only="submit"은 히든 테스트를 실패해도 끝까지 돌리고
 통과 개수만 낸다 (실전 모드의 제출: 반례·수리·실행 추적 없음).
 
 표준 출력 마지막 줄에 결과 JSON을 쓴다. 이 파일은 koteacher 패키지를 import하지 않는다.
@@ -19,10 +19,11 @@ import time
 import traceback
 
 PER_TEST = 2.0        # 테스트 하나의 시간 제한(초)
-HIDDEN_BUDGET = 3.0   # 숨은 검사 전체 시간
-SUBMIT_BUDGET = 12.0  # 실전 제출에서 숨은 검사 전체 시간
-REPAIR_BUDGET = 1.5   # 수리 검색 전체 시간
+HIDDEN_BUDGET = 3.0   # 히든 테스트 전체 시간
+SUBMIT_BUDGET = 12.0  # 실전 제출에서 히든 테스트 전체 시간
+REPAIR_BUDGET = 1.5   # 변이 탐색 전체 시간
 REPAIR_PER_TEST = 0.2
+LOAD_LIMIT = 2.0      # 함수 밖 코드(맨 아래에서 직접 부른 함수 등)를 실행하는 시간 제한(초)
 MAX_OUT = 4000
 
 
@@ -90,6 +91,25 @@ def load_solution(code_or_tree):
     return fn
 
 
+class LoadTimeout(Exception):
+    """함수 밖 코드가 제한 시간 안에 끝나지 않았다. line은 멈춘 줄, called는 그 코드를 부른 맨 바깥 줄."""
+
+    def __init__(self, line, called):
+        super().__init__(line)
+        self.line, self.called = line, called
+
+
+def load_limited(code_or_tree, limit):
+    """load_solution에 시간 제한을 건다. 코드를 불러올 때는 함수 밖 코드도 실행되므로, 맨 아래에서 부른
+    함수가 끝나지 않으면(무한 반복 등) 불러오기가 끝나지 않는다. 예전에는 제한이 없어 검사 전체가 20초에 끊겼다."""
+    try:
+        with Deadline(limit):
+            return load_solution(code_or_tree)
+    except KeyboardInterrupt as e:
+        tb = [f for f in traceback.extract_tb(e.__traceback__) if f.filename == "<내 코드>"]
+        raise LoadTimeout(tb[-1].lineno if tb else None, tb[0].lineno if tb else None) from None
+
+
 def short(s, n=300):
     return s if len(s) <= n else s[:n] + "…"
 
@@ -113,7 +133,7 @@ def run_tests(fn, tests, limit, budget=None, stop_after=None):
     return res
 
 
-# ---------- 수리 검색: 한 군데만 고쳐서 모든 검사가 통과하는지 ----------
+# ---------- 변이 탐색: 한 군데만 고쳐서 모든 검사가 통과하는지 ----------
 SWAP = {ast.Lt: ast.LtE, ast.LtE: ast.Lt, ast.Gt: ast.GtE, ast.GtE: ast.Gt,
         ast.Eq: ast.NotEq, ast.NotEq: ast.Eq}
 OPSYM = {ast.Lt: "<", ast.LtE: "<=", ast.Gt: ">", ast.GtE: ">=", ast.Eq: "==", ast.NotEq: "!="}
@@ -177,7 +197,9 @@ def apply_mutation(code, site):
     return tree
 
 
-def repair(code, failing, all_tests):
+def repair(code, failing, all_tests, load_limit=REPAIR_PER_TEST):
+    """load_limit: 바꿔 본 코드 하나를 불러오는 시간 제한. 바꾼 곳이 맨 아래에서 부른 함수 안이면
+    (예: while num > 0 → while num >= 0) 불러오기가 끝나지 않으므로, 내 코드를 불러온 시간에 맞춘 제한을 건다."""
     sites = mutation_sites(ast.parse(code))
     lines = code.splitlines()
     start, fixes, tried = time.perf_counter(), [], 0
@@ -188,7 +210,7 @@ def repair(code, failing, all_tests):
         try:
             tree = apply_mutation(code, site)
             with contextlib.redirect_stdout(io.StringIO()):
-                fn = load_solution(tree)
+                fn = load_limited(tree, load_limit)  # 끝나지 않으면 LoadTimeout → 다음 후보로
                 if not all(r["ok"] for r in run_tests(fn, failing, REPAIR_PER_TEST, stop_after=1)):
                     continue
                 if all(r["ok"] for r in run_tests(fn, all_tests, REPAIR_PER_TEST, budget=0.6, stop_after=1)):
@@ -204,7 +226,11 @@ def repair(code, failing, all_tests):
 
 def trace_run(code, args, max_rows=40):
     """가장 작은 반례에서 줄마다 바뀐 지역 변수를 기록한다 (AI 진단 재료)."""
-    fn = load_solution(code)
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            fn = load_limited(code, LOAD_LIMIT)
+    except LoadTimeout:
+        return []
     rows, state = [], {}  # 프레임마다 (직전 변수, 직전 줄)
 
     def short_val(v):
@@ -256,16 +282,26 @@ def main():
         print(json.dumps(out, ensure_ascii=False))
         return
     buf = io.StringIO()
+    t_load = time.perf_counter()
     try:
         with contextlib.redirect_stdout(buf):
-            fn = load_solution(code)
+            fn = load_limited(code, LOAD_LIMIT)
+    except LoadTimeout as e:
+        # 멈춘 줄(line)에 표시하고, 함수 밖에서 그 함수를 부른 줄(called)을 말해 준다. 그때까지 print한 것은 출력에 남긴다
+        where = f"{e.called}번 줄에서 부른 코드가" if e.called and e.called != e.line else "함수 밖 코드가"
+        out.update(load_error=f"시간 초과: {where} {LOAD_LIMIT:g}초 안에 끝나지 않았습니다", load_line=e.line,
+                   load_timeout=True, stdout=buf.getvalue()[:MAX_OUT])
+        print(json.dumps(out, ensure_ascii=False))
+        return
     except Exception as e:
         out["load_error"] = f"{type(e).__name__}: {e}"
         # 함수 밖 코드에서 난 오류(예: 맨 줄에 쓴 글자 → NameError)의 줄 번호
         tb = traceback.extract_tb(e.__traceback__)
         out["load_line"] = next((f.lineno for f in reversed(tb) if f.filename == "<내 코드>"), None)
+        out["stdout"] = buf.getvalue()[:MAX_OUT]  # 오류가 나기 전까지 print한 것
         print(json.dumps(out, ensure_ascii=False))
         return
+    t_load = time.perf_counter() - t_load
 
     lit = ast.literal_eval
     ex_tests = [(lit(a), o, lit(o)) for a, o in pack["examples"]]
@@ -344,7 +380,9 @@ def main():
             out["trace_args"] = short(repr(smallest[0])[1:-1].rstrip(","), 300)
         # 시간 초과가 난 경우에도 돌린다. 변이체의 테스트마다 짧은 제한(REPAIR_PER_TEST)이 걸려 있다
         slow = any(r.get("timeout") for r in ex_res + hres)
-        out["repair"] = repair(code, failing[:2 if slow else 3], ex_tests + hid_tests[:120])
+        # 바꿔 본 코드를 불러오는 제한: 내 코드를 불러온 시간의 3배 (적어도 REPAIR_PER_TEST, 많아야 LOAD_LIMIT)
+        load_limit = min(LOAD_LIMIT, max(REPAIR_PER_TEST, 3 * t_load))
+        out["repair"] = repair(code, failing[:2 if slow else 3], ex_tests + hid_tests[:120], load_limit)
     print(json.dumps(out, ensure_ascii=False))
 
 

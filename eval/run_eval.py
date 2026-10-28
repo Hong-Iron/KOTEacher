@@ -43,7 +43,7 @@ def det():
     print(f"1군데 버그 {n}개")
     print("진단 단계:", by)
     rep_rows = [r for r in rows if r["tier"] == "repair"]
-    print(f"수리 검색이 고친 비율 {len(rep_rows) / n:.0%}, 그중 버그 줄을 맞힌 비율 {sum(r['line_ok'] for r in rep_rows) / max(1, len(rep_rows)):.0%}")
+    print(f"변이 탐색이 고친 비율 {len(rep_rows) / n:.0%}, 그중 버그 줄을 맞힌 비율 {sum(r['line_ok'] for r in rep_rows) / max(1, len(rep_rows)):.0%}")
     rule = [r for r in rows if r["tier"] == "rule"]
     print(f"규칙(오류·시간 초과) {len(rule)}개, 그중 줄을 맞힌 비율 {sum(r['line_ok'] for r in rule) / max(1, len(rule)):.0%}")
     print(f"검사+수리 시간 중앙값 {st.median(r['total_ms'] for r in rows):.0f}ms, 최대 {max(r['total_ms'] for r in rows):.0f}ms")
@@ -124,7 +124,7 @@ def summarize(rows):
 
 
 def say_eval(n=15, tag="say"):
-    """1군데 버그(수리 검색이 정답 수정을 앎)에서 말하기만: 고칠 값을 흘리는지가 핵심."""
+    """1군데 버그(변이 탐색이 정답 수정을 앎)에서 말하기만: 고칠 값을 흘리는지가 핵심."""
     import random
     bugs = json.loads((DATA / "bugs1.json").read_text())
     random.Random(1).shuffle(bugs)

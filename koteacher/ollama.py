@@ -70,37 +70,58 @@ def candidates():
 
 
 _loading = False
+_owned = set()  # 이 앱이 올린 모델. 끌 때 이것만 내린다 (다른 프로그램이 먼저 올려 둔 모델은 건드리지 않는다)
+
+
+def loaded():
+    """지금 메모리에 올라와 있는 모델 이름들 (/api/ps)."""
+    try:
+        with urllib.request.urlopen(config.OLLAMA + "/api/ps", timeout=2) as r:
+            return {n for m in json.load(r).get("models", []) for n in (m.get("name"), m.get("model")) if n}
+    except Exception:
+        return set()
 
 
 def is_loaded():
-    """모델이 지금 메모리에 올라와 있는지 (/api/ps)."""
-    try:
-        with urllib.request.urlopen(config.OLLAMA + "/api/ps", timeout=2) as r:
-            return any(m.get("name") == config.MODEL or m.get("model") == config.MODEL for m in json.load(r).get("models", []))
-    except Exception:
-        return False
+    """지금 쓰는 모델(config.MODEL)이 메모리에 올라와 있는지."""
+    return config.MODEL in loaded()
 
 
-def load():
-    """프롬프트 없이 요청하면 모델만 올린다. 앱이 켜져 있는 동안 내려가지 않게 keep_alive를 길게 준다."""
+def load(model=None):
+    """프롬프트 없이 요청하면 모델만 올린다. 앱이 켜져 있는 동안 내려가지 않게 keep_alive를 길게 준다.
+    이미 올라와 있던 모델이 아니면 앱이 올린 모델로 적어 둔다."""
     global _loading
     if external():
         return
+    model = model or config.MODEL
+    was = model in loaded()
     _loading = True
     try:
-        body = {"model": config.MODEL, "keep_alive": "30m", "options": {"num_ctx": config.NUM_CTX}}
+        body = {"model": model, "keep_alive": "30m", "options": {"num_ctx": config.NUM_CTX}}
         with _post("/api/generate", body, 300) as r:
             r.read()
+        if not was:
+            _owned.add(model)
     finally:
         _loading = False
 
 
-def unload():
+def unload(model=None):
+    """모델을 메모리에서 내린다. 바꿀 때는 옛 모델의 이름을 넘긴다: 지금 모델 이름(config.MODEL)을 잠깐 옛 이름으로
+    되돌려 내리면, 그 사이에 나간 코치 요청이 옛 모델을 다시 올린다. 올라와 있지 않은 모델이면 아무 일도 없다."""
+    model = model or config.MODEL
+    _owned.discard(model)
     try:
-        with _post("/api/generate", {"model": config.MODEL, "keep_alive": 0}, 10) as r:
+        with _post("/api/generate", {"model": model, "keep_alive": 0}, 10) as r:
             r.read()
     except Exception:
         pass
+
+
+def unload_owned():
+    """앱이 올린 모델을 모두 내린다 (끌 때). 켤 때 올린 모델과 도중에 바꿔 올린 모델이 모두 들어간다."""
+    for m in list(_owned):
+        unload(m)
 
 
 def chat(messages, schema=None, think=False, max_tokens=300, temperature=0.4, on_token=None, timeout=120, stop=None):

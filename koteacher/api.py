@@ -55,6 +55,7 @@ class Api:
         self.mode = "normal"
         self.lock = threading.Lock()
         self.pulling = False  # 모델을 받는 중인가 (한 번에 하나만 받는다)
+        self.swapping = threading.Lock()  # 모델 바꾸기(내리고 올리기)는 한 번에 하나씩
 
     # ------------------------------------------------------------ 화면으로 보내기
     def _push(self, event, data):
@@ -69,6 +70,7 @@ class Api:
         from . import config
         return {"problems": items, "ai": self.ai_status(), "mode": self.mode, "exam": bool(config.settings().get("exam")),
                 "exam_minutes": int(config.settings().get("exam_minutes") or 0),
+                "auto_check": bool(config.settings().get("auto_check", False)),
                 "mistakes": len(self.store.mistakes(limit=10000)), "streak": self._streak_now()}
 
     def _streak_now(self):
@@ -225,6 +227,12 @@ class Api:
         self.mode = mode
         return mode
 
+    def set_auto_check(self, on):
+        """손을 멈추면 저절로 검사할지. 기본은 꺼짐(실행할 때만 검사). 다음에 켤 때도 유지한다."""
+        from . import config
+        config.save_settings(auto_check=bool(on))
+        return bool(on)
+
     def ai_status(self):
         """코치 상태와, 지금 모델에 맞춰 쓰는 지시문 묶음(프로필) 이름."""
         return ollama.status() | {"profile": coach.profile_name()}
@@ -246,14 +254,19 @@ class Api:
         config.save_settings(coach_model=choice, provider="ollama")
         st = ollama.status()
         if st["model"] and config.MODEL != before:
-            def swap():
-                config.MODEL, cur = before, config.MODEL
-                ollama.unload()
-                config.MODEL = cur
-                ollama.load()
-                self._push("model_ready", self.ai_status())
-            threading.Thread(target=swap, daemon=True).start()
+            threading.Thread(target=self._swap, args=(before, config.MODEL), daemon=True).start()
         return st
+
+    def _swap(self, old, new):
+        """옛 모델을 먼저 내리고 새 모델을 올린다 (둘이 한꺼번에 메모리에 있지 않게).
+        그 사이 사용자가 또 바꿨으면 이 새 모델은 올리지 않는다: 다음 바꾸기가 그 모델을 올린다."""
+        from . import config
+        with self.swapping:
+            if old and old != new:
+                ollama.unload(old)
+            if config.MODEL == new and not ollama.external():
+                ollama.load(new)
+                self._push("model_ready", self.ai_status())
 
     # ------------------------------------------------------------ 외부 API와 다른 Ollama 모델
     def api_settings(self):
@@ -373,9 +386,10 @@ class Api:
                             raise
                 if name not in cfg.MODELS:
                     cfg.MODELS.insert(0, name)
-                st = ollama.status()
+                prev = cfg.MODEL  # 받는 동안 코치가 대신 쓰던 모델
+                st = ollama.status()  # 받은 모델이 고른 것이면 여기서 config.MODEL이 그 모델로 바뀐다
                 if st["model"]:
-                    ollama.load()
+                    self._swap(prev, cfg.MODEL)  # 대신 쓰던 모델은 내리고 받은 모델을 올린다
                 self.pulling = False
                 self._push("pull_done", {"ok": True, "status": self.ai_status()})
             except Exception as e:
@@ -589,7 +603,7 @@ class Api:
         return True
 
     def exam_run(self, code, kind, info=None):
-        """kind='examples'면 예시만, 'submit'이면 숨은 검사를 끝까지 돌려 개수만 낸다. 코치·오답 기록은 쓰지 않는다."""
+        """kind='examples'면 예시만, 'submit'이면 히든 테스트를 끝까지 돌려 개수만 낸다. 코치·오답 기록은 쓰지 않는다."""
         s = self.s
         with self.lock:
             s.gen += 1  # 뒤에서 돌던 코치 응답은 버린다
@@ -606,13 +620,19 @@ class Api:
         return {"result": res, "passed": ok, "kind": only}
 
     # ------------------------------------------------------------ 검사와 코치
+    def cancel_check(self):
+        """도는 중인 자동 검사를 끊는다 (자동 검사 중에 실행을 누르면 기다리지 않고 바로 실행하려고)."""
+        return runner.cancel()
+
     def check(self, code, trigger="run"):
         s = self.s
         with self.lock:
             s.gen += 1
             gen = s.gen
             s.code = code
-        res = runner.check(code, s.pid)
+        res = runner.check(code, s.pid, cancellable=trigger != "run")
+        if res.get("cancelled"):  # 실행 버튼이 이 자동 검사를 끊었다: 기록하지 않는다
+            return {"cancelled": True}
         s.practiced = True
         fs = coach.facts(res)
         ok = coach.passed(res)

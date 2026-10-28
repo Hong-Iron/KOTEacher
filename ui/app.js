@@ -101,7 +101,7 @@ function setAi(st) {
     const txt = st.external ? (ready ? `코치(${st.external} · ${st.name})가 준비되어 있습니다` : "외부 API 설정이 끝나지 않았습니다 · 눌러서 설정합니다")
       : ready ? `코치(${modelLabel(st.name)})가 준비되어 있습니다`
       : st.server && st.model ? "코치 모델을 불러오고 있습니다 · 테스트는 지금도 쓸 수 있습니다"
-      : st.server ? "코치 모델이 없습니다 · 테스트와 수리 검색은 쓸 수 있습니다" : "Ollama가 꺼져 있습니다 · 테스트와 수리 검색은 쓸 수 있습니다";
+      : st.server ? "코치 모델이 없습니다 · 테스트와 변이 탐색은 쓸 수 있습니다" : "Ollama가 꺼져 있습니다 · 테스트와 변이 탐색은 쓸 수 있습니다";
     el.innerHTML = `<span class="dot ${dot}"></span><span class="t">${esc(txt)}</span>`;
     // 모델마다 지시문·온도를 따로 쓴다(코치 프로필). 마우스를 올리면 지금 어느 쪽인지 보인다
     const prof = {gemma: "gemma용", mistral: "Ministral용", qwen: "Qwen용"}[st.profile];
@@ -112,6 +112,7 @@ function setAi(st) {
 async function boot() {
   const b = await API.boot();
   S.problems = b.problems; S.mode = b.mode; S.examMin = b.exam_minutes || 0; $("#examTime").value = String(S.examMin); setExam(!!b.exam, false);
+  setAutoCheck(!!b.auto_check, false);
   renderRecs();
   $("#bookCnt").textContent = b.mistakes;
   // 프로필 버튼의 연속 일수: 오늘 이미 풀었으면 초록, 아직이면 회색(오늘 풀어야 이어진다)
@@ -210,9 +211,17 @@ function onEdit() {
   if (S.mode !== "quiet" && !S.exam) {
     clearTimeout(S.warmTimer);
     S.warmTimer = setTimeout(() => API.prewarm(S.editor.getValue()), 1200);  // 코치가 읽을 앞부분을 미리 읽혀 둔다
-    S.idleTimer = setTimeout(() => runCheck("idle"), 2700);  // 손을 멈춘 뒤 자동 검사까지
   }
+  // 자동 검사를 켰을 때만 손을 멈추고 2.7초 뒤 검사한다. 기본은 꺼짐: 실행(⌘↵)할 때만 검사한다
+  if (S.autoCheck && !S.exam) S.idleTimer = setTimeout(() => runCheck("idle"), 2700);
 }
+function setAutoCheck(on, save = true) {
+  S.autoCheck = on;
+  $("#autoBtn").setAttribute("aria-pressed", on);
+  if (save) API.set_auto_check(on);
+  if (!on) clearTimeout(S.idleTimer);
+}
+$("#autoBtn").onclick = () => setAutoCheck(!S.autoCheck);
 
 /* ---------------- 편집기에서 드래그한 코드를 코치에게 묻기 ---------------- */
 // 고른 곳 끝에 작은 '코치에게 묻기' 버튼을 띄운다 (⌘I, 오른쪽 클릭 메뉴로도). 실전 모드에서는 끈다
@@ -422,7 +431,7 @@ function bubbleDone(m) {
 }
 function bubblePass() {
   const el = h("div", "bubble done");
-  el.innerHTML = bubbleHead("모두 통과", `예시와 숨은 검사 전부`) + `<div>이 문제를 풀었어요. 다른 문제로 가거나, 더 빠른 방법이 있는지 생각해 보세요.</div>`;
+  el.innerHTML = bubbleHead("모두 통과", `예시와 히든 테스트 전부`) + `<div>이 문제를 풀었어요. 다른 문제로 가거나, 더 빠른 방법이 있는지 생각해 보세요.</div>`;
   placeBubble(null, el);
 }
 const fmtDur = s => { s = Math.round(s || 0); return s >= 60 ? `${Math.floor(s / 60)}분 ${s % 60}초` : `${s}초`; };
@@ -485,9 +494,11 @@ function showRunning(trigger, btn = $("#run"), what) {
   const t0 = performance.now(), label = btn.textContent;
   if (trigger === "run") {
     btn.setAttribute("aria-busy", "true"); btn.disabled = true; btn.innerHTML = `${btn.id === "submit" ? "제출" : "실행"} 중${DOTS}`;
-    $$(".tabs [role=tab]").find(t => t.dataset.tab === "tests")?.click();  // 테스트 탭을 펼쳐 보여 준다
+    // 테스트 탭을 펼쳐 보여 준다. 출력 탭을 보고 있었으면 그대로 둔다 (print를 보며 고치는 중)
+    const cur = $$(".tabs [role=tab]").find(t => t.getAttribute("aria-selected") === "true")?.dataset.tab;
+    $$(".tabs [role=tab]").find(t => t.dataset.tab === (cur === "out" ? "out" : "tests"))?.click();
     const n = S.p?.examples.length ?? 0, m = S.p?.hidden_total ?? 0;
-    const box = $("#tests"), row = h("div", "running", `${waiting(what || `예시 ${n}개와 숨은 검사 ${m}개를 돌리고 있습니다`)}<span class="el">0.0초</span>`);
+    const box = $("#tests"), row = h("div", "running", `${waiting(what || `예시 ${n}개와 히든 테스트 ${m}개를 돌리고 있습니다`)}<span class="el">0.0초</span>`);
     box.prepend(row); box.querySelectorAll(".trow").forEach(r => r.classList.add("stale"));
     const tick = setInterval(() => { const el = row.querySelector(".el"); if (el) el.textContent = `${((performance.now() - t0) / 1000).toFixed(1)}초`; }, 100);
     return () => {
@@ -503,19 +514,25 @@ function showRunning(trigger, btn = $("#run"), what) {
 async function runCheck(trigger) {
   if (S.exam) { if (trigger === "run") examRun("examples"); return; }
   const code = S.editor.getValue();
-  if (S.checking || (trigger === "idle" && code === S.lastChecked)) return;
-  S.checking = true;
+  if (S.checking) {
+    // 자동 검사가 도는 중에 실행을 누르면 그 검사를 끊고 바로 실행한다 (예전에는 누른 것이 그냥 무시됐다)
+    if (trigger === "run" && S.checking !== "run") { S.runNext = true; API.cancel_check(); }
+    return;
+  }
+  if (trigger === "idle" && code === S.lastChecked) return;
+  S.checking = trigger;
   S.lastChecked = code;
   S.pendingSay = null;  // 앞 검사의 코치 말은 이제 맞지 않을 수 있다
   const stop = showRunning(trigger);
   try {
     // 검사가 0.1초 만에 끝나도 '실행 중'이 눈에 보이도록 직접 실행은 최소 0.45초 보여 준다
     const [r] = await Promise.all([API.check(code, trigger), trigger === "run" ? new Promise(ok => setTimeout(ok, 450)) : null]);
+    if (r.cancelled) return;  // 실행 버튼이 끊은 자동 검사: 아래 finally에서 바로 실행한다
     renderTests(r);
     monaco.editor.setModelMarkers(S.editor.getModel(), "kg", r.result.syntax && S.exam ? [{
       startLineNumber: r.result.syntax.line, endLineNumber: r.result.syntax.line, startColumn: 1, endColumn: 200,
       message: r.result.syntax.msg, severity: monaco.MarkerSeverity.Error}] : []);
-    $("#out").textContent = r.result.stdout || "print 출력이 없습니다.";
+    showOut(r.result);
     if (r.passed) {
       flagLine(null); S.lastDiag = null;
       if (talking()) removeChip();  // 통과는 테스트 표와 기록으로 알리고, 나누던 말은 그대로 둔다
@@ -538,7 +555,26 @@ async function runCheck(trigger) {
     addLog("sys", "오류", String(err));
   } finally {
     S.checking = false; stop();
+    if (S.runNext) { S.runNext = false; runCheck("run"); }
   }
+}
+// 출력 탭. 코드가 돌았으면 그때 print한 것을 보인다(오류·시간 초과로 멈췄으면 멈추기 전까지).
+// 문법 오류처럼 아예 돌지 못했으면 지난 출력을 지우지 않고, 왜 못 돌았는지만 위에 적는다
+// (예전에는 손을 멈춘 사이 자동 검사가 반쯤 쓴 코드를 돌려 보던 출력을 '출력이 없습니다'로 덮었다)
+function showOut(res) {
+  const note = $("#outNote");
+  if (res.syntax || res.fatal) {
+    note.hidden = false;
+    note.textContent = (res.syntax ? `${res.syntax.line}번 줄 문법 오류로 실행하지 못했습니다.` : `${res.fatal}.`) +
+      (S.outShown ? " 아래는 지난번에 실행했을 때의 출력입니다." : "");
+    return;
+  }
+  const stopped = res.load_timeout ? "함수 밖 코드가 시간 안에 끝나지 않아 멈췄습니다."
+    : res.load_error ? `${res.load_line ? `${res.load_line}번 줄 ` : ""}오류로 멈췄습니다.` : "";
+  note.hidden = !stopped;
+  note.textContent = stopped + (stopped && res.stdout ? " 아래는 멈추기 전까지 print한 것입니다." : "");
+  $("#out").textContent = res.stdout || "print 출력이 없습니다.";
+  S.outShown = !!res.stdout;
 }
 
 function renderTests(r) {
@@ -563,7 +599,7 @@ function renderTests(r) {
     const s = okAll ? `<span class="s ok">✓</span>` : ff ? `<span class="s bad">✗</span>` : `<span class="s skip">–</span>`;
     const body = okAll ? `무작위 ${hd.total}개가 모두 맞았습니다` : ff ? (ff.timeout ? `가장 작은 반례 ${esc(ff.args)} · <b>시간 초과</b>` : ff.error ? `가장 작은 반례 ${esc(ff.args)} · <b>${esc(ff.error)}</b>` :
       `가장 작은 반례 ${esc(ff.args)} 기대 <b>${esc(ff.expected)}</b> 내 답 <b>${esc(ff.got)}</b> · ${hd.run}번째`) : `${hd.total}개 중 ${hd.run}개까지 돌렸습니다`;
-    box.append(h("div", "trow", `${s}<span>숨은 검사</span><span class="io2" title="${esc(ff?.args || "")}">${body}</span><span class="t">${hd.passed}/${hd.total}</span>`));
+    box.append(h("div", "trow", `${s}<span>히든 테스트</span><span class="io2" title="${esc(ff?.args || "")}">${body}</span><span class="t">${hd.passed}/${hd.total}</span>`));
   }
   if (r.risk) box.append(h("div", "trow", `<span class="s skip">!</span><span>속도 어림</span><span class="io2">반복문 ${r.risk.depth}겹 × 입력 최대 ${r.risk.n.toLocaleString()} → 연산 약 ${r.risk.ops.toExponential(1)}번입니다. 시간 초과가 날 수 있습니다</span><span class="t"></span>`));
   const passedN = ex.filter(e => e.ok).length + (hd && !hd.first_fail && hd.run === hd.total ? 1 : 0);
@@ -578,7 +614,7 @@ function setExam(on, save = true) {
   $("#examBtn").setAttribute("aria-pressed", on);
   const run = $("#run");
   if (!run.disabled) run.textContent = on ? "예시 실행 ⌘↵" : "실행 ⌘↵";
-  run.title = on ? "입출력 예만 돌리기" : "예시와 숨은 검사 돌리기";
+  run.title = on ? "입출력 예만 돌리기" : "예시와 히든 테스트 돌리기";
   if (save) API.set_exam(on);
   if (!S.p || !S.editor) return;
   startExamTimer();
@@ -590,11 +626,11 @@ function setExam(on, save = true) {
     $("#tests").innerHTML = examIntro();
     $("#testCnt").className = "cnt"; $("#testCnt").textContent = "–";
   } else {
-    $("#tests").innerHTML = `<p class="note">실전 모드를 껐습니다. 실행(⌘↵)하면 예시와 숨은 검사를 돌리고, 틀리면 가장 작은 반례와 코치 말을 보여 줍니다.</p>`;
+    $("#tests").innerHTML = `<p class="note">실전 모드를 껐습니다. 실행(⌘↵)하면 예시와 히든 테스트를 돌리고, 틀리면 가장 작은 반례와 코치 말을 보여 줍니다.</p>`;
   }
 }
 const examIntro = () => `<p class="note">실전 모드입니다. 자동 검사, 코치, 힌트가 꺼져 있습니다.
-  예시 실행(⌘↵)은 입출력 예 ${S.p.examples.length}개만 돌립니다. 제출(⌘⇧↵)하면 숨은 검사 ${S.p.hidden_total}개를 모두 돌리고, 몇 개를 맞혔는지만 알려 드립니다.</p>`;
+  예시 실행(⌘↵)은 입출력 예 ${S.p.examples.length}개만 돌립니다. 제출(⌘⇧↵)하면 히든 테스트 ${S.p.hidden_total}개를 모두 돌리고, 몇 개를 맞혔는지만 알려 드립니다.</p>`;
 $("#examBtn").onclick = () => setExam(!S.exam);
 $("#examTime").onchange = e => { S.examMin = +e.target.value; API.set_exam_minutes(S.examMin); startExamTimer(); };
 // 문제를 열거나 실전을 켜거나 제한 시간을 바꾸면 지금부터 다시 잰다
@@ -627,7 +663,7 @@ async function examRun(kind, info) {
   if (S.checking) return;
   S.checking = true;
   const code = S.editor.getValue(), sub = kind === "submit";
-  const what = sub ? `숨은 검사 ${S.p.hidden_total}개를 모두 돌리고 있습니다` : `예시 ${S.p.examples.length}개를 돌리고 있습니다`;
+  const what = sub ? `히든 테스트 ${S.p.hidden_total}개를 모두 돌리고 있습니다` : `예시 ${S.p.examples.length}개를 돌리고 있습니다`;
   const stop = showRunning("run", sub ? $("#submit") : $("#run"), what);
   try {
     const left = S.examEnd ? Math.max(0, Math.round((S.examEnd - Date.now()) / 1000)) : null;
@@ -638,9 +674,9 @@ async function examRun(kind, info) {
     monaco.editor.setModelMarkers(S.editor.getModel(), "kg", res.syntax ? [{
       startLineNumber: res.syntax.line, endLineNumber: res.syntax.line, startColumn: 1, endColumn: 200,
       message: res.syntax.msg, severity: monaco.MarkerSeverity.Error}] : []);
-    $("#out").textContent = res.stdout || "print 출력이 없습니다.";
+    showOut(res);
     const ex = res.examples || [];
-    if (sub && res.submit) addLog("sys", "제출", `숨은 검사 ${res.submit.total}개 중 ${res.submit.passed}개를 맞혔습니다`);
+    if (sub && res.submit) addLog("sys", "제출", `히든 테스트 ${res.submit.total}개 중 ${res.submit.passed}개를 맞혔습니다`);
     else if (!sub && ex.length) addLog("sys", "예시 실행", `예시 ${ex.length}개 중 ${ex.filter(e => e.ok).length}개를 맞혔습니다`);
   } catch (err) {
     addLog("sys", "오류", String(err));
@@ -659,9 +695,9 @@ function renderExam(r) {
     const parts = [["틀림", sub.wrong], ["시간 초과", sub.timeout], ["오류", sub.error], [sub.stopped === "timeout" ? "시간 초과가 이어져 돌리지 않음" : "시간이 모자라 돌리지 않음", sub.not_run]]
       .filter(([, n]) => n).map(([k, n]) => `${k} ${n}개`).join(" · ");
     const ok = r.passed;
-    const el = h("div", "examres", `<div class="big ${ok ? "ok" : "bad"}">${ok ? "통과했습니다" : "통과하지 못했습니다"} · 숨은 검사 ${sub.total}개 중 ${sub.passed}개 (정확성 ${score.toFixed(1)}점)</div>
+    const el = h("div", "examres", `<div class="big ${ok ? "ok" : "bad"}">${ok ? "통과했습니다" : "통과하지 못했습니다"} · 히든 테스트 ${sub.total}개 중 ${sub.passed}개 (정확성 ${score.toFixed(1)}점)</div>
       <div class="bar"><i style="width:${score}%"></i></div>
-      <p class="note" style="margin:0">${parts || "모든 숨은 검사를 맞혔습니다"} · ${sub.sec}초 · 문제를 연 뒤 ${$("#clock").textContent}</p>
+      <p class="note" style="margin:0">${parts || "모든 히든 테스트를 맞혔습니다"} · ${sub.sec}초 · 문제를 연 뒤 ${$("#clock").textContent}</p>
       ${ok ? "" : `<div class="acts"><button class="btn" id="examReveal">실전 끄고 반례 보기</button></div>`}`);
     box.append(el);
     el.querySelector("#examReveal")?.addEventListener("click", () => { setExam(false); runCheck("run"); });
@@ -677,7 +713,7 @@ function renderExam(r) {
   });
   if (!sub) {
     const n = ex.filter(e => e.ok).length;
-    box.append(h("p", "note", n === ex.length ? "예시는 모두 맞았습니다. 제출(⌘⇧↵)해서 숨은 검사로 확인해 보세요." : "예시부터 맞혀 보세요."));
+    box.append(h("p", "note", n === ex.length ? "예시는 모두 맞았습니다. 제출(⌘⇧↵)해서 히든 테스트로 확인해 보세요." : "예시부터 맞혀 보세요."));
     cnt.className = "cnt " + (n === ex.length ? "ok" : "bad"); cnt.textContent = `${n} / ${ex.length}`;
   }
 }
@@ -928,7 +964,8 @@ async function openProblem(pid, withDoc, code, fresh = false, carry = null) {
   renderLadder(p.ladder);
   showHintMeta();
   $("#log").innerHTML = ""; $("#logCnt").textContent = "0";
-  $("#tests").innerHTML = S.exam ? examIntro() : `<p class="note">실행(⌘↵)하면 예시 ${p.examples.length}개와 숨은 검사 ${p.hidden_total}개를 돌립니다.</p>`;
+  $("#out").textContent = "print 출력이 여기에 나옵니다."; $("#outNote").hidden = true; S.outShown = false;
+  $("#tests").innerHTML = S.exam ? examIntro() : `<p class="note">실행(⌘↵)하면 예시 ${p.examples.length}개와 히든 테스트 ${p.hidden_total}개를 돌립니다.</p>`;
   $("#testCnt").className = "cnt"; $("#testCnt").textContent = "–";
   show("solve");
   activateTab("problem"); $("#dbody").scrollTop = 0;  // 새로 연 문제는 맨 위부터
@@ -953,7 +990,6 @@ $("#back").onclick = async () => { clearTimeout(S.idleTimer); await API.save_cod
 $$("#modeSeg button").forEach(b => b.onclick = () => {
   S.mode = b.dataset.mode; API.set_mode(S.mode);
   $$("#modeSeg button").forEach(x => x.setAttribute("aria-pressed", x === b));
-  if (S.mode === "quiet") clearTimeout(S.idleTimer);
 });
 $("#run").onclick = () => runCheck("run");
 // 처음부터: 지금 코드를 풀이 기록에 저장하고, 빈 틀로 새 시도를 연다 (코치 기록·제한 시간은 새로).
@@ -1137,6 +1173,32 @@ document.addEventListener("keydown", e => {
     setW($("#leftPane").getBoundingClientRect().width + (e.key === "ArrowLeft" ? -40 : 40));
   });
   sp.addEventListener("dblclick", () => { split.style.removeProperty("--left-w"); try { localStorage.removeItem("kt-left-w"); } catch (_) {} S.editor?.layout(); });
+})();
+// 아래 창(테스트·코치 기록·출력) 높이: 위 테두리를 끌어 바꾼다. 접혀 있었으면 펼친다. 두 번 누르면 처음 높이(230px)
+(function dockSplitter() {
+  const sp = $("#dockSplitter"), dock = $("#dock"), work = $("#rightPane");
+  try { const h = localStorage.getItem("kt-dock-h"); if (h) dock.style.setProperty("--dock-h", h); } catch (_) {}
+  const setH = px => {
+    // 탭 줄과 한두 줄은 보이게(90px), 편집기는 적어도 120px 남긴다
+    const h = Math.round(Math.min(Math.max(px, 90), work.getBoundingClientRect().height - 120)) + "px";
+    dock.style.setProperty("--dock-h", h);
+    if (dock.classList.contains("small")) { dock.classList.remove("small"); $("#dockToggle").textContent = "접기"; }
+    try { localStorage.setItem("kt-dock-h", h); } catch (_) {}
+    S.editor?.layout();
+  };
+  sp.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    sp.setPointerCapture(e.pointerId); sp.classList.add("drag");
+    const move = ev => setH(work.getBoundingClientRect().bottom - ev.clientY);
+    const up = () => { sp.classList.remove("drag"); sp.removeEventListener("pointermove", move); sp.removeEventListener("pointerup", up); };
+    sp.addEventListener("pointermove", move); sp.addEventListener("pointerup", up);
+  });
+  sp.addEventListener("keydown", e => {
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    e.preventDefault();
+    setH(dock.getBoundingClientRect().height + (e.key === "ArrowUp" ? 30 : -30));
+  });
+  sp.addEventListener("dblclick", () => { dock.style.removeProperty("--dock-h"); try { localStorage.removeItem("kt-dock-h"); } catch (_) {} S.editor?.layout(); });
 })();
 
 /* ---------------- 학습 화면 ---------------- */
@@ -1716,7 +1778,7 @@ $$("#histSeg button").forEach(b => b.onclick = () => { histF = b.dataset.f; $$("
 $("#hList").addEventListener("click", e => { const r = e.target.closest(".hrow"); if (r) showAttempt(+r.dataset.aid); });
 $("#hList").addEventListener("keydown", e => { const r = e.target.closest(".hrow"); if (r && e.key === "Enter") showAttempt(+r.dataset.aid); });
 const codeHtml = code => `<pre class="hcode">${(code || "").split("\n").map(l => `<span>${esc(l) || " "}</span>`).join("")}</pre>`;
-const snapExam = s => s.exam === "timeup" ? "제한 시간이 끝난 뒤 계속 풂" : s.exam === "submit" ? (s.submit ? `실전 제출 · 숨은 검사 ${s.submit.total}개 중 ${s.submit.passed}개` : "실전 제출 · 실행 실패") : "실전 예시 실행";
+const snapExam = s => s.exam === "timeup" ? "제한 시간이 끝난 뒤 계속 풂" : s.exam === "submit" ? (s.submit ? `실전 제출 · 히든 테스트 ${s.submit.total}개 중 ${s.submit.passed}개` : "실전 제출 · 실행 실패") : "실전 예시 실행";
 async function showAttempt(aid) {
   $$(".hrow").forEach(r => r.setAttribute("aria-selected", +r.dataset.aid === aid));
   const meta = histAll.find(r => r.id === aid), d = await API.attempt(aid);

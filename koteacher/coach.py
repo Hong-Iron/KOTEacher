@@ -36,7 +36,7 @@ def facts(result):
     ff = (result.get("hidden") or {}).get("first_fail")
     if ff:
         k = "timeout" if ff.get("timeout") else "error" if ff.get("error") else "wrong"
-        out.append({"kind": k, "where": "숨은 검사", "args": ff["args"], "expected": ff["expected"],
+        out.append({"kind": k, "where": "히든 테스트", "args": ff["args"], "expected": ff["expected"],
                     "got": ff.get("got"), "msg": ff.get("error"), "line": ff.get("line")})
     # 반례는 가장 작은 입력이 가르치기 좋다
     out.sort(key=lambda f: (f["kind"] != "error", f["kind"] != "wrong", len(f.get("args", ""))))
@@ -236,7 +236,7 @@ class MessageStream:
 # ---------------------------------------------------------------- ② 진단
 
 def diagnose(pid, code, result, fs, llm=True, **say_kw):
-    """확실한 것부터: 수리 검색 → 오류 줄 → AI 진단(말하기까지 한 번에)."""
+    """확실한 것부터: 변이 탐색 → 오류 줄 → AI 진단(말하기까지 한 번에)."""
     if not fs:
         return None
     f = fs[0]

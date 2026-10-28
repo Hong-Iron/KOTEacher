@@ -30,13 +30,11 @@ def main():
         packs.build_all()
     api = Api()
     # 켤 때: 모델이 이미 올라와 있으면 그대로 쓰고, 없으면 뒤에서 미리 불러온다.
-    # 끌 때: 이 앱이 불러온 경우에만 내린다 (다른 프로그램이 쓰던 모델은 건드리지 않는다).
-    owned = {"model": False}
-
+    # 끌 때: 이 앱이 올린 모델만 내린다. 도중에 바꿔 올린 모델도 들어가고, 다른 프로그램이 쓰던 모델은 건드리지 않는다
+    # (ollama.load가 올린 모델을 적어 두고 ollama.unload_owned가 그것만 내린다).
     def preload():
         st = ollama.status()
         if st["model"] and not st["loaded"]:
-            owned["model"] = True
             try:
                 ollama.load()
             except Exception:
@@ -49,11 +47,7 @@ def main():
                                 text_select=True)  # pywebview는 기본으로 글자 선택을 막는다 (문서에서 골라 묻기에 필요)
     api.window = win
 
-    def on_closed():
-        if owned["model"]:
-            ollama.unload()
-
-    win.events.closed += on_closed
+    win.events.closed += ollama.unload_owned
     # 종료 신호(로그아웃, kill)도 창 닫기와 같게. 맥의 창 이벤트 루프가 주 스레드를 쥐고 있어
     # 파이썬 신호 처리기가 돌 틈이 없으므로, 신호를 파일 기술자로 받아 다른 스레드에서 처리한다.
     if hasattr(signal, "SIGTERM") and os.name != "nt":
@@ -68,8 +62,7 @@ def main():
 
         threading.Thread(target=watch, daemon=True).start()
     webview.start(debug="--debug" in sys.argv, private_mode=False)
-    if owned["model"]:  # 창 이벤트를 못 받고 끝나도 한 번 더
-        ollama.unload()
+    ollama.unload_owned()  # 창 이벤트를 못 받고 끝나도 한 번 더 (이미 내렸으면 남은 것이 없다)
 
 
 if __name__ == "__main__":
