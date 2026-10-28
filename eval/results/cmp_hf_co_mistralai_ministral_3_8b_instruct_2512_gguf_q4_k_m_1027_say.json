@@ -1,0 +1,204 @@
+[
+ {
+  "pid": "pg42891",
+  "fix": "인덱스 +1",
+  "line": 14,
+  "message": "14번 줄에서 k % m과 -1의 연산으로 인덱스가 0부터 시작하는 리스트를 접근할 때 오류가 발생하는 것 같습니다. k % m의 결과가 0일 때 해당 줄은 인덱스 -1을 가리키게 되는데, 이는 리스트의 첫 번째 요소(인덱스 0)를 가져오게 됩니다. 여기서 반례 입력 [1, 2]와 k=1을 들어볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 21.69,
+  "first": 6.79,
+  "len": 169,
+  "hangul": 0.77,
+  "question": true,
+  "lines_said": [
+   14
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67256",
+  "fix": "4 → 3",
+  "line": 11,
+  "message": "11번 줄에서 elif d in (4, 6, 9):은 오른손만 사용해야 하는 숫자 3·6·9를 포함하고 있는데, 입력으로 들어온 3은 왜 왼손을 선택하는 걸까요? 3은 어떤 조건에 따라 왼손이 선택되는 걸까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 15.81,
+  "first": 8.94,
+  "len": 117,
+  "hangul": 0.7,
+  "question": true,
+  "lines_said": [
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "fix": "인덱스 -1",
+  "line": 18,
+  "message": "18번 줄에서 mid[-0]을 확인해 본 결과, mid가 비어있지 않다면 이 값은 0이 될 텐데, 왜 mid[-0]이 문제일까? 18번 줄의 앞뒤 행렬 상태를 따라가며 인덱스와 값을 확인해 보세요. mid[-0]가 가리키는 원소는 어떤 행렬의 어떤 위치에 있는 것입니까?",
+  "source": "ai",
+  "tries": 1,
+  "total": 11.73,
+  "first": 2.31,
+  "len": 151,
+  "hangul": 0.71,
+  "question": true,
+  "lines_said": [
+   18,
+   18
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67259",
+  "fix": "인덱스 -1",
+  "line": 21,
+  "message": "21번 줄에서 nc + 1으로 접근할 때 nc가 N-1일 수 있습니다.\n그럼 nc + 1이 범위를 벗어나게 됩니다.\nnc + 1을 사용한 조건이 맞는지 **시작점(0,0)에서부터 한 칸 이동할 때** nc + 1이 범위 안에 들어오는지 확인해보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 16.19,
+  "first": 7.29,
+  "len": 139,
+  "hangul": 0.66,
+  "question": false,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "테스트 케이스에서 두 번의 선물 교환은 모두 'f0'과 'f2' 사이에서 발생하는데, 12번 줄의 give[i][j - 1]은 인덱스 연산이 j가 아닌 j - 1을 사용하고 있습니다. 인덱스 범위에 맞게 j를 사용하면 어떤 결과가 나오나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 11.86,
+  "first": 2.46,
+  "len": 134,
+  "hangul": 0.71,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92341",
+  "fix": "min → max",
+  "line": 22,
+  "message": "22번 줄의 min(0, total[car] - base_t)에서 total[car]이 기본 시간보다 커야 초과 시간이 발생하는데, 1234번 차량의 주차 시간이 기본 시간보다 작아도 요금이 기본 요금보다 커야 하는 상황이 있나요?\n\n주차 시간이 기본 시간보다 크지 않음에도 계산 결과가 기본 요금보다 높게 나오는데, 어떤 조건을 거치지 않고 계산되는지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 17.74,
+  "first": 6.58,
+  "len": 206,
+  "hangul": 0.72,
+  "question": true,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg81303",
+  "fix": "== → !=",
+  "line": 22,
+  "message": "이번 테스트 케이스에서 C 명령으로 행을 지우면 nxt 배열의 범위를 벗어나는 인덱스에 접근하려고 하는 것 같습니다. **q가 n보다 큰 값이 되거나, prev 배열의 인덱스가 유효하지 않은 경우를 고려해야 합니다.** q 값이 실제로 어떤 값을 갖고 있는지 확인해 보세요. 특히 nxt[cur]가 어떤 값을 반환하는지 따라가 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 18.33,
+  "first": 6.54,
+  "len": 187,
+  "hangul": 0.8,
+  "question": false,
+  "lines_said": [],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17678",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 마지막 버스에 타는 사람이 한 명일 때 riders가 비어있지 않지만 len(riders) == m이 아닌 경우를 고려하지 못했습니다.\n예제 입력에서 콘은 마지막 버스에 혼자서만 탈 수 있는데, 이때 riders[-1 - 1]이 어떻게 동작할까요?\nriders의 길이가 1일 때 -1 - 1은 어떤 인덱스를 가리키는지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 17.08,
+  "first": 5.63,
+  "len": 194,
+  "hangul": 0.67,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17676",
+  "fix": "1 → 0",
+  "line": 23,
+  "message": "23번 줄에서 cnt = 1은 모든 로그에 대해 처음부터 세기 시작합니다. 그런데 로그가 하나뿐이므로 비교 대상이 되는 다른 로그는 없습니다. 25~26번 줄에서 모든 로그를 다 돌면서 자기 자신과 겹치는지 비교하고 있습니다.\n\n한번 생각해보세요. 이 코드는 왜 자기 자신과도 비교해서 cnt를 증가시키는 걸까요? 24번 줄의 for문은 모든 로그를 돌지만",
+  "source": "ai",
+  "tries": 1,
+  "total": 19.05,
+  "first": 7.24,
+  "len": 199,
+  "hangul": 0.83,
+  "question": true,
+  "lines_said": [
+   23,
+   26,
+   24
+  ],
+  "line_hit": true,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "fix": "2 → 1",
+  "line": 8,
+  "message": "8번 줄에서 시작하는 문자열을 비교할 때, 처음부터 2글자씩 시작하는 것이 아니라 현재 시작점 i부터 1글자부터 시작해야 합니다. 'AA'의 첫 문자열은 'A'부터 확인해야 하므로, 8번 줄의 초기값을 바꿔야 할 것 같습니다. 1글자부터 시작하는 비교가 필요한데, 현재는 무조건 2글자부터 시작하고 있습니다.",
+  "source": "ai",
+  "tries": 1,
+  "total": 16.87,
+  "first": 2.83,
+  "len": 172,
+  "hangul": 0.85,
+  "question": false,
+  "lines_said": [
+   8,
+   8
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]

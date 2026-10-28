@@ -67,7 +67,7 @@ class Api:
         items = [{k: p[k] for k in ("id", "title", "level", "source", "concepts", "num", "rate", "solvers")}
                  | {"status": st.get(p["id"], "new"), "last": last.get(p["id"])} for p in vault.problems()]
         from . import config
-        return {"problems": items, "ai": ollama.status(), "mode": self.mode, "exam": bool(config.settings().get("exam")),
+        return {"problems": items, "ai": self.ai_status(), "mode": self.mode, "exam": bool(config.settings().get("exam")),
                 "exam_minutes": int(config.settings().get("exam_minutes") or 0),
                 "mistakes": len(self.store.mistakes(limit=10000)), "streak": self._streak_now()}
 
@@ -226,7 +226,8 @@ class Api:
         return mode
 
     def ai_status(self):
-        return ollama.status()
+        """코치 상태와, 지금 모델에 맞춰 쓰는 지시문 묶음(프로필) 이름."""
+        return ollama.status() | {"profile": coach.profile_name()}
 
     def setup_info(self):
         st = ollama.status()
@@ -234,6 +235,7 @@ class Api:
         import sys
         return {**st, "recommend": ollama.recommend(), "download": "https://ollama.com/download",
                 "pull": {k: v["models"][0] for k, v in config.CHOICES.items()},  # 선택마다 받을 모델
+                "sizes": {k: v["size"] for k, v in config.CHOICES.items()},
                 "local": ollama.local_status() if st.get("external") else None,
                 "pulling": self.pulling, "found": bool(ollama.find()), "mac": sys.platform == "darwin"}
 
@@ -249,7 +251,7 @@ class Api:
                 ollama.unload()
                 config.MODEL = cur
                 ollama.load()
-                self._push("model_ready", ollama.status())
+                self._push("model_ready", self.ai_status())
             threading.Thread(target=swap, daemon=True).start()
         return st
 
@@ -311,7 +313,7 @@ class Api:
         config.save_settings(provider="ollama")
         st = ollama.status()
         if st["model"] and not st["loaded"]:
-            threading.Thread(target=lambda: (ollama.load(), self._push("model_ready", ollama.status())), daemon=True).start()
+            threading.Thread(target=lambda: (ollama.load(), self._push("model_ready", self.ai_status())), daemon=True).start()
         return st
 
     def set_ollama_model(self, name):
@@ -375,7 +377,7 @@ class Api:
                 if st["model"]:
                     ollama.load()
                 self.pulling = False
-                self._push("pull_done", {"ok": True, "status": ollama.status()})
+                self._push("pull_done", {"ok": True, "status": self.ai_status()})
             except Exception as e:
                 self.pulling = False
                 self._push("pull_done", {"ok": False, "error": str(e)[:200]})
@@ -414,7 +416,7 @@ class Api:
                         return
                 self._push("prep", {"stage": "pull", "text": "코치 모델을 받는 중", "status": ollama.local_status()})
                 if ollama.local_status()["model"]:
-                    self._push("pull_done", {"ok": True, "status": ollama.status()})
+                    self._push("pull_done", {"ok": True, "status": self.ai_status()})
                 else:
                     self.pull_model(ollama.recommend()["model"])
             except Exception as e:
@@ -819,12 +821,12 @@ class Api:
                     task = examples.TEMPLATE_TASK.format(q=question, concept=concept["title"])
                 msgs = coach.messages(s.pid, code, dyn + ("\n\n" + ex if ex else ""), task)
                 live = kind not in ("example", "template")  # 코드가 섞이는 답은 흘려 쓰지 않는다
-                text, meta = ollama.chat(msgs, max_tokens=420 if kind == "example" else 220,
+                text, meta = ollama.chat(msgs, max_tokens=420 if kind == "example" else 220, temperature=coach.profile()["temp_ask"],
                                          on_token=coach.RawStream(self._ask_streamer(s, rid)).feed if live else None)
                 if kind == "example":
                     msg, extra = self._example(question, text, msgs, s)
                 else:
-                    msg = coach.clean_raw(text)
+                    msg = coach.clean_answer(coach.clean_raw(text))
                     if coach.leak_reason(msg, s.diag or {}, s.pid):
                         msg = "그 부분은 직접 찾아야 실력이 돼요. 막히면 왼쪽 힌트 사다리의 다음 단계를 열어 보세요."
                         extra = {"kind": "answer"}
@@ -920,8 +922,8 @@ class Api:
                 self._push("doc_stream", {"id": rid, "text": t})
             try:
                 text, _ = ollama.chat([{"role": "system", "content": self.DOC_SYSTEM}, {"role": "user", "content": user}],
-                                      max_tokens=320, temperature=0.4, on_token=emit)
-                msg = coach.tidy(text)
+                                      max_tokens=320, temperature=coach.profile()["temp_ask"], on_token=emit)
+                msg = coach.clean_answer(coach.tidy(text))  # 온도·다듬기는 지금 모델의 프로필을 따른다
                 if self.s and coach.leak_reason(msg, {}, self.s.pid) == "모범 풀이 코드와 겹침":
                     msg = "그 부분은 지금 푸는 문제의 답과 너무 가까워서 말하지 않을게요. 왼쪽 힌트 사다리를 한 단계 열어 보세요."
             except Exception as e:

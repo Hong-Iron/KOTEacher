@@ -90,7 +90,10 @@ async function renderRecs() {
 $("#recs").addEventListener("click", e => { const b = e.target.closest("[data-rec]"); if (b) openProblem(b.dataset.rec, null, null, !!b.dataset.fresh); });
 
 // 코치 상태에 보일 짧은 모델 이름: 저장소 주소와 :latest를 뗀다 (ghcr.io/hong-iron/gemma4-e4b-text:latest → gemma4-e4b-text)
-const modelLabel = n => (n || "").split("/").pop().replace(/:latest$/, "").replace(":", " ");
+// 코치 상태의 짧은 모델 이름. Hugging Face 모델(hf.co/…-GGUF:Q4_K_M)은 저장소 이름에서 판 표시를 떼고 읽기 쉽게 쓴다
+const modelLabel = n => (n || "").startsWith("hf.co/")
+  ? n.split("/").pop().replace(/:.*$/, "").replace(/-GGUF$/i, "").replace(/-Instruct-\d+$/i, "").replace(/-/g, " ")
+  : (n || "").split("/").pop().replace(/:latest$/, "").replace(":", " ");
 function setAi(st) {
   for (const el of [$("#aiStat"), $("#aiStat2")]) {
     const ready = st.server && st.model && st.loaded;
@@ -100,7 +103,9 @@ function setAi(st) {
       : st.server && st.model ? "코치 모델을 불러오고 있습니다 · 테스트는 지금도 쓸 수 있습니다"
       : st.server ? "코치 모델이 없습니다 · 테스트와 수리 검색은 쓸 수 있습니다" : "Ollama가 꺼져 있습니다 · 테스트와 수리 검색은 쓸 수 있습니다";
     el.innerHTML = `<span class="dot ${dot}"></span><span class="t">${esc(txt)}</span>`;
-    el.title = st.name ? `코치 모델: ${st.name}` : "";
+    // 모델마다 지시문·온도를 따로 쓴다(코치 프로필). 마우스를 올리면 지금 어느 쪽인지 보인다
+    const prof = {gemma: "gemma용", mistral: "Ministral용", qwen: "Qwen용"}[st.profile];
+    el.title = st.name ? `코치 모델: ${st.name}${prof ? ` · 지시문: ${prof}` : ""}` : "";
   }
   if (!st.model && !st.external) showPullInBar();  // 받는 중이면 상태 확인이 덮어쓰지 않게
 }
@@ -194,7 +199,10 @@ function onEdit() {
   // (줄을 지우면 표시가 이웃 줄로 밀려 붙어 엉뚱한 줄을 가리키게 된다)
   if (S.decos.length && S.flagText != null) {
     const m = S.editor.getModel(), r = m.getDecorationRange(S.decos[0]);
-    if (!r || m.getLineContent(r.startLineNumber) !== S.flagText) { clearBubble(); flagLine(null); S.lastDiag = null; }
+    if (!r || m.getLineContent(r.startLineNumber) !== S.flagText) {
+      if (talking()) removeChip(); else clearBubble();  // 코치와 나누던 말은 남긴다
+      flagLine(null); S.lastDiag = null; S.pendingSay = null;
+    }
   }
   if (S.chip) S.editor.layoutContentWidget(S.chip);  // 줄 끝이 바뀌면 따라간다
   // 고치기 시작하면 줄 표시는 흐리게 남겨 두고 말풍선은 그대로 둔다
@@ -263,6 +271,17 @@ function clearBubble() {
   S.zoneId = null; S.zone = null;
   S.bubble?.remove(); S.bubble = null;
 }
+function removeChip() {
+  if (S.chip) { S.editor.removeContentWidget(S.chip); S.chip = null; }
+}
+// 내가 코치에게 물었거나 묻는 중인 말풍선. 자동 검사와 코치의 새 말은 이 말풍선을 치우지 않고 줄 끝 알림으로 기다린다
+// (예전에는 손을 멈춘 뒤 자동 검사가 문법 오류 알림을 띄우면서 질문과 답이 통째로 사라졌다). ×로 닫거나 알림을 누르면 바뀐다
+function talking() {
+  const b = S.bubble;
+  if (!b || b.classList.contains("mini")) return false;
+  if (b.querySelector(".fq, .quote, [data-rid]")) return true;
+  return [...b.querySelectorAll("form.ask input")].some(i => i.value.trim() || i === document.activeElement);
+}
 function flagLine(line) {
   const ok = line && line <= S.editor.getModel().getLineCount();
   S.flagText = ok ? S.editor.getModel().getLineContent(line) : null;
@@ -296,15 +315,27 @@ function placeBubble(line, el) {
     if (S.bubble !== el || !S.zone) return;
     const m = ed.getModel(), r = S.bubbleDeco[0] && m.getDecorationRange(S.bubbleDeco[0]);
     const ln = Math.min(r ? r.startLineNumber : after, m.getLineCount());
-    const y = ed.getBottomForLineNumber(ln) - ed.getScrollTop();
-    el.style.top = `${y + 6}px`;
-    el.style.visibility = y > -2 && y < ed.getLayoutInfo().height - 24 ? "visible" : "hidden";
+    const top = ed.getBottomForLineNumber(ln) - ed.getScrollTop() + 6;
+    el.style.top = `${top}px`;
+    // 말풍선의 어느 부분이라도 편집기 안에 있으면 보인다. 길게 늘어난 말풍선은 붙은 줄이 위로 지나가도 아래쪽이 화면에 남는다
+    // (예전에는 붙은 줄만 보고 숨겨서 말풍선 자리의 빈 공간만 남아 화면이 하얗게 보였다). 편집기 밖으로 나간 부분은 .edwrap이 잘라 낸다
+    el.style.visibility = top + el.offsetHeight > 0 && top < ed.getLayoutInfo().height - 24 ? "visible" : "hidden";
   };
   ed.changeViewZones(a => {
     S.zone = {afterLineNumber: after, heightInPx: height(), domNode: document.createElement("div"), onDomNodeTop: place};
     S.zoneId = a.addZone(S.zone);
   });
-  S.bubbleSubs = [ed.onDidScrollChange(place), ed.onDidLayoutChange(place), ed.onDidContentSizeChange(place)];
+  // 위에서 줄을 넣거나 지워도 Monaco는 끼워 둔 공간의 줄 번호(afterLineNumber)를 고치지 않는다. 그러면 말풍선은 장식을 따라
+  // 옮겨 가고 빈 공간은 옛 줄에 남아, 말풍선이 코드 줄을 덮는다. 고칠 때마다 공간을 장식의 줄로 맞춘다
+  const follow = () => {
+    if (S.bubble !== el || !S.zone) return;
+    const r = S.bubbleDeco[0] && ed.getModel().getDecorationRange(S.bubbleDeco[0]);
+    if (r && r.startLineNumber !== S.zone.afterLineNumber) {
+      S.zone.afterLineNumber = r.startLineNumber;
+      ed.changeViewZones(a => a.layoutZone(S.zoneId));
+    }
+  };
+  S.bubbleSubs = [ed.onDidScrollChange(place), ed.onDidLayoutChange(place), ed.onDidContentSizeChange(place), ed.onDidChangeModelContent(follow)];
   place();
   new ResizeObserver(() => {
     if (!S.zone || S.bubble !== el) return;
@@ -348,8 +379,9 @@ function bubbleChip(diag) {
   const el = h("div", "bubble mini");
   el.dataset.act = "explain";
   el.innerHTML = `<span class="d"></span><span>${diag?.fact?.kind === "syntax" ? `문법 오류: ${esc(diag.fact.msg)}` : line ? "코치가 이 줄에 할 말이 있어요" : "코치가 할 말이 있어요"}</span>`;
-  if (!line) { placeBubble(null, el); return; }
-  clearBubble();
+  const keep = talking();
+  if (!line) { if (!keep) placeBubble(null, el); return; }
+  if (keep) removeChip(); else clearBubble();
   const ed = S.editor;
   el.classList.add("inline");
   // 줄 표시(flagLine 장식)를 따라간다: 위에 줄을 넣거나 지워도, 그 줄을 고쳐 길어져도 끝에 붙어 있다
@@ -365,8 +397,18 @@ function bubbleChip(diag) {
   S.chip = {getId: () => "kg.coach.chip", getDomNode: () => el, suppressMouseDown: true,
     getPosition: () => ({position: where(), preference: [monaco.editor.ContentWidgetPositionPreference.EXACT]})};
   ed.addContentWidget(S.chip);
+  if (keep) return;  // 대화를 읽는 중이면 화면도 옮기지 않는다
   S.bubble = el;
   ed.revealLineInCenterIfOutsideViewport(line);
+}
+// 코치 말은 대화 중이면 그 줄 끝 알림으로 남겨 두고, 알림을 누르면 그때 보인다
+function showSay(d) {
+  if (!talking()) { S.pendingSay = null; bubbleSay(d); return; }
+  // 바로 보여 준 문장 아래에서 묻는 중이면, 그 문장만 다 쓴 AI 문장으로 바꾼다
+  const inst = S.bubble.querySelector(".msgtext[data-instant]");
+  if (inst && d.source !== "instant") { inst.removeAttribute("data-instant"); inst.textContent = d.message; S.bubble.querySelector(".refining")?.remove(); return; }
+  S.pendingSay = d;
+  bubbleChip({...(S.lastDiag || {}), line: d.line || S.lastDiag?.line});
 }
 function bubbleDone(m) {
   const el = h("div", "bubble done");
@@ -389,7 +431,11 @@ $("#edwrap").addEventListener("click", async e => {
   const t = e.target.closest("[data-act]"); if (!t) return;
   const act = t.dataset.act;
   if (act === "fold") { const d = S.lastDiag; clearBubble(); if (d) bubbleChip(d); }
-  if (act === "explain") { if (S.lastDiag?.fact?.kind === "syntax") return; bubbleThinking(S.lastDiag); API.explain(); }
+  if (act === "explain") {
+    if (S.pendingSay) { const d = S.pendingSay; S.pendingSay = null; bubbleSay(d); return; }  // 대화 중에 기다리던 말
+    if (S.lastDiag?.fact?.kind === "syntax") return;
+    bubbleThinking(S.lastDiag); API.explain();
+  }
   if (act === "hint") { setPanes(true, true); activateTab("problem"); requestStep(S.hints + 1); }
   if (act === "solution") { setPanes(true, true); activateTab("problem"); requestStep((S.p?.hints_max ?? 3) + 1); }
   if (act === "excopy") {
@@ -460,6 +506,7 @@ async function runCheck(trigger) {
   if (S.checking || (trigger === "idle" && code === S.lastChecked)) return;
   S.checking = true;
   S.lastChecked = code;
+  S.pendingSay = null;  // 앞 검사의 코치 말은 이제 맞지 않을 수 있다
   const stop = showRunning(trigger);
   try {
     // 검사가 0.1초 만에 끝나도 '실행 중'이 눈에 보이도록 직접 실행은 최소 0.45초 보여 준다
@@ -471,8 +518,10 @@ async function runCheck(trigger) {
     $("#out").textContent = r.result.stdout || "print 출력이 없습니다.";
     if (r.passed) {
       flagLine(null); S.lastDiag = null;
-      if (r.mistake) { bubbleDone(r.mistake); addLog("sys", "기록", `오답 기록: ${r.mistake.name}`); loadMistakes(); }
+      if (talking()) removeChip();  // 통과는 테스트 표와 기록으로 알리고, 나누던 말은 그대로 둔다
+      else if (r.mistake) bubbleDone(r.mistake);
       else if (trigger === "run") bubblePass(); else clearBubble();
+      if (r.mistake) { addLog("sys", "기록", `오답 기록: ${r.mistake.name}`); loadMistakes(); }
       addLog("sys", "테스트", "모두 통과");
       return;
     }
@@ -480,7 +529,7 @@ async function runCheck(trigger) {
     if (d && !d.pending) {
       S.lastDiag = d; flagLine(d.line);
       if (r.decision === "chip") bubbleChip(d);
-      if (r.instant) bubbleSay({message: r.instant, line: d.line, diag: d, source: "instant"});
+      if (r.instant) showSay({message: r.instant, line: d.line, diag: d, source: "instant"});
     } else if (d?.pending) {
       S.lastDiag = {fact: d.fact, line: d.fact.line};
     }
@@ -645,12 +694,14 @@ handlers.thinking = d => {
   // 바로 보여 준 문장이 있으면 그대로 두고 AI 문장을 기다린다
   if (S.bubble?.querySelector(".msgtext[data-instant]")) return;
   S.liveThinking = d?.live !== false;
+  if (talking()) { coachBusy(true); return; }  // 대화 중이면 상태줄에만
   if (S.lastDiag?.line && S.liveThinking && !S.bubble?.classList.contains("done")) { coachBusy(false); bubbleThinking(S.lastDiag); }
   else coachBusy(true);
 };
 handlers.line = d => {
   S.lastDiag = {...(S.lastDiag || {}), line: d.line};
   flagLine(d.line);
+  if (talking()) return;
   if (S.liveThinking && !S.bubble?.querySelector(".msgtext[data-instant]")) { coachBusy(false); bubbleThinking(S.lastDiag); }
 };
 handlers.diag = d => { coachBusy(false); S.lastDiag = d.diag; flagLine(d.diag?.line); };
@@ -664,7 +715,7 @@ handlers.say = d => {
   coachBusy(false);
   if (!d.line) d.line = lineFromText(d.message);
   S.lastDiag = d.diag ? {...d.diag, line: d.diag.line || d.line} : d.diag;
-  flagLine(d.line); bubbleSay(d); addLog("ai", "코치", d.message);
+  flagLine(d.line); showSay(d); addLog("ai", "코치", d.message);
 };
 // 묻기는 질문마다 번호(rid)를 붙여, 그 사이에 검사가 다시 돌아 말풍선이 바뀌어도 답이 제 자리를 찾는다
 let askN = 0;
@@ -681,7 +732,8 @@ handlers.stream = d => {
     m.textContent += d.text.replace(/[`$]/g, ""); m.dataset.t = Date.now();
     return;
   }
-  // 코치 말이 생성되는 대로 말풍선에 흘려 쓴다
+  // 코치 말이 생성되는 대로 말풍선에 흘려 쓴다. 대화 중이면 다 쓴 뒤(say) 줄 끝 알림으로 남긴다
+  if (talking()) return;
   let el = S.bubble;
   coachBusy(false);
   if (!el || el.classList.contains("done") || el.classList.contains("mini")) { bubbleThinking(S.lastDiag); el = S.bubble; }
@@ -884,6 +936,7 @@ async function openProblem(pid, withDoc, code, fresh = false, carry = null) {
   if (withDoc) openDoc(withDoc, false);
   activateTab("problem");
   if (S.editor) { clearBubble(); flagLine(null); coachBusy(false); }
+  S.pendingSay = null;
   await makeEditor(p.code);
   startExamTimer();
   runLint();
@@ -1466,10 +1519,11 @@ function setupLocal(outer, seg) {
     ${installed.length || (info.server && local) ? `<h3 class="ch">코치 모델</h3><div class="choices" id="modelChoices">
       ${[["auto", "자동 (추천)", "속도 우선(gemma4 e4b)을 씁니다"],
          ["accurate", "정확도 우선", "gemma4 12B · 7.2GB. 더 크고 느립니다. 메모리 16GB 이상에서 쓰세요"],
-         ["fast", "속도 우선", "gemma4 e4b · 5.2GB. 응답이 약 2배 빠르고 메모리를 덜 씁니다"]].map(([k, t, d]) => {
+         ["fast", "속도 우선", "gemma4 e4b · 5.2GB. 응답이 약 2배 빠르고 메모리를 덜 씁니다"],
+         ["ministral", "Ministral 3 8B", "Mistral AI · 6.1GB. 반례 값을 넣어 구체적으로 묻지만, 버그 줄은 e4b보다 덜 맞히고 3배쯤 느립니다. 지시문은 이 모델에 맞춘 것을 씁니다"]].map(([k, t, d]) => {
         const need = k === "auto" ? r.choice : k, have = info.have?.[need];
         return `<button class="choice" data-choice="${k}" aria-pressed="${local && info.choice === k}"><b>${t}</b><span class="d">${esc(d)}</span>
-          <span class="st">${have ? "받아 둠" : `받아야 함 · ${k === "fast" || (k === "auto" && r.choice === "fast") ? "5.2GB" : "7.2GB"}`}</span></button>`; }).join("")}
+          <span class="st">${have ? "받아 둠" : `받아야 함 · ${outer.sizes?.[need] || ""}`}</span></button>`; }).join("")}
       <div class="choice custom ${local && info.choice === "custom" ? "on" : ""}"><b>다른 모델</b>
         <span class="d">Ollama에 있는 모델을 이름으로 고릅니다. 없으면 받습니다. 코치 말은 gemma4에 맞춰 다듬었으므로 다른 모델은 말투나 정확도가 다를 수 있습니다.</span>
         <div class="row"><input id="olName" list="olList" placeholder="예: qwen3:8b" value="${esc(info.choice === "custom" ? info.name : "")}" spellcheck="false" autocomplete="off">

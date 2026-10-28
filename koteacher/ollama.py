@@ -61,9 +61,9 @@ def candidates():
     choice = config.settings().get("coach_model", "auto")
     if choice == "custom" and config.settings().get("ollama_model"):  # 사용자가 이름으로 고른 Ollama 모델
         return [config.settings()["ollama_model"]]
-    if choice in config.CHOICES:
-        other = "fast" if choice == "accurate" else "accurate"
-        return config.CHOICES[choice]["models"] + config.CHOICES[other]["models"]
+    if choice in config.CHOICES:  # 고른 것을 먼저, 없으면 gemma(속도 → 정확도) 순. Ministral은 고른 경우에만 쓴다
+        rest = [k for k in ("fast", "accurate") if k != choice]
+        return config.CHOICES[choice]["models"] + [m for k in rest for m in config.CHOICES[k]["models"]]
     first = recommend()["choice"]
     other = "fast" if first == "accurate" else "accurate"
     return config.CHOICES[first]["models"] + config.CHOICES[other]["models"]

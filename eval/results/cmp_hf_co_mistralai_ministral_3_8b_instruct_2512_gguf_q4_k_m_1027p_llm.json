@@ -1,0 +1,446 @@
+[
+ {
+  "pid": "pg17687",
+  "bug_lines": [
+   21,
+   12
+  ],
+  "labels": [
+   "+ ↔ -",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 12,
+  "diag_line_ok": true,
+  "diag_cat": "비교·경계",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "12번 줄에서 digits[r - 1]에서 r의 값이 1일 때 digits에서 어떤 문자를 가져올까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 14.66,
+  "t_say": 0.0,
+  "first_token_say": 8.291784207976889,
+  "first_msg_char": 9.18,
+  "total": 14.67,
+  "len": 57,
+  "hangul": 0.51,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92335",
+  "bug_lines": [
+   18,
+   15
+  ],
+  "labels": [
+   "1 → 2",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 17,
+  "diag_line_ok": false,
+  "diag_cat": "비교·경계",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "17번 줄에서 digits에 '0'이 추가되기 전의 값은 어떤 문자열이었나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 16.33,
+  "t_say": 0.0,
+  "first_token_say": 9.703379958984442,
+  "first_msg_char": 10.65,
+  "total": 16.33,
+  "len": 43,
+  "hangul": 0.66,
+  "question": true,
+  "lines_said": [
+   17
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118666",
+  "bug_lines": [
+   8,
+   9
+  ],
+  "labels": [
+   "4 → 5",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 9,
+  "diag_line_ok": true,
+  "diag_cat": "자료구조",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "9번 줄에서 s[1]이 문자열이 아닌 숫자일 때 어떻게 계산할 수 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 17.49,
+  "t_say": 0.0,
+  "first_token_say": 11.125992999994196,
+  "first_msg_char": 12.31,
+  "total": 17.49,
+  "len": 42,
+  "hangul": 0.81,
+  "question": true,
+  "lines_said": [
+   9
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17677",
+  "bug_lines": [
+   14,
+   13
+  ],
+  "labels": [
+   "65536 → 65535",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": 9,
+  "diag_line_ok": false,
+  "diag_cat": "비교·경계",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "9번 줄에서 ' +' 문자열을 두 글자씩 끊을 때 어떤 값이 반환될까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 13.77,
+  "t_say": 0.0,
+  "first_token_say": 8.438628708012402,
+  "first_msg_char": 9.04,
+  "total": 13.77,
+  "len": 40,
+  "hangul": 0.83,
+  "question": true,
+  "lines_said": [
+   9
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "bug_lines": [
+   6,
+   14
+  ],
+  "labels": [
+   "0 → -1",
+   "1 → 0"
+  ],
+  "tier": "llm",
+  "diag_line": 14,
+  "diag_line_ok": true,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "14번 줄에서 'AA'가 사전에 추가되기 전에 i와 j의 값은 어떻게 될까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 13.47,
+  "t_say": 0.0,
+  "first_token_say": 7.327739375003148,
+  "first_msg_char": 8.37,
+  "total": 13.47,
+  "len": 43,
+  "hangul": 0.73,
+  "question": true,
+  "lines_said": [
+   14
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "bug_lines": [
+   13,
+   21
+  ],
+  "labels": [
+   "1 → 2",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 21,
+  "diag_line_ok": true,
+  "diag_cat": "인덱스",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "입력 ['f0', 'f1', 'f2'], ['f2 f0', 'f0 f2']의 기대 답은 0, 내 답은 2예요. 21번 줄에서 인덱스가 하나 어긋나지 않는지 보세요.",
+  "source": "template",
+  "tries": 1,
+  "t_diag": 16.82,
+  "t_say": 0.0,
+  "first_token_say": 10.509312750014942,
+  "first_msg_char": 11.32,
+  "total": 16.82,
+  "len": 91,
+  "hangul": 0.45,
+  "question": false,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg42888",
+  "bug_lines": [
+   15,
+   13
+  ],
+  "labels": [
+   "인덱스 -1",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": false,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "8번 줄에서 uid가 숫자로 변환되기 전 원래 어떤 값이었나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 11.68,
+  "t_say": 0.0,
+  "first_token_say": 7.8487224580021575,
+  "first_msg_char": 8.49,
+  "total": 11.68,
+  "len": 35,
+  "hangul": 0.81,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17682",
+  "bug_lines": [
+   12,
+   5
+  ],
+  "labels": [
+   "인덱스 +1",
+   "3 → 4"
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": false,
+  "diag_cat": "기타",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "8번 줄에서 '0'을 제곱한 결과가 0이 된 이유는 무엇일까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 11.64,
+  "t_say": 0.0,
+  "first_token_say": 7.650624458969105,
+  "first_msg_char": 8.28,
+  "total": 11.64,
+  "len": 35,
+  "hangul": 0.78,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg150370",
+  "bug_lines": [
+   12,
+   16
+  ],
+  "labels": [
+   "인덱스 -1",
+   "+ ↔ -"
+  ],
+  "tier": "llm",
+  "diag_line": 12,
+  "diag_line_ok": true,
+  "diag_cat": "자료구조",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "12번 줄에서 kind가 문자열이지만 딕셔너리 키로 사용하려고 할 때 어떤 값으로 변환되어야 할까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 13.06,
+  "t_say": 0.0,
+  "first_token_say": 7.382042416953482,
+  "first_msg_char": 8.14,
+  "total": 13.06,
+  "len": 56,
+  "hangul": 0.84,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg60061",
+  "bug_lines": [
+   9,
+   8
+  ],
+  "labels": [
+   "+ ↔ -",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": true,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "8번 줄에서 (x, y, 1) in S가 참일 때, 보가 설치된 위치가 올바른지 확인하기 위해 어떤 조건을 다시 확인해야 할까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 16.89,
+  "t_say": 0.0,
+  "first_token_say": 10.237956417025998,
+  "first_msg_char": 10.85,
+  "total": 16.89,
+  "len": 72,
+  "hangul": 0.75,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg64061",
+  "bug_lines": [
+   11,
+   6
+  ],
+  "labels": [
+   "인덱스 +1",
+   "0 → -1"
+  ],
+  "tier": "llm",
+  "diag_line": 11,
+  "diag_line_ok": true,
+  "diag_cat": "인덱스",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "11번 줄에서 board[row + 1][col]을 실행할 때 row의 값은 몇인지 확인해 볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 12.38,
+  "t_say": 0.0,
+  "first_token_say": 6.617041125020478,
+  "first_msg_char": 7.38,
+  "total": 12.38,
+  "len": 55,
+  "hangul": 0.48,
+  "question": true,
+  "lines_said": [
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "bug_lines": [
+   19,
+   17
+  ],
+  "labels": [
+   "인덱스 +1",
+   "인덱스 +1"
+  ],
+  "tier": "llm",
+  "diag_line": 15,
+  "diag_line_ok": false,
+  "diag_cat": "자료구조",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "15번 줄에서 left.popleft()를 실행했을 때 mid[0]이 비어있지 않음에도 mid[0].appendleft()가 실패하는 이유는 무엇일까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 17.87,
+  "t_say": 0.0,
+  "first_token_say": 9.446222958038561,
+  "first_msg_char": 10.26,
+  "total": 17.87,
+  "len": 85,
+  "hangul": 0.43,
+  "question": true,
+  "lines_said": [
+   15
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]

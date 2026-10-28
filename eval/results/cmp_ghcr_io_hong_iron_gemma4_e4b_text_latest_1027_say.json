@@ -1,0 +1,202 @@
+[
+ {
+  "pid": "pg42891",
+  "fix": "인덱스 +1",
+  "line": 14,
+  "message": "14번 줄에서 k % m - 1을 사용했을 때, k가 m의 배수라면 어떤 값이 반환되는지 따라가 볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 4.63,
+  "first": 3.11,
+  "len": 58,
+  "hangul": 0.74,
+  "question": true,
+  "lines_said": [
+   14
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67256",
+  "fix": "4 → 3",
+  "line": 11,
+  "message": "11번 줄에서 4, 6, 9를 확인하고 있는데, 5를 눌렀을 때 이 조건문이 실행되는지 확인해 볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 5.76,
+  "first": 4.41,
+  "len": 57,
+  "hangul": 0.77,
+  "question": true,
+  "lines_said": [
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "fix": "인덱스 -1",
+  "line": 18,
+  "message": "18번 줄에서 mid[-0]을 사용했는데, 이 경우 mid가 비어있을 때 어떤 일이 발생하는지 확인해 보시겠어요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 3.84,
+  "first": 2.39,
+  "len": 63,
+  "hangul": 0.72,
+  "question": true,
+  "lines_said": [
+   18
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67259",
+  "fix": "인덱스 -1",
+  "line": 21,
+  "message": "21번 줄에서 nc + 1을 사용하고 있는데, 이 값이 범위를 벗어날 수 있는 상황을 어떤 경우에 생각해 보셨나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 7.72,
+  "first": 5.08,
+  "len": 64,
+  "hangul": 0.83,
+  "question": true,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 j-1을 사용했는데, 이 값이 의도한 대로 작동하는지 확인해 볼 필요가 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 4.53,
+  "first": 1.92,
+  "len": 53,
+  "hangul": 0.83,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92341",
+  "fix": "min → max",
+  "line": 22,
+  "message": "12번 줄에서 total에 차량 번호가 추가되지 않았을 때의 상황을 가정해 볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 6.31,
+  "first": 4.93,
+  "len": 46,
+  "hangul": 0.78,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg81303",
+  "fix": "== → !=",
+  "line": 22,
+  "message": "22번 줄에서 q가 n과 같을 때, 이 조건이 항상 참인지 확인해 볼 필요가 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 7.26,
+  "first": 5.62,
+  "len": 48,
+  "hangul": 0.83,
+  "question": true,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17678",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 riders 리스트의 길이가 1일 때 어떤 일이 발생하는지 따라가 볼까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 6.0,
+  "first": 4.95,
+  "len": 49,
+  "hangul": 0.74,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17676",
+  "fix": "1 → 0",
+  "line": 23,
+  "message": "23번 줄에서 cnt를 1로 초기화했을 때, 이 로그 하나만 처리 중일 때도 1이 맞을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 8.76,
+  "first": 6.02,
+  "len": 51,
+  "hangul": 0.76,
+  "question": true,
+  "lines_said": [
+   23
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "fix": "2 → 1",
+  "line": 8,
+  "message": "8번 줄에서 j의 초기값이 설정될 때, 이 값이 실제 필요한 최소 길이보다 너무 크게 설정되지 않았는지 확인해 볼 필요가 있을 것 같아요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 3.91,
+  "first": 2.4,
+  "len": 77,
+  "hangul": 0.93,
+  "question": false,
+  "lines_said": [
+   8
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]

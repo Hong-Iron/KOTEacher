@@ -61,6 +61,7 @@ def score_message(msg, b, d):
         orig = lab.split("→")[0].strip()
         if len(orig) <= 3 and re.search(re.escape(orig) + r"\s*(으?로|를|을)?\s*(바꾸|바꿔|고치|고쳐|써|쓰|사용)", msg):
             leak = lab
+    leak = leak or coach.fix_said(msg)  # 'A 대신 B', '~바꿔야 합니다' (앱의 유출 검사와 같은 기준)
     return {"len": len(msg), "hangul": round(hang, 2), "question": "?" in msg, "lines_said": lines_said,
             "line_hit": any(l in b["lines"] for l in lines_said), "fake_line": bool(fake), "leak": leak,
             "code_like": bool(coach.CODEY.search(msg))}

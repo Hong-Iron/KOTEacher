@@ -37,6 +37,8 @@ E4B_FALLBACK = "gemma4:e4b-it-qat"
 # Ollama 저장소는 이 네트워크에서 초당 0.2MB까지 느려질 때가 있어(2026-10-27, GitHub는 초당 11.5MB) GitHub 패키지를 먼저 받는다.
 FALLBACK = {E4B_TEXT: E4B_FALLBACK}  # GitHub 패키지 → 끝내 못 받으면 받을 Ollama 저장소 판
 PULL_TRIES = 3  # GitHub 패키지 받기가 끊기면 이만큼 시도한 뒤에야 Ollama 저장소로 넘어간다 (다시 받을 때는 받던 데서 잇는다)
+# Mistral의 Ministral 3 8B (2025-12, Apache 2.0). Hugging Face의 공식 GGUF를 받는다. 지시문·온도는 coach.PROFILES["mistral"]
+MINISTRAL = "hf.co/mistralai/Ministral-3-8B-Instruct-2512-GGUF:Q4_K_M"
 # 앞에서부터 받아져 있는 첫 모델을 쓴다(ollama.status가 고른다). 메모리 8GB 기기는 e4b로 내려간다.
 MODELS = [m for m in [os.environ.get("KOTEACHER_MODEL"), "gemma4:12b-it-qat", "gemma4:12b",
                       E4B_TEXT, E4B_FALLBACK, "gemma4:e4b"] if m]
@@ -86,6 +88,7 @@ def child_kw():
 CHOICES = {
     "accurate": {"label": "정확도 우선", "models": ["gemma4:12b-it-qat", "gemma4:12b"], "size": "7.2GB"},
     "fast": {"label": "속도 우선", "models": [E4B_TEXT, E4B_FALLBACK, "gemma4:e4b"], "size": "5.2GB"},
+    "ministral": {"label": "Ministral 3 8B", "models": [MINISTRAL], "size": "6.1GB"},
 }
 
 

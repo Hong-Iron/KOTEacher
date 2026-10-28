@@ -1,0 +1,444 @@
+[
+ {
+  "pid": "pg17687",
+  "bug_lines": [
+   21,
+   12
+  ],
+  "labels": [
+   "+ ↔ -",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 12,
+  "diag_line_ok": true,
+  "diag_cat": "비교·경계",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "12번 줄에서 r이 0일 때 digits[r - 1]은 어떤 문자를 반환할까요? r이 0일 때 to_base가 반환하는 문자열을 예시 입력으로 직접 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 10.32,
+  "t_say": 0.0,
+  "first_token_say": 5.600715209031478,
+  "first_msg_char": 6.18,
+  "total": 10.32,
+  "len": 91,
+  "hangul": 0.63,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92335",
+  "bug_lines": [
+   18,
+   15
+  ],
+  "labels": [
+   "1 → 2",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 18,
+  "diag_line_ok": true,
+  "diag_cat": "비교·경계",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "18번 줄에서 '031'을 '0'으로 split할 때 생성된 첫 번째 part가 빈 문자열이 아닌 '31'으로 왜 변환될까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 7.64,
+  "t_say": 0.0,
+  "first_token_say": 3.9983926250133663,
+  "first_msg_char": 4.56,
+  "total": 7.64,
+  "len": 70,
+  "hangul": 0.56,
+  "question": true,
+  "lines_said": [
+   18
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118666",
+  "bug_lines": [
+   8,
+   9
+  ],
+  "labels": [
+   "4 → 5",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 9,
+  "diag_line_ok": true,
+  "diag_cat": "자료구조",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "9번 줄에서 s[1]이 'N'일 때, s[1] - 1은 어떤 값이 될까요? 'N'을 숫자로 바꿔서 계산하는 건 맞나요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 8.81,
+  "t_say": 0.0,
+  "first_token_say": 4.751593332970515,
+  "first_msg_char": 5.26,
+  "total": 8.81,
+  "len": 66,
+  "hangul": 0.6,
+  "question": true,
+  "lines_said": [
+   9
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17677",
+  "bug_lines": [
+   14,
+   13
+  ],
+  "labels": [
+   "65536 → 65535",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": 9,
+  "diag_line_ok": false,
+  "diag_cat": "비교·경계",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "'c' 문자열에서 두 글자씩 끊어지는 쌍은 어떻게 될까요? 실행 추적에서 ret가 Counter()가 아닌 None으로 바뀌는 이유는 무엇일까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 8.23,
+  "t_say": 0.0,
+  "first_token_say": 4.822347584005911,
+  "first_msg_char": 5.29,
+  "total": 8.23,
+  "len": 81,
+  "hangul": 0.68,
+  "question": true,
+  "lines_said": [],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "bug_lines": [
+   6,
+   14
+  ],
+  "labels": [
+   "0 → -1",
+   "1 → 0"
+  ],
+  "tier": "llm",
+  "diag_line": 14,
+  "diag_line_ok": true,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "14번 줄에서 'AA'를 사전에 추가할 때 색인이 0으로 설정되면 사전에 이미 있는 'A'의 색인 1과 중복이 되는데, 왜 이렇게 되는지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 9.49,
+  "t_say": 0.0,
+  "first_token_say": 4.819906083983369,
+  "first_msg_char": 5.37,
+  "total": 9.49,
+  "len": 85,
+  "hangul": 0.8,
+  "question": false,
+  "lines_said": [
+   14
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "bug_lines": [
+   13,
+   21
+  ],
+  "labels": [
+   "1 → 2",
+   "인덱스 -1"
+  ],
+  "tier": "llm",
+  "diag_line": 13,
+  "diag_line_ok": true,
+  "diag_cat": "초기값",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "13번 줄에서 gave[i] += 2를 실행할 때, i=2일 때 gave의 값은 어떻게 바뀌어야 하나요? f2가 f0에게 선물을 주면 gave와 got의 변화는 어떻게 되어야 할까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 13.05,
+  "t_say": 0.0,
+  "first_token_say": 7.462503708025906,
+  "first_msg_char": 8.1,
+  "total": 13.05,
+  "len": 102,
+  "hangul": 0.58,
+  "question": true,
+  "lines_said": [
+   13
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg42888",
+  "bug_lines": [
+   15,
+   13
+  ],
+  "labels": [
+   "인덱스 -1",
+   "== → !="
+  ],
+  "tier": "llm",
+  "diag_line": 15,
+  "diag_line_ok": true,
+  "diag_cat": "인덱스",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "15번 줄에서 uid가 문자열이지만 -1을 빼는 것처럼 숫자로 처리되고 있어요. uid0이 들어왔을 때 name[uid]에서 어떤 값이 나올 것 같아요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 10.14,
+  "t_say": 0.0,
+  "first_token_say": 5.094493749958929,
+  "first_msg_char": 5.69,
+  "total": 10.14,
+  "len": 85,
+  "hangul": 0.67,
+  "question": true,
+  "lines_said": [
+   15
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17682",
+  "bug_lines": [
+   12,
+   5
+  ],
+  "labels": [
+   "인덱스 +1",
+   "3 → 4"
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": false,
+  "diag_cat": "기타",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "8번 줄에서 num='0'일 때 s가 0이 되는데, 문제에서 점수는 0~10까지로 제한되어 있습니다. 이 값이 결과에 어떤 영향을 줄까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 12.06,
+  "t_say": 0.0,
+  "first_token_say": 6.519658416043967,
+  "first_msg_char": 7.06,
+  "total": 12.06,
+  "len": 77,
+  "hangul": 0.72,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg150370",
+  "bug_lines": [
+   12,
+   16
+  ],
+  "labels": [
+   "인덱스 -1",
+   "+ ↔ -"
+  ],
+  "tier": "llm",
+  "diag_line": 11,
+  "diag_line_ok": false,
+  "diag_cat": "자료구조",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "11번 줄에서 kind가 문자열이 아닌 숫자가 되도록 코드를 수정해야 할 것 같은데요. 'C'를 어떤 값으로 바꿔야 할까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 13.44,
+  "t_say": 0.0,
+  "first_token_say": 6.571108375035692,
+  "first_msg_char": 7.31,
+  "total": 13.44,
+  "len": 69,
+  "hangul": 0.79,
+  "question": true,
+  "lines_said": [
+   11
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg60061",
+  "bug_lines": [
+   9,
+   8
+  ],
+  "labels": [
+   "+ ↔ -",
+   "0 → 1"
+  ],
+  "tier": "llm",
+  "diag_line": 8,
+  "diag_line_ok": true,
+  "diag_cat": "조건 놓침",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "8번 줄에서 (x, y, 1)이 S에 없는데도 ok 함수가 True를 반환하는 이유는 무엇일까요? x=0, y=0으로 실행해보세요.",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 25.4,
+  "t_say": 0.0,
+  "first_token_say": 13.405818291998003,
+  "first_msg_char": 14.13,
+  "total": 25.4,
+  "len": 73,
+  "hangul": 0.59,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg64061",
+  "bug_lines": [
+   11,
+   6
+  ],
+  "labels": [
+   "인덱스 +1",
+   "0 → -1"
+  ],
+  "tier": "llm",
+  "diag_line": 10,
+  "diag_line_ok": false,
+  "diag_cat": "인덱스",
+  "cat_ok": true,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "10번 줄에서 row이 0일 때 board[row + 1][col]은 어떤 인덱스를 가리키나요? n=1일 때 row + 1은 어떤 값을 가질까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 18.9,
+  "t_say": 0.0,
+  "first_token_say": 8.285892291984055,
+  "first_msg_char": 9.13,
+  "total": 18.9,
+  "len": 81,
+  "hangul": 0.48,
+  "question": true,
+  "lines_said": [
+   10
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "bug_lines": [
+   19,
+   17
+  ],
+  "labels": [
+   "인덱스 +1",
+   "인덱스 +1"
+  ],
+  "tier": "llm",
+  "diag_line": 15,
+  "diag_line_ok": false,
+  "diag_cat": "자료구조",
+  "cat_ok": false,
+  "llm_conf": null,
+  "cause": "",
+  "lesson": "",
+  "message": "15번 줄에서 mid[0].appendleft(left.popleft())를 실행할 때 left의 첫 원소가 3이지만 mid[0]은 비어 있는데요. 이 동작이 의도한 행렬 변환과 어떻게 연결될까요?",
+  "source": "ai",
+  "tries": 1,
+  "t_diag": 23.46,
+  "t_say": 0.0,
+  "first_token_say": 12.40004229202168,
+  "first_msg_char": 13.49,
+  "total": 23.46,
+  "len": 110,
+  "hangul": 0.48,
+  "question": true,
+  "lines_said": [
+   15
+  ],
+  "line_hit": false,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]

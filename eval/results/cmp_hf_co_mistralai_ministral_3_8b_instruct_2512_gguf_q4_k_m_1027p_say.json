@@ -1,0 +1,202 @@
+[
+ {
+  "pid": "pg42891",
+  "fix": "인덱스 +1",
+  "line": 14,
+  "message": "14번 줄에서 k % m이 1일 때, rest[k % m - 1]은 어떤 인덱스를 가리키나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 10.63,
+  "first": 6.7,
+  "len": 52,
+  "hangul": 0.5,
+  "question": true,
+  "lines_said": [
+   14
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67256",
+  "fix": "4 → 3",
+  "line": 11,
+  "message": "5번 숫자가 들어왔을 때 11번 줄의 조건이 참인지 거짓인지 어떻게 판단하나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 11.89,
+  "first": 8.79,
+  "len": 44,
+  "hangul": 0.88,
+  "question": true,
+  "lines_said": [
+   11
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg118670",
+  "fix": "인덱스 -1",
+  "line": 18,
+  "message": "18번 줄에서 mid[-0]이 가리키는 값이 비어 있을 때 오류가 발생합니다. 이 값이 어떤 행렬의 첫 번째 행일 때, 그 행의 첫 번째 원소가 무엇인지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 9.26,
+  "first": 2.96,
+  "len": 94,
+  "hangul": 0.83,
+  "question": false,
+  "lines_said": [
+   18
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg67259",
+  "fix": "인덱스 -1",
+  "line": 21,
+  "message": "21번 줄에서 nc + 1을 체크하는 조건은 nr, nc가 유효한 범위 내에 있을 때만 적용해야 합니다. 이 예시 입력에서 nr, nc가 어떤 값일 때 nc + 1이 범위를 벗어나는지 확인해 보세요.",
+  "source": "ai",
+  "tries": 1,
+  "total": 17.3,
+  "first": 9.04,
+  "len": 111,
+  "hangul": 0.73,
+  "question": false,
+  "lines_said": [
+   21
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg258712",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "12번 줄에서 j - 1을 사용했는데, j의 값이 0일 때 어떤 인덱스가 되나요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 8.01,
+  "first": 4.09,
+  "len": 45,
+  "hangul": 0.73,
+  "question": true,
+  "lines_said": [
+   12
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg92341",
+  "fix": "min → max",
+  "line": 22,
+  "message": "22번 줄에서 total[car]의 값은 14841이지만 base_t는 1일 때, min(0, total[car] - base_t)가 어떻게 계산되는지 확인해 볼 수 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 14.56,
+  "first": 7.77,
+  "len": 98,
+  "hangul": 0.38,
+  "question": true,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg81303",
+  "fix": "== → !=",
+  "line": 22,
+  "message": "22번 줄에서 q의 값이 6일 때 prev[q]에 접근했는데, prev 리스트의 인덱스가 5까지밖에 없는데요, 그 값이 어떤지 확인해 볼 수 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 14.82,
+  "first": 8.42,
+  "len": 84,
+  "hangul": 0.71,
+  "question": true,
+  "lines_said": [
+   22
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17678",
+  "fix": "인덱스 +1",
+  "line": 12,
+  "message": "9번 줄에서 riders 리스트에 추가된 크루의 도착 시각은 어떤 값일까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 9.82,
+  "first": 7.57,
+  "len": 42,
+  "hangul": 0.76,
+  "question": true,
+  "lines_said": [
+   9
+  ],
+  "line_hit": false,
+  "fake_line": true,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17676",
+  "fix": "1 → 0",
+  "line": 23,
+  "message": "23번 줄에서 cnt = 1을 할 때, 입력의 시작 시간과 끝 시간을 밀리초로 변환했을 때, 그 값들이 어떻게 되는지 확인해 볼 수 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 14.28,
+  "first": 9.34,
+  "len": 79,
+  "hangul": 0.82,
+  "question": true,
+  "lines_said": [
+   23
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ },
+ {
+  "pid": "pg17684",
+  "fix": "2 → 1",
+  "line": 8,
+  "message": "8번 줄에서 j가 i + 2로 시작할 때, 입력 문자열이 'AA'인 경우 msg[i:j]가 어떤 값을 가지는지 확인해 볼 수 있을까요?",
+  "source": "ai",
+  "tries": 1,
+  "total": 9.73,
+  "first": 3.9,
+  "len": 75,
+  "hangul": 0.66,
+  "question": true,
+  "lines_said": [
+   8
+  ],
+  "line_hit": true,
+  "fake_line": false,
+  "leak": null,
+  "code_like": false
+ }
+]

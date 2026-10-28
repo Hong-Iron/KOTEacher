@@ -132,17 +132,18 @@ def context(pid, code):
 
 ACK = "문제와 코드를 읽었습니다."
 EXP = set(os.environ.get("KOTEACHER_EXP", "").split(","))  # 속도 실험: textfmt, lean, short
-PROMPT = os.environ.get("KOTEACHER_PROMPT", "")  # qwen | en | qwen_en: 견주기용 지시문 (eval/compare_models.py, 맨 아래)
-TEMP_DIAG, TEMP_SAY = 0.3, 0.5
+PROMPT = os.environ.get("KOTEACHER_PROMPT", "")  # 모델별 프로필을 억지로 고른다: qwen | en | qwen_en | mistral (견주기용, 맨 아래 PROFILES)
+TEMP_DIAG, TEMP_SAY = 0.3, 0.5  # 기본(gemma) 프로필의 온도
 
 
 def messages(pid, code, dynamic, task):
-    if os.environ.get("KOTEACHER_SPLIT") == "0" or PROMPT in ("qwen", "qwen_en"):  # 한 덩어리 구조 (Qwen: 가짜 assistant 답 없이)
-        return [{"role": "system", "content": SYSTEM},
+    pr = profile()
+    if os.environ.get("KOTEACHER_SPLIT") == "0" or not pr["split"]:  # 한 덩어리 구조 (Qwen: 가짜 assistant 답 없이)
+        return [{"role": "system", "content": pr["system"]},
                 {"role": "user", "content": f"{context(pid, code)}\n\n{dynamic}\n\n[할 일]\n{task}"}]
     # 문제·코드는 첫 사용자 말, 증거·할 일은 둘째 사용자 말로 나눈다. 그래야 warm()이 읽힌 프롬프트가
     # 실제 프롬프트의 앞부분과 정확히 겹쳐, Ollama가 그 계산을 재사용한다 (gemma4는 기준점에서만 이어 쓸 수 있다)
-    return [{"role": "system", "content": SYSTEM},
+    return [{"role": "system", "content": pr["system"]},
             {"role": "user", "content": context(pid, code)},
             {"role": "assistant", "content": ACK},
             {"role": "user", "content": f"{dynamic}\n\n[할 일]\n{task}"}]
@@ -338,11 +339,12 @@ def diagnose_and_say(pid, code, f, result, hint_level=0, history=(), weak=(), on
     dyn = evidence(f, result)
     ex = extras(pid, hint_level, history, weak)
     textfmt = "json" not in EXP  # 기본은 글 형식: JSON 문법 기호와 원인 칸을 안 써서 응답이 약 13% 빨리 끝난다
-    msgs = messages(pid, code, dyn + ("\n\n" + ex if ex else ""), TEXT_TASK if textfmt else DIAG_TASK)
+    pr = profile()
+    msgs = messages(pid, code, dyn + ("\n\n" + ex if ex else ""), pr["text_task"] if textfmt else DIAG_TASK)
     try:
         if textfmt:
             stream = TextStream(on_message, on_line) if on_message or on_line else None
-            text, meta = ollama.chat(msgs, max_tokens=120, temperature=TEMP_DIAG, on_token=stream.feed if stream else None,
+            text, meta = ollama.chat(msgs, max_tokens=120, temperature=pr["temp_diag"], on_token=stream.feed if stream else None,
                                      stop=None)
             d = parse_text(text)
         else:
@@ -351,7 +353,7 @@ def diagnose_and_say(pid, code, f, result, hint_level=0, history=(), weak=(), on
             if "lean" in EXP:  # 원인 칸을 빼서 생성 토큰을 줄인다
                 schema = {**DIAG_SAY_SCHEMA, "properties": {k: v for k, v in DIAG_SAY_SCHEMA["properties"].items() if k != "cause"},
                           "required": ["line", "message", "category"]}
-            text, meta = ollama.chat(msgs, schema=schema, max_tokens=170, temperature=0.3,
+            text, meta = ollama.chat(msgs, schema=schema, max_tokens=170, temperature=pr["temp_diag"],
                                      on_token=stream.feed if stream else None)
             d = json.loads(text)
     except Exception as e:
@@ -360,7 +362,9 @@ def diagnose_and_say(pid, code, f, result, hint_level=0, history=(), weak=(), on
     line = d.get("line") if isinstance(d.get("line"), int) and 1 <= d["line"] <= n else None
     diag = {"tier": "llm", "category": d.get("category", "기타"), "line": line,
             "lesson": "", "secret": d.get("cause", ""), "confidence": "추정", "fact": f, "meta": meta}
-    msg = tidy(d.get("message") or "")
+    msg = fill_line(tidy(d.get("message") or ""), line)
+    if pr["polish"]:
+        msg = pr["polish"](msg, line)
     reason = leak_reason(msg, diag, pid)
     diag["said"] = ({"kind": "question", "message": trim(msg), "source": "ai", "meta": meta, "tries": 1} if not reason
                     else {"kind": "nudge", "message": template(diag), "source": "template", "meta": meta, "tries": 1, "leak": reason})
@@ -408,13 +412,16 @@ def say(pid, code, diag, hint_level=0, history=(), weak=(), on_message=None):
     f = diag["fact"]
     dyn = evidence(f, None, code, diag.get("line")) + f"\n실수 분류: {diag['category']}"
     ex = extras(pid, hint_level, history, weak)
-    msgs = messages(pid, code, dyn + ("\n\n" + ex if ex else ""), SAY_TASK)
+    pr = profile()
+    msgs = messages(pid, code, dyn + ("\n\n" + ex if ex else ""), pr["say_task"])
     meta, tries = {}, 0
     for tries in (1, 2):
         stream = RawStream(on_message) if (on_message and tries == 1) else None
         try:
-            text, meta = ollama.chat(msgs, max_tokens=110, temperature=TEMP_SAY, on_token=stream.feed if stream else None)
-            msg = clean_raw(text)
+            text, meta = ollama.chat(msgs, max_tokens=110, temperature=pr["temp_say"], on_token=stream.feed if stream else None)
+            msg = fill_line(clean_raw(text), diag.get("line"))
+            if pr["polish"]:
+                msg = pr["polish"](msg, diag.get("line"))
         except Exception as e:
             meta = {"error": str(e)[:200]}
             break
@@ -432,7 +439,7 @@ def warm(pid, code):
         return
     try:
         # messages()의 앞 두 말까지만 읽힌다. 코치의 답 자리에서 끝나므로 실제 호출이 여기서 이어 쓴다
-        ollama.chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": context(pid, code)}], max_tokens=1)
+        ollama.chat([{"role": "system", "content": profile()["system"]}, {"role": "user", "content": context(pid, code)}], max_tokens=1)
     except Exception:
         pass
 
@@ -472,6 +479,21 @@ def _reference_lines(pid):
 
 
 CODEY = re.compile(r"(```|^\s*(def|for|while|if|return)\b.*:|\w+\s*\[.*\]\s*=)", re.M)
+# 고칠 곳을 대놓고 말하기 (2026-10-27 Ministral 답을 읽다가 찾은 구멍: "give[i][j - 1] 대신 give[i][j]를 사용해야…",
+# "8번 줄의 초기값을 바꿔야 할 것 같습니다"는 고칠 값 목록과 겹치지 않아 그동안 걸러지지 않았다)
+REPLACE_WITH = re.compile(r"대신\s*[A-Za-z0-9_\[\]()=<>+\-*/%. ]{0,20}?[\[\]()=<>+\-*/%]")  # 'A 대신 B'의 B가 코드(기호가 든 짧은 영문·숫자)
+FIX_TOLD = re.compile(r"((바꿔|고쳐|수정해|변환해|변경해|사용해|적용해|처리해|추가해|써|넣어|빼)야\s*(합니다|해요|한다|할 것 같|하겠|됩니다|돼요|해\b)"
+                      r"|(바꾸|고치|쓰)면\s*(됩니다|돼요|된다))")
+
+
+def fix_said(msg):
+    """고칠 코드나 고칠 곳을 단정해 말했으면 그 까닭. 질문 문장 안의 '~해야 하는지'는 괜찮다."""
+    if REPLACE_WITH.search(msg):
+        return "고칠 코드를 말함"
+    for s in re.split(r"(?<=[.?!。])\s+|\n", msg):
+        if s.strip() and not s.strip().endswith("?") and FIX_TOLD.search(s):
+            return "고칠 곳을 말함"
+    return None
 
 
 def leak_reason(msg, diag, pid):
@@ -481,6 +503,9 @@ def leak_reason(msg, diag, pid):
         return "너무 김"
     if CODEY.search(msg):
         return "코드가 들어 있음"
+    told = fix_said(msg)
+    if told:
+        return told
     norm = re.sub(r"\s+", " ", msg)
     for l in _reference_lines(pid):
         if l in norm:
@@ -555,65 +580,162 @@ class Policy:
 # 기본 지시문은 gemma의 답을 보며 다듬었다. Qwen 3.5는 (1) 이름표를 빼고 답하고, (2) 질문 대신 원인을 단정하고,
 # (3) '14 번 줄'처럼 띄어 쓰는 버릇이 있어, 형식을 예시 하나로 못 박고 금지·요구를 짧은 항목으로 나눈다.
 # 가짜 assistant 답(ACK) 없이 한 덩어리로 보내고, Qwen 권장값대로 온도를 0.7로 둔다 (낮으면 같은 말을 되풀이하기 쉽다).
-if PROMPT == "qwen":
-    SYSTEM = (
-        "당신은 한국 대학생의 코딩 테스트 연습을 돕는 코치입니다. 자연스러운 한국어 존댓말(~요)로 말합니다.\n"
-        "반드시 지킬 것:\n"
-        "1. 정답 코드, 고칠 연산자, 고칠 값은 절대 말하지 않습니다.\n"
-        "2. 주어진 증거(실패한 입력, 실행 추적)에서만 출발합니다. 증거에 없는 버그를 지어내지 않습니다.\n"
-        "3. 학생에게 하는 말은 질문으로 끝냅니다. 원인을 단정하지 말고, 그 줄에서 값이 어떻게 바뀌는지 학생이 직접 따라가 보게 묻습니다. "
-        "두 문장, 100자 이내. 코드 블록, 마크다운, 수식 기호, 영어 문장을 쓰지 않습니다.\n"
-        "4. 줄은 '7번 줄'처럼 쓰고, 숫자 뒤 조사는 붙여 씁니다('n이 2가', '7번 줄에서')."
-    )
-    TEXT_TASK = (
-        "아래 형식 그대로 세 줄만 출력합니다. 각 줄은 반드시 이름표(줄:, 말:, 분류:)로 시작합니다. 다른 말은 쓰지 않습니다.\n"
-        "줄: <잘못된 값이 처음 만들어진 줄 번호, 모르면 없음>\n"
-        "말: <학생에게 하는 질문>\n"
-        "분류: <" + " / ".join(CATEGORIES) + " 중 하나>\n"
-        "버그 줄은 오류가 난 줄이 아니라, 실행 추적에서 값이 처음 어긋나는 줄입니다.\n\n"
-        "출력 예시:\n"
-        "줄: 6\n"
-        "말: 6번 줄에서 i가 마지막 값일 때 arr[i + 1]은 어디를 가리킬까요? 반례 [3]으로 한번 따라가 보세요.\n"
-        "분류: 인덱스"
-    )
-    SAY_TASK = (
-        "학생에게 하는 질문 한 개만 씁니다(이름표, 머리말, 따옴표 없이). '테스트로 확인한 문제 줄'을 짚되 무엇을 바꿀지는 말하지 않습니다.\n"
-        "예시: 9번 줄의 조건은 n이 2일 때 참일까요, 거짓일까요? 반례 2로 따라가 보세요."
-    )
-    TEMP_DIAG, TEMP_SAY = 0.7, 0.7
+QWEN_SYSTEM = (
+    "당신은 한국 대학생의 코딩 테스트 연습을 돕는 코치입니다. 자연스러운 한국어 존댓말(~요)로 말합니다.\n"
+    "반드시 지킬 것:\n"
+    "1. 정답 코드, 고칠 연산자, 고칠 값은 절대 말하지 않습니다.\n"
+    "2. 주어진 증거(실패한 입력, 실행 추적)에서만 출발합니다. 증거에 없는 버그를 지어내지 않습니다.\n"
+    "3. 학생에게 하는 말은 질문으로 끝냅니다. 원인을 단정하지 말고, 그 줄에서 값이 어떻게 바뀌는지 학생이 직접 따라가 보게 묻습니다. "
+    "두 문장, 100자 이내. 코드 블록, 마크다운, 수식 기호, 영어 문장을 쓰지 않습니다.\n"
+    "4. 줄은 '7번 줄'처럼 쓰고, 숫자 뒤 조사는 붙여 씁니다('n이 2가', '7번 줄에서')."
+)
+QWEN_TEXT_TASK = (
+    "아래 형식 그대로 세 줄만 출력합니다. 각 줄은 반드시 이름표(줄:, 말:, 분류:)로 시작합니다. 다른 말은 쓰지 않습니다.\n"
+    "줄: <잘못된 값이 처음 만들어진 줄 번호, 모르면 없음>\n"
+    "말: <학생에게 하는 질문>\n"
+    "분류: <" + " / ".join(CATEGORIES) + " 중 하나>\n"
+    "버그 줄은 오류가 난 줄이 아니라, 실행 추적에서 값이 처음 어긋나는 줄입니다.\n\n"
+    "출력 예시:\n"
+    "줄: 6\n"
+    "말: 6번 줄에서 i가 마지막 값일 때 arr[i + 1]은 어디를 가리킬까요? 반례 [3]으로 한번 따라가 보세요.\n"
+    "분류: 인덱스"
+)
+QWEN_SAY_TASK = (
+    "학생에게 하는 질문 한 개만 씁니다(이름표, 머리말, 따옴표 없이). '테스트로 확인한 문제 줄'을 짚되 무엇을 바꿀지는 말하지 않습니다.\n"
+    "예시: 9번 줄의 조건은 n이 2일 때 참일까요, 거짓일까요? 반례 2로 따라가 보세요."
+)
 
 
 # ---------------------------------------------------------------- 영어 지시문 (KOTEACHER_PROMPT=en | qwen_en)
 # 규칙과 할 일은 영어로, 학생에게 할 말만 한국어로. 출력 이름표(줄:/말:/분류:)는 앱이 읽으므로 한국어 그대로 둔다.
 # en은 대화 구조·온도를 기본 그대로 두어 언어 효과만 본다. qwen_en은 Qwen 구조(한 덩어리, 온도 0.7)를 더한다.
-if PROMPT in ("en", "qwen_en"):
-    SYSTEM = (
-        "You are a coding-test practice coach for Korean university students.\n"
-        "Rules:\n"
-        "1. Never reveal the correct code, or which operator or value to change.\n"
-        "2. Start only from the given evidence (failing input, execution trace). Never invent bugs that are not in the evidence.\n"
-        "3. What you say to the student must be a question in natural, polite Korean (해요체, ending with ~요?). "
-        "Do not state the cause; ask the student to trace how the values change on that line with the counterexample. "
-        "At most two sentences and under 100 Korean characters. No code blocks, markdown, LaTeX, or English sentences.\n"
-        "4. Refer to lines as '12번 줄' with the real line number. Use standard Korean spacing: "
-        "attach particles directly to numbers and words ('12번 줄에서', 'n이 2일 때')."
-    )
-    TEXT_TASK = (
-        "Find the line where the wrong value is FIRST created (not the line where the error was raised): "
-        "the first point where the values diverge in the execution trace.\n"
-        "Output exactly these three lines with these Korean labels, and nothing else:\n"
-        "줄: <line number, or 없음 if unknown>\n"
-        "말: <your question to the student, in Korean>\n"
-        "분류: <one of: " + " / ".join(CATEGORIES) + ">\n\n"
-        "Example:\n"
-        "줄: 6\n"
-        "말: 6번 줄에서 i가 마지막 값일 때 arr[i + 1]은 어디를 가리킬까요? 반례 [3]으로 한번 따라가 보세요.\n"
-        "분류: 인덱스"
-    )
-    SAY_TASK = (
-        "Write only your single question to the student, in Korean (no label, no preface, no quotes). "
-        "Point at the line confirmed by the tests ('테스트로 확인한 문제 줄'), but never say what to change.\n"
-        "Example: 9번 줄의 조건은 n이 2일 때 참일까요, 거짓일까요? 반례 2로 따라가 보세요."
-    )
-    if PROMPT == "qwen_en":
-        TEMP_DIAG, TEMP_SAY = 0.7, 0.7
+EN_SYSTEM = (
+    "You are a coding-test practice coach for Korean university students.\n"
+    "Rules:\n"
+    "1. Never reveal the correct code, or which operator or value to change.\n"
+    "2. Start only from the given evidence (failing input, execution trace). Never invent bugs that are not in the evidence.\n"
+    "3. What you say to the student must be a question in natural, polite Korean (해요체, ending with ~요?). "
+    "Do not state the cause; ask the student to trace how the values change on that line with the counterexample. "
+    "At most two sentences and under 100 Korean characters. No code blocks, markdown, LaTeX, or English sentences.\n"
+    "4. Refer to lines as '12번 줄' with the real line number. Use standard Korean spacing: "
+    "attach particles directly to numbers and words ('12번 줄에서', 'n이 2일 때')."
+)
+EN_TEXT_TASK = (
+    "Find the line where the wrong value is FIRST created (not the line where the error was raised): "
+    "the first point where the values diverge in the execution trace.\n"
+    "Output exactly these three lines with these Korean labels, and nothing else:\n"
+    "줄: <line number, or 없음 if unknown>\n"
+    "말: <your question to the student, in Korean>\n"
+    "분류: <one of: " + " / ".join(CATEGORIES) + ">\n\n"
+    "Example:\n"
+    "줄: 6\n"
+    "말: 6번 줄에서 i가 마지막 값일 때 arr[i + 1]은 어디를 가리킬까요? 반례 [3]으로 한번 따라가 보세요.\n"
+    "분류: 인덱스"
+)
+EN_SAY_TASK = (
+    "Write only your single question to the student, in Korean (no label, no preface, no quotes). "
+    "Point at the line confirmed by the tests ('테스트로 확인한 문제 줄'), but never say what to change.\n"
+    "Example: 9번 줄의 조건은 n이 2일 때 참일까요, 거짓일까요? 반례 2로 따라가 보세요."
+)
+
+
+# ---------------------------------------------------------------- Ministral에 맞춘 지시문 (KOTEACHER_PROMPT=mistral)
+# Mistral은 시스템 프롬프트에 쓰이는 환경과 쓰임새를 분명히 적고 온도를 0.1 아래로 두라고 권한다(Ministral 3 8B 모델 카드).
+# 기본 지시문으로 재 보니(2026-10-27) 말이 길고(151자) 질문 대신 고칠 곳을 설명해서, 앱과 코치의 자리를 먼저 밝히고
+# '질문 하나'와 출력 형식을 못 박는다. 규칙은 영어, 학생에게 할 말과 이름표는 한국어. 구조(가짜 assistant 답)는 기본 그대로.
+MI_SYSTEM = (
+    "You are the coach inside KOTEacher, a desktop app where Korean university students practice coding-test problems in Python.\n"
+    "The app runs the student's code on test cases and gives you the evidence: the failing input, the expected and actual output, "
+    "and an execution trace.\n\n"
+    "# GOAL\n"
+    "Help the student find the bug by themselves. You are a tutor, not a fixer.\n\n"
+    "# RULES\n"
+    "1. Never reveal the correct code, the fix, or which operator or value to change. Do not explain the cause. "
+    "Never write 'A 대신 B' or '~해야 해요' about the code.\n"
+    "2. Use only the given evidence. Never invent bugs. State only facts you can see in the code, the failing input, or the trace "
+    "(for example, the type of a value); if you are not sure, ask instead of asserting.\n"
+    "3. Your message to the student is exactly ONE question in natural, polite Korean (해요체), ending with '?'. "
+    "It asks the student to trace the values on the suspicious line with the counterexample. Under 80 Korean characters. "
+    "No code blocks, markdown, bold, LaTeX, or English.\n"
+    "4. Write lines as '12번 줄' with the real line number, and attach Korean particles directly ('12번 줄에서')."
+)
+MI_TEXT_TASK = (
+    "Find the line where the wrong value is FIRST created (the first point where the values diverge in the execution trace), "
+    "not the line where an error was raised.\n"
+    "Output exactly these three lines with these Korean labels, and nothing else:\n"
+    "줄: <line number, or 없음 if unknown>\n"
+    "말: <ONE question to the student in Korean, ending with '?'>\n"
+    "분류: <one of: " + " / ".join(CATEGORIES) + ">\n\n"
+    "Example:\n"
+    "줄: 6\n"
+    "말: 6번 줄에서 i가 마지막 값일 때 arr[i + 1]은 어디를 가리킬까요?\n"
+    "분류: 인덱스"
+)
+MI_SAY_TASK = (
+    "Write only ONE question to the student in Korean, ending with '?' (no label, preface, quotes, or explanation). "
+    "The evidence gives the line confirmed by the tests; refer to it by its number like '9번 줄' (do not copy the evidence label). "
+    "Never say what to change.\n"
+    "Example: 9번 줄의 조건은 n이 2일 때 참일까요, 거짓일까요?"
+)
+
+
+# ---------------------------------------------------------------- 모델별 프로필
+# 지시문·온도·대화 구조·말 다듬기는 모델 계열마다 버릇이 달라 따로 둔다. 기본(gemma)은 gemma4 e4b의 답을 보며 다듬은 것이다.
+# 지금 쓰는 모델 이름으로 고르고(profile_name), 견주기에서는 KOTEACHER_PROMPT로 억지로 고를 수 있다.
+# split: 문제·코드와 증거·할 일을 두 사용자 말로 나눈다(앞부분 계산 재사용). Qwen은 가짜 assistant 답 없이 한 덩어리가 낫다.
+
+
+def fill_line(msg, line=None):
+    """모델이 증거의 이름표('테스트로 확인한 문제 줄')를 그대로 베끼면 실제 줄 번호로 바꾼다."""
+    return re.sub(r"'?테스트로 확인한 문제 줄'?", f"{line}번 줄", msg) if line else msg
+
+
+def polish_mistral(msg, line=None):
+    """Ministral 말 다듬기: 굵은 글씨·따옴표를 지우고, 첫 질문 뒤에 덧붙인 설명은 버린다(규칙은 질문 하나)."""
+    msg = re.sub(r"\*\*|__", "", msg).strip().strip('"“”\'')
+    q = msg.find("?")
+    if 0 <= q < len(msg) - 1:
+        msg = msg[:q + 1]
+    return " ".join(fill_line(msg, line).split())
+
+
+def plain_answer_mistral(msg):
+    """Ministral의 묻기·문서 답: 굵은 글씨와 제목 표시(#)를 지운다 (말풍선은 글자만 보인다)."""
+    return re.sub(r"^\s*#+\s*", "", re.sub(r"\*\*|__", "", msg), flags=re.M).strip()
+
+
+# temp_ask·answer: 학생이 직접 물은 답(코드 묻기·문서 질문)의 온도와 다듬기
+PROFILES = {
+    "gemma": {"system": SYSTEM, "text_task": TEXT_TASK, "say_task": SAY_TASK, "temp_diag": TEMP_DIAG, "temp_say": TEMP_SAY,
+              "temp_ask": 0.4, "split": True, "polish": None, "answer": None},
+    "qwen": {"system": QWEN_SYSTEM, "text_task": QWEN_TEXT_TASK, "say_task": QWEN_SAY_TASK, "temp_diag": 0.7, "temp_say": 0.7,
+             "temp_ask": 0.7, "split": False, "polish": None, "answer": None},
+    "en": {"system": EN_SYSTEM, "text_task": EN_TEXT_TASK, "say_task": EN_SAY_TASK, "temp_diag": TEMP_DIAG, "temp_say": TEMP_SAY,
+           "temp_ask": 0.4, "split": True, "polish": None, "answer": None},
+    "qwen_en": {"system": EN_SYSTEM, "text_task": EN_TEXT_TASK, "say_task": EN_SAY_TASK, "temp_diag": 0.7, "temp_say": 0.7,
+                "temp_ask": 0.7, "split": False, "polish": None, "answer": None},
+    # Mistral 권장: 쓰임새를 시스템 프롬프트에 분명히, 온도 0.1 아래 (Ministral 3 8B 모델 카드)
+    "mistral": {"system": MI_SYSTEM, "text_task": MI_TEXT_TASK, "say_task": MI_SAY_TASK, "temp_diag": 0.05, "temp_say": 0.05,
+                "temp_ask": 0.05, "split": True, "polish": polish_mistral, "answer": plain_answer_mistral},
+}
+
+
+def clean_answer(msg):
+    """묻기·문서 답을 지금 모델의 버릇에 맞춰 다듬는다."""
+    fn = profile()["answer"]
+    return fn(msg) if fn else msg
+
+
+def profile_name():
+    if PROMPT in PROFILES:
+        return PROMPT
+    m = ((config.api_conf().get("model") if ollama.external() else config.MODEL) or "").lower()
+    if "mistral" in m:  # Ministral도 이름에 mistral이 들어간다
+        return "mistral"
+    if "qwen" in m or "omnicoder" in m:  # OmniCoder-9B는 Qwen3.5-9B를 코딩용으로 다듬은 것이라 Qwen 버릇이 같다
+        return "qwen"
+    return "gemma"
+
+
+def profile():
+    return PROFILES[profile_name()]
