@@ -271,7 +271,7 @@ def attempt_status():
 
 # ---------------------------------------------------------------- 6. 만들기와 첫 실행
 def build_and_setup():
-    f = Fig("06-build-setup", 1000, 640, "앱을 만드는 과정과 처음 켤 때 코치를 준비하는 과정")
+    f = Fig("06-build-setup", 1000, 500, "앱을 만드는 과정과 처음 켤 때 코치를 준비하는 과정")
     f.text(24, 90, "맥 (tools/build_mac.py)", 14, "700")
     steps = ["팩 90개 미리 만들기", "PyInstaller로 .app 묶기", "임시 서명 (codesign -s -)", "묶인 앱으로 자가 점검", "DMG 만들기"]
     for i, s in enumerate(steps):
