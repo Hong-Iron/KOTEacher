@@ -145,7 +145,7 @@ def check_flow():
         f.parts.append(f'<line x1="{x + 85}" y1="110" x2="{x + 85}" y2="730" stroke="#D5DAE3" stroke-width="1.2" stroke-dasharray="4 4"/>')
     c = [x + 85 for x in xs]
     f.num(22, 153, 1)
-    f.box(c[0] - 80, 128, 160, 50, None, ["실행 ⌘↵, 또는", "입력 멈춘 지 2.7초"], kind="ui", center=True, size=12)
+    f.box(c[0] - 80, 128, 160, 50, None, ["실행 ⌘↵", "또는 자동 검사 2.7초"], kind="ui", center=True, size=12)
     f.arrow([(c[0] + 80, 152), (c[1] - 4, 152)], "check(code)", color="#2C56C9", lx=(c[0] + 80 + c[1]) / 2, ly=146, size=11.5)
     f.num(c[1] - 18, 200, 2)
     f.arrow([(c[1], 200), (c[2] - 4, 200)], "코드 + 팩 경로 (stdin)", color="#D99A1E", lx=(c[1] + c[2]) / 2, ly=194, size=11.5)
@@ -262,7 +262,7 @@ def attempt_status():
         "'이 코드로 다시 열기', '이 코드 불러오기', '처음부터'도 같다.", "", "홈의 '다시 풀기'만 빈 기록으로 연다.",
         "(api.py: Session.carried_hints, _carry)"], kind="plain", size=11.5, mono_lines=("(api.py: Session.carried_hints, _carry)",))
     f.box(500, 270, 456, 160, "왜 이렇게 하나", [
-        "힌트로 푼 코드를 다시 열면 자동 검사가 그 코드를 돌린다.", "도움을 이어 받지 않으면 힌트 0개인 새 시도가 통과해",
+        "힌트로 푼 코드를 다시 열어 실행하면 그대로 통과한다.", "도움을 이어 받지 않으면 힌트 0개인 새 시도가 통과해",
         "문제 상태가 '통과'로 바뀐다. 힌트를 이미 봤으므로", "'힌트로 통과'로 남는 쪽이 맞다.", "",
         "1개까지는 '통과'로 친다 (store.problem_status)."], kind="plain", size=11.5)
     f.save()
@@ -314,7 +314,7 @@ def pipeline():
     f.box(x, 80, w, 44, None, ["에디터에서 코드 입력"], kind="ui", center=True, size=12.5)
     f.box(700, 72, 276, 60, "pyflakes 정적 분석", ["타이핑할 때마다, 실행 없이 밑줄"], kind="py", size=11.5)
     f.arrow([(650, 102), (700, 102)], "코드", lx=675, ly=94, size=11, dashed=True)
-    f.arrow([(cx, 124), (cx, 160)], "실행 ⌘↵ 또는 입력 멈춘 지 2.7초", lx=cx + 10, ly=146, size=11, anchor="start")
+    f.arrow([(cx, 124), (cx, 160)], "실행 ⌘↵, 자동 검사를 켰으면 입력 멈춘 지 2.7초", lx=cx + 10, ly=146, size=11, anchor="start")
     f.box(x, 160, w, 44, None, ["Api.check(code, trigger)  ·  gen += 1"], kind="py", center=True, size=12.5)
     f.arrow([(cx, 204), (cx, 244)], "stdin  {code, pack, repair}", color="#D99A1E", lx=cx + 10, ly=228, size=11, anchor="start")
     f.box(x, 244, w, 150, "harness (서브프로세스)", ["① 문법 검사 → ② solution 로드", "③ 예시 실행 (테스트당 2초)", "④ 히든 테스트: 작은 입력부터, 첫 실패에서 중단",
