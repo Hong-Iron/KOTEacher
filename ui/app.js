@@ -105,7 +105,8 @@ function setAi(st) {
     el.innerHTML = `<span class="dot ${dot}"></span><span class="t">${esc(txt)}</span>`;
     // 모델마다 지시문·온도를 따로 쓴다(코치 프로필). 마우스를 올리면 지금 어느 쪽인지 보인다
     const prof = {gemma: "gemma용", mistral: "Ministral용", qwen: "Qwen용"}[st.profile];
-    el.title = st.name ? `코치 모델: ${st.name}${prof ? ` · 지시문: ${prof}` : ""}` : "";
+    // 자리가 모자라 상태 글이 …로 줄면 마우스를 올려 다 읽는다
+    el.title = txt + (st.name ? `\n코치 모델: ${st.name}${prof ? ` · 지시문: ${prof}` : ""}` : "");
   }
   if (!st.model && !st.external) showPullInBar();  // 받는 중이면 상태 확인이 덮어쓰지 않게
 }

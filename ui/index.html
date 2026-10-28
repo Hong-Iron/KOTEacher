@@ -12,15 +12,17 @@
 
 <!-- 홈: 문제 목록과 개념 목록 -->
 <section class="view" id="home">
-  <header class="top">
-    <button class="brand brandbtn" id="openAbout" title="KOTEacher 정보"><img src="icon.svg" alt="" class="logo">KOTEacher</button>
-    <span class="sp"></span>
+  <header class="top withsearch">
+    <div class="side">
+      <button class="brand brandbtn" id="openAbout" title="KOTEacher 정보"><img src="icon.svg" alt="" class="logo">KOTEacher</button>
+    </div>
     <button class="searchbar" data-search title="전체 검색 (⌘K)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>문제, 개념, 문서 내용 찾기</span><kbd>⌘K</kbd></button>
-    <span class="sp"></span>
-    <span class="aistat" id="aiStat"><span class="dot"></span>코치 확인 중</span>
-    <button class="btn" id="openHist">풀이 기록</button>
-    <button class="btn" id="openBook">오답 노트 <span class="cnt coach" id="bookCnt">0</span></button>
-    <button class="btn" id="openProfile" title="날마다 푼 기록과 연속 일수">프로필 <span class="cnt" id="streakCnt" hidden></span></button>
+    <div class="side end">
+      <span class="aistat" id="aiStat"><span class="dot"></span>코치 확인 중</span>
+      <button class="btn" id="openHist">풀이 기록</button>
+      <button class="btn" id="openBook">오답 노트 <span class="cnt coach" id="bookCnt">0</span></button>
+      <button class="btn" id="openProfile" title="날마다 푼 기록과 연속 일수">프로필 <span class="cnt" id="streakCnt" hidden></span></button>
+    </div>
   </header>
   <div class="home">
     <div class="home-inner">
@@ -48,26 +50,28 @@
 
 <!-- 풀기: 왼쪽 문서 창(탭) | 오른쪽 코드 창 -->
 <section class="view" id="solve" hidden>
-  <header class="top">
-    <button class="btn" id="back" title="목록">← 목록</button>
-    <div class="crumb"><b id="pTitle"></b><span class="tag" id="pLevel"></span><span class="tag" id="pSource"></span></div>
-    <span class="sp"></span>
-    <button class="searchbar" data-search title="전체 검색 (⌘K)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>문제, 개념, 문서 내용 찾기</span><kbd>⌘K</kbd></button>
-    <span class="sp"></span>
-    <span class="meta" id="clock">0:00</span>
-    <span class="meta exam-hide" id="hintMeta">힌트 0 / 3</span>
-    <button class="examtog" id="examBtn" aria-pressed="false" title="실제 코딩 테스트처럼 풉니다. 자동 검사·코치·힌트를 끄고, 예시 실행과 제출만 씁니다">실전</button>
-    <select class="examtime exam-only" id="examTime" aria-label="제한 시간" title="실전 제한 시간. 바꾸면 지금부터 다시 잽니다">
-      <option value="0">제한 없음</option><option value="20">20분</option><option value="30">30분</option><option value="40">40분</option>
-      <option value="60">60분</option><option value="90">90분</option><option value="120">120분</option></select>
-    <button class="examtog autotog exam-hide" id="autoBtn" aria-pressed="false" title="켜면 손을 멈추고 2.7초 뒤 저절로 검사합니다. 끄면 실행(⌘↵)할 때만 검사합니다">자동 검사</button>
-    <div class="seg exam-hide" id="modeSeg" role="group" aria-label="코치 말수">
-      <button data-mode="quiet" aria-pressed="false" title="실행하거나 물을 때만 말합니다. 자동 검사에서 찾은 문제는 줄 끝 알림으로만 남깁니다">조용히</button>
-      <button data-mode="normal" aria-pressed="true" title="테스트로 확인된 문제만 먼저 말합니다">보통</button>
-      <button data-mode="active" aria-pressed="false" title="AI가 추정한 문제와 느릴 것 같은 방법도 먼저 짚어 드립니다">적극</button>
+  <header class="top withsearch">
+    <div class="side">
+      <button class="btn" id="back" title="목록">← 목록</button>
+      <div class="crumb"><b id="pTitle"></b><span class="tag" id="pLevel"></span><span class="tag" id="pSource"></span></div>
     </div>
-    <div class="seg plain" role="group" aria-label="창">
-      <button id="foldLeft" aria-pressed="true" title="문서 창 열고 닫기 (⌘B)">문서</button><button id="foldRight" aria-pressed="true" title="코드 창 열고 닫기 (⌘⇧B)">코드</button>
+    <button class="searchbar" data-search title="전체 검색 (⌘K)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>문제, 개념, 문서 내용 찾기</span><kbd>⌘K</kbd></button>
+    <div class="side end">
+      <span class="meta" id="clock">0:00</span>
+      <span class="meta exam-hide" id="hintMeta">힌트 0 / 3</span>
+      <button class="examtog" id="examBtn" aria-pressed="false" title="실제 코딩 테스트처럼 풉니다. 자동 검사·코치·힌트를 끄고, 예시 실행과 제출만 씁니다">실전</button>
+      <select class="examtime exam-only" id="examTime" aria-label="제한 시간" title="실전 제한 시간. 바꾸면 지금부터 다시 잽니다">
+        <option value="0">제한 없음</option><option value="20">20분</option><option value="30">30분</option><option value="40">40분</option>
+        <option value="60">60분</option><option value="90">90분</option><option value="120">120분</option></select>
+      <button class="examtog autotog exam-hide" id="autoBtn" aria-pressed="false" title="켜면 손을 멈추고 2.7초 뒤 저절로 검사합니다. 끄면 실행(⌘↵)할 때만 검사합니다">자동 검사</button>
+      <div class="seg exam-hide" id="modeSeg" role="group" aria-label="코치 말수">
+        <button data-mode="quiet" aria-pressed="false" title="실행하거나 물을 때만 말합니다. 자동 검사에서 찾은 문제는 줄 끝 알림으로만 남깁니다">조용히</button>
+        <button data-mode="normal" aria-pressed="true" title="테스트로 확인된 문제만 먼저 말합니다">보통</button>
+        <button data-mode="active" aria-pressed="false" title="AI가 추정한 문제와 느릴 것 같은 방법도 먼저 짚어 드립니다">적극</button>
+      </div>
+      <div class="seg plain" role="group" aria-label="창">
+        <button id="foldLeft" aria-pressed="true" title="문서 창 열고 닫기 (⌘B)">문서</button><button id="foldRight" aria-pressed="true" title="코드 창 열고 닫기 (⌘⇧B)">코드</button>
+      </div>
     </div>
   </header>
   <div class="split" id="split">
@@ -116,12 +120,14 @@
 
 <!-- 학습: 개념 문서 읽기 -->
 <section class="view" id="learn" hidden>
-  <header class="top">
-    <button class="btn" id="learnBack">← 목록</button>
-    <div class="crumb"><b id="lTitle"></b><span class="tag" id="lAlias"></span></div>
-    <span class="sp"></span>
+  <header class="top withsearch">
+    <div class="side">
+      <button class="btn" id="learnBack">← 목록</button>
+      <div class="crumb"><b id="lTitle"></b><span class="tag" id="lAlias"></span></div>
+    </div>
     <button class="searchbar" data-search title="전체 검색 (⌘K)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>문제, 개념, 문서 내용 찾기</span><kbd>⌘K</kbd></button>
-    <span class="sp"></span>
+    <div class="side end">
+    </div>
   </header>
   <div class="learn">
     <article class="ldoc doc" id="lDoc"></article>
@@ -145,14 +151,16 @@
 
 <!-- 풀이 기록 -->
 <section class="view" id="history" hidden>
-  <header class="top">
-    <button class="btn" id="histBack">← 목록</button>
-    <span class="brand">풀이 기록</span>
-    <span class="sp"></span>
+  <header class="top withsearch">
+    <div class="side">
+      <button class="btn" id="histBack">← 목록</button>
+      <span class="brand">풀이 기록</span>
+    </div>
     <button class="searchbar" data-search title="전체 검색 (⌘K)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>문제, 개념, 문서 내용 찾기</span><kbd>⌘K</kbd></button>
-    <span class="sp"></span>
-    <div class="seg plain" id="histSeg" role="group" aria-label="결과">
-      <button data-f="" aria-pressed="true">전체</button><button data-f="solved" aria-pressed="false">통과</button><button data-f="exam" aria-pressed="false">실전 통과</button><button data-f="helped" aria-pressed="false">힌트로 통과</button><button data-f="open" aria-pressed="false">미완</button>
+    <div class="side end">
+      <div class="seg plain" id="histSeg" role="group" aria-label="결과">
+        <button data-f="" aria-pressed="true">전체</button><button data-f="solved" aria-pressed="false">통과</button><button data-f="exam" aria-pressed="false">실전 통과</button><button data-f="helped" aria-pressed="false">힌트로 통과</button><button data-f="open" aria-pressed="false">미완</button>
+      </div>
     </div>
   </header>
   <div class="hist">
@@ -163,13 +171,15 @@
 
 <!-- 오답 노트 -->
 <section class="view" id="book" hidden>
-  <header class="top">
-    <button class="btn" id="bookBack">← 목록</button>
-    <span class="brand">오답 노트</span>
-    <span class="sp"></span>
+  <header class="top withsearch">
+    <div class="side">
+      <button class="btn" id="bookBack">← 목록</button>
+      <span class="brand">오답 노트</span>
+    </div>
     <button class="searchbar" data-search title="전체 검색 (⌘K)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>문제, 개념, 문서 내용 찾기</span><kbd>⌘K</kbd></button>
-    <span class="sp"></span>
-    <div class="seg plain" id="catSeg" role="group" aria-label="분류"></div>
+    <div class="side end">
+      <div class="seg plain" id="catSeg" role="group" aria-label="분류"></div>
+    </div>
   </header>
   <div class="mbook"><div class="inner" id="bookList"></div></div>
 </section>
