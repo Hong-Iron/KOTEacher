@@ -95,77 +95,76 @@ class Fig:
 
 # ---------------------------------------------------------------- 1. 한 장 구조
 def overview():
-    f = Fig("01-overview", 980, 640, "KOTEacher 한 장 구조", "서버 없이 프로세스 셋이 돈다: 창과 파이썬은 한 프로그램, 학생 코드 검사와 코치 모델은 따로")
+    f = Fig("01-overview", 980, 640, "KOTEacher 전체 구조", "서버 없이 로컬에서 동작한다: 앱 프로세스, 채점 서브프로세스, LLM 서버")
     f.box(24, 80, 300, 300, "창 (WebView)", [
         "맥 WKWebView · 윈도 WebView2가 그린다", "",
         "ui/index.html · app.js · style.css",
         "화면 6개: 홈 · 풀기 · 오답 노트 ·",
         "학습 · 풀이 기록 · 프로필", "",
-        "Monaco 편집기", "(VS Code에 쓰이는 코드 편집 부품)",
-        "KaTeX · Mermaid", "(수식과 흐름도를 그리는 라이브러리)"], kind="ui", mono_lines=("ui/index.html · app.js · style.css",))
+        "Monaco 에디터", "KaTeX (수식) · Mermaid (다이어그램)"], kind="ui", mono_lines=("ui/index.html · app.js · style.css",))
     f.box(560, 80, 396, 300, "파이썬 프로세스 (koteacher/)", [], kind="plain")
-    rows = [("api.py · Api", "화면이 부르는 함수 모음, 시도 하나를 Session으로 관리"),
-            ("coach.py", "실패 사실 → 진단 → 말하기, 모델별 프로필, 유출 검사"),
-            ("store.py", "SQLite에 시도·실행·코치 말·오답·문서 질문 기록"),
-            ("vault.py · packs.py", "문제·개념 문서·힌트 사다리·팩 읽기"),
-            ("ollama.py · remote.py", "코치 모델 부르기, 모델 받기·켜기")]
+    rows = [("api.py · Api", "JS가 호출하는 API, 시도별 Session 관리"),
+            ("coach.py", "실패 정리 → 진단 → 응답 생성, 프로필, 유출 검사"),
+            ("store.py", "SQLite: 시도·실행·코치 응답·오답·문서 질문"),
+            ("vault.py · packs.py", "문제·개념 문서·힌트·팩 로드"),
+            ("ollama.py · remote.py", "LLM 호출, 모델 다운로드, Ollama 실행")]
     for i, (a, b) in enumerate(rows):
         y = 118 + i * 51
         f.box(574, y, 368, 44, None, [], kind="py")
         f.text(586, y + 18, a, 12.5, "700", mono=True)
         f.text(586, y + 36, b, 11.5, color=MUTED)
-    f.arrow([(324, 170), (560, 170)], "API.check(code) 같은 함수 부르기", color="#2C56C9", lx=442, ly=160)
+    f.arrow([(324, 170), (560, 170)], "js_api 호출 (예: check(code))", color="#2C56C9", lx=442, ly=160)
     f.text(442, 192, "window.pywebview.api.이름(…)", 11.5, color=MUTED, anchor="middle", mono=True)
-    f.arrow([(560, 270), (324, 270)], "KG.on('say', 자료) 같은 이벤트 보내기", color="#2C56C9", lx=442, ly=260)
+    f.arrow([(560, 270), (324, 270)], "이벤트 push (예: KG.on('say', …))", color="#2C56C9", lx=442, ly=260)
     f.text(442, 292, "window.evaluate_js(…)", 11.5, color=MUTED, anchor="middle", mono=True)
-    f.text(442, 226, "pywebview 다리", 13, "700", color="#2C56C9", anchor="middle")
+    f.text(442, 226, "pywebview 브리지", 13, "700", color="#2C56C9", anchor="middle")
     # 아래: 따로 도는 것과 파일
-    f.box(24, 430, 220, 120, "검사 프로세스", ["koteacher/harness.py", "실행할 때마다 새로 띄운다", "테스트 하나 2초 제한"], kind="proc",
+    f.box(24, 430, 220, 120, "채점 프로세스", ["koteacher/harness.py", "실행마다 새 서브프로세스", "테스트당 2초 제한"], kind="proc",
           mono_lines=("koteacher/harness.py",))
-    f.box(262, 430, 220, 120, "Ollama 서버", ["127.0.0.1:11434", "코치 모델을 내 컴퓨터에서", "돌리는 프로그램"], kind="proc", mono_lines=("127.0.0.1:11434",))
+    f.box(262, 430, 220, 120, "Ollama 서버", ["127.0.0.1:11434", "로컬 LLM 추론 서버"], kind="proc", mono_lines=("127.0.0.1:11434",))
     f.box(500, 430, 200, 120, "외부 API (고를 때만)", ["OpenAI · Anthropic ·", "Gemini · OpenRouter ·", "Groq · OpenAI 호환"], kind="proc", dashed=True)
-    f.box(718, 430, 238, 180, "파일", ["content/", "  문제 90 · 개념 문서 35", "packs/<문제>.json", "  예시·숨은 검사 입력과 답", "앱 데이터 폴더",
+    f.box(718, 430, 238, 180, "파일", ["content/", "  문제 90 · 개념 문서 35", "packs/<문제>.json", "  예시·히든 테스트 입출력", "앱 데이터 폴더",
                                      "  koteacher.db · settings.json"], kind="data",
           mono_lines=("content/", "packs/<문제>.json"))
     f.arrow([(620, 380), (620, 405), (134, 405), (134, 430)], "코드와 팩 경로 → 결과 JSON", color="#D99A1E", lx=300, ly=399)
     f.arrow([(700, 380), (700, 415), (372, 415), (372, 430)], color="#D99A1E")
     f.arrow([(760, 380), (760, 420), (600, 420), (600, 430)], color="#D99A1E", dashed=True)
     f.arrow([(900, 380), (900, 430)], color="#2E7D4A")
-    f.text(24, 600, "주황: 따로 도는 프로세스·서버   초록: 파일   파랑: 화면   점선: 사용자가 고를 때만", 12, color=MUTED)
+    f.text(24, 600, "주황: 별도 프로세스·서버   초록: 파일   파랑: 프론트엔드   점선: 선택 사항", 12, color=MUTED)
     f.save()
 
 
 # ---------------------------------------------------------------- 2. 실행 한 번
 def check_flow():
-    f = Fig("02-check-flow", 1000, 760, "실행 버튼을 누르면 일어나는 일",
-            "테스트 결과는 0.1초 안팎에 먼저 보이고, 코치 말은 뒤 스레드가 만들어 흘려 보낸다")
-    lanes = [("화면 (app.js)", "ui"), ("Api (api.py)", "py"), ("검사 프로세스", "proc"), ("코치 (뒤 스레드)", "py"), ("Ollama", "proc")]
+    f = Fig("02-check-flow", 1000, 760, "실행 한 번의 흐름",
+            "테스트 결과는 즉시 반환하고, 코치 응답은 백그라운드 스레드가 스트리밍한다")
+    lanes = [("프론트엔드 (app.js)", "ui"), ("Api (api.py)", "py"), ("harness", "proc"), ("코치 (백그라운드)", "py"), ("Ollama", "proc")]
     xs = [30, 220, 410, 600, 800]
     for (name, kind), x in zip(lanes, xs):
         f.box(x, 74, 170, 36, name, [], kind=kind, center=True)
         f.parts.append(f'<line x1="{x + 85}" y1="110" x2="{x + 85}" y2="730" stroke="#D5DAE3" stroke-width="1.2" stroke-dasharray="4 4"/>')
     c = [x + 85 for x in xs]
     f.num(22, 153, 1)
-    f.box(c[0] - 80, 128, 160, 50, None, ["실행 ⌘↵, 또는 손을", "멈추고 2.7초 뒤 자동"], kind="ui", center=True, size=12)
+    f.box(c[0] - 80, 128, 160, 50, None, ["실행 ⌘↵, 또는", "입력 멈춘 지 2.7초"], kind="ui", center=True, size=12)
     f.arrow([(c[0] + 80, 152), (c[1] - 4, 152)], "check(code)", color="#2C56C9", lx=(c[0] + 80 + c[1]) / 2, ly=146, size=11.5)
     f.num(c[1] - 18, 200, 2)
-    f.arrow([(c[1], 200), (c[2] - 4, 200)], "코드 + 팩 경로 (표준 입력)", color="#D99A1E", lx=(c[1] + c[2]) / 2, ly=194, size=11.5)
-    f.box(c[2] - 82, 212, 164, 214, "검사 순서", [
-        "① 문법 확인", "② 예시 (하나 2초)", "③ 숨은 검사 최대 340개", "   (모두 3초 안,", "   첫 실패에서 멈춤)",
-        "④ 가장 작은 반례로", "   실행 추적", "⑤ 수리 검색", "   (1.5초, 400개까지)"], kind="proc", size=11.5)
+    f.arrow([(c[1], 200), (c[2] - 4, 200)], "코드 + 팩 경로 (stdin)", color="#D99A1E", lx=(c[1] + c[2]) / 2, ly=194, size=11.5)
+    f.box(c[2] - 82, 212, 164, 214, "채점 순서", [
+        "① 문법 검사", "② 예시 (테스트당 2초)", "③ 히든 테스트 ≤340개", "   (전체 3초,", "   첫 실패에서 중단)",
+        "④ 최소 반례로", "   실행 추적", "⑤ 변이 탐색", "   (1.5초, 400개까지)"], kind="proc", size=11.5)
     f.num(c[2] + 95, 440, 3, "#D99A1E")
-    f.arrow([(c[2], 426), (c[2], 450), (c[1] + 4, 450)], "결과 JSON (마지막 줄)", color="#D99A1E", lx=(c[1] + c[2]) / 2, ly=444, size=11.5)
-    f.box(c[1] - 82, 462, 164, 70, None, ["실패 사실 고르기", "수리로 고쳐지면", "확인된 진단 바로"], kind="py", size=11.5, center=True)
+    f.arrow([(c[2], 426), (c[2], 450), (c[1] + 4, 450)], "결과 JSON (stdout)", color="#D99A1E", lx=(c[1] + c[2]) / 2, ly=444, size=11.5)
+    f.box(c[1] - 82, 462, 164, 70, None, ["실패 정리 (facts)", "변이 탐색 성공 시", "확정 진단"], kind="py", size=11.5, center=True)
     f.num(c[1] - 22, 546, 4)
-    f.arrow([(c[1] - 40, 532), (c[1] - 40, 556), (c[0] + 4, 556)], "테스트 결과 (바로 돌려줌)", color="#2C56C9", lx=(c[0] + c[1]) / 2 - 25, ly=550, size=11.5)
+    f.arrow([(c[1] - 40, 532), (c[1] - 40, 556), (c[0] + 4, 556)], "테스트 결과 (즉시 반환)", color="#2C56C9", lx=(c[0] + c[1]) / 2 - 25, ly=550, size=11.5)
     f.box(c[0] - 80, 568, 160, 44, None, ["테스트 표 · 반례 표시"], kind="ui", center=True, size=12)
     f.num(c[1] + 95, 553, 5)
-    f.arrow([(c[1] + 40, 532), (c[1] + 40, 568), (c[3] - 4, 568)], "뒤 스레드 시작 (gen 번호)", lx=(c[1] + c[3]) / 2 + 20, ly=562, size=11.5)
-    f.box(c[3] - 82, 580, 164, 44, None, ["AI 진단 (줄·말·분류)"], kind="py", center=True, size=11.5)
+    f.arrow([(c[1] + 40, 532), (c[1] + 40, 568), (c[3] - 4, 568)], "백그라운드 스레드 (gen)", lx=(c[1] + c[3]) / 2 + 20, ly=562, size=11.5)
+    f.box(c[3] - 82, 580, 164, 44, None, ["LLM 진단 (줄·말·분류)"], kind="py", center=True, size=11.5)
     f.arrow([(c[3] + 82, 596), (c[4] - 4, 596)], "/api/chat", color="#D99A1E", lx=(c[3] + 82 + c[4]) / 2, ly=590, size=11.5)
-    f.arrow([(c[4] - 4, 612), (c[3] + 82, 612)], "글자 조각", color="#D99A1E", lx=(c[3] + 82 + c[4]) / 2, ly=628, size=11.5)
+    f.arrow([(c[4] - 4, 612), (c[3] + 82, 612)], "토큰 스트림", color="#D99A1E", lx=(c[3] + 82 + c[4]) / 2, ly=628, size=11.5)
     f.num(c[3] + 95, 652, 6)
-    f.box(c[3] - 82, 640, 164, 52, None, ["정책: 먼저 말할까?", "speak · chip · none"], kind="py", center=True, size=11.5)
+    f.box(c[3] - 82, 640, 164, 52, None, ["발화 정책 (Policy)", "speak · chip · none"], kind="py", center=True, size=11.5)
     f.arrow([(c[3] - 82, 666), (c[0] + 4, 666)], "line → stream → say / chip 이벤트", color="#2C56C9", lx=(c[0] + c[3]) / 2, ly=660, size=11.5)
     f.box(c[0] - 80, 678, 160, 50, None, ["말풍선: 그 줄 아래", "질문 하나"], kind="ui", center=True, size=12)
     f.save()
@@ -173,63 +172,63 @@ def check_flow():
 
 # ---------------------------------------------------------------- 3. 코치 파이프라인
 def coach_pipeline():
-    f = Fig("03-coach-pipeline", 1000, 545, "코치가 틀린 곳을 찾고 말하는 과정",
-            "확실한 방법부터 쓴다: 규칙 → 수리 검색 → AI. AI를 부르는 단계는 지금 모델에 맞는 프로필을 쓴다")
-    f.box(24, 90, 160, 120, "실패 사실", ["오류 > 오답 > 시간 초과", "같으면 입력이 짧은", "반례가 먼저"], kind="py", size=11.5)
+    f = Fig("03-coach-pipeline", 1000, 545, "코치 파이프라인",
+            "결정적인 방법부터 쓴다: 규칙 → 변이 탐색 → LLM. LLM 단계는 모델별 프로필을 쓴다")
+    f.box(24, 90, 160, 120, "실패 정리", ["오류 > 오답 > 시간 초과", "같으면 입력이 짧은", "반례가 먼저"], kind="py", size=11.5)
     f.arrow([(184, 150), (214, 150)])
     f.box(214, 80, 250, 140, "진단 (diagnose)", [], kind="plain")
-    tiers = [("규칙", "문법·불러오기 오류 → 그 줄", "확인됨"), ("수리 검색", "한 군데 바꿔 모두 통과 → 그 줄", "확인됨"),
-             ("AI 진단", "실행 추적을 읽고 줄·말·분류", "추정")]
+    tiers = [("규칙", "문법·불러오기 오류 → 그 줄", "확인됨"), ("변이 탐색", "한 곳 바꿔 모두 통과 → 그 줄", "확인됨"),
+             ("LLM 진단", "실행 추적을 읽고 줄·말·분류", "추정")]
     for i, (a, b, conf) in enumerate(tiers):
         y = 108 + i * 36
-        f.box(224, y, 230, 30, None, [], kind="proc" if a == "AI 진단" else "py")
+        f.box(224, y, 230, 30, None, [], kind="proc" if a == "LLM 진단" else "py")
         f.text(234, y + 20, a, 12, "700")
         f.text(300, y + 20, b, 10.5, color=MUTED)
     f.arrow([(464, 150), (494, 150)])
-    f.box(494, 80, 190, 140, "정책 (Policy)", ["문법 오류: 칩만", "조용히 모드: 칩만", "같은 말은 다시 안 함", "자동 검사: 180초에 한 번", "(보통 모드는 확인된 것만)"],
+    f.box(494, 80, 190, 140, "정책 (Policy)", ["문법 오류: 칩만", "조용히 모드: 칩만", "같은 말은 다시 안 함", "자동 검사: 180초에 한 번", "(normal 모드: 확정 진단만)"],
           kind="py", size=11.5)
     f.arrow([(684, 100), (720, 100)], "chip", lx=702, ly=92, size=11)
     f.arrow([(684, 180), (720, 180)], "speak", lx=702, ly=172, size=11)
     f.box(720, 80, 170, 40, None, ["접힌 칩 (누르면 말함)"], kind="plain", size=11.5, center=True)
-    f.box(720, 140, 170, 70, "말하기 (say)", ["AI가 질문 한 개"], kind="proc", size=11.5)
+    f.box(720, 140, 170, 70, "응답 생성 (say)", ["LLM이 질문 한 개"], kind="proc", size=11.5)
     f.arrow([(820, 210), (820, 248)])
     f.box(640, 248, 340, 150, "유출 검사 (leak_reason)", [
         "① 코드 모양 (def·for·대입문·```)", "② 모범 풀이 줄과 겹침", "③ 고칠 값을 '바꿔/써'와 함께 말함",
         "④ 'A 대신 B'(B가 코드), '~바꿔야 합니다'", "⑤ 320자 넘음"], kind="warn", size=11.5)
     f.arrow([(640, 340), (500, 340)], "통과", color="#2E7D4A", lx=570, ly=332, size=11.5, label_color="#2E7D4A")
-    f.box(330, 312, 170, 56, None, ["말풍선에 그 질문", "(코치 기록에 저장)"], kind="ui", center=True, size=11.5)
+    f.box(330, 312, 170, 56, None, ["말풍선에 질문 표시", "(coach_msgs에 저장)"], kind="ui", center=True, size=11.5)
     f.arrow([(810, 398), (810, 430)], "걸림", color="#B93A27", lx=838, ly=420, size=11.5, label_color="#B93A27")
-    f.box(700, 430, 250, 68, None, ["확인된 진단: 위반을 알려 주고", "한 번 다시 쓰게 함", "AI 진단: 바로 정해진 문장으로"], kind="warn", center=True, size=11.5)
-    f.arrow([(700, 464), (500, 464)], "정해진 문장으로", color="#B93A27", lx=600, ly=456, size=11.5, label_color="#B93A27")
-    f.box(330, 436, 170, 56, None, ["정해진 문장", "(줄과 반례만 짚음)"], kind="ui", center=True, size=11.5)
+    f.box(700, 430, 250, 68, None, ["확정 진단: 위반 사유를 붙여", "한 번 재생성", "LLM 진단: 바로 폴백"], kind="warn", center=True, size=11.5)
+    f.arrow([(700, 464), (500, 464)], "폴백", color="#B93A27", lx=600, ly=456, size=11.5, label_color="#B93A27")
+    f.box(330, 436, 170, 56, None, ["폴백 템플릿", "(줄과 반례만 언급)"], kind="ui", center=True, size=11.5)
     # 프로필
-    f.box(24, 260, 280, 180, "프로필 고르기 (profile)", [
-        "지금 모델 이름으로 고른다", "gemma → 기본 (한국어 지시문)", "mistral → Ministral 맞춤", "qwen·omnicoder → Qwen 맞춤",
-        "바뀌는 것: 지시문 · 온도 ·", "대화 구조 · 말 다듬기"], kind="data", size=11.5)
+    f.box(24, 260, 280, 180, "프로필 선택 (profile)", [
+        "모델 이름으로 고른다", "gemma → 기본", "mistral → Ministral용", "qwen·omnicoder → Qwen용",
+        "시스템 프롬프트 · temperature", "메시지 구조 · 후처리"], kind="data", size=11.5)
     f.arrow([(164, 260), (164, 234), (760, 234), (760, 210)], color="#2E7D4A", dashed=True)
     f.arrow([(339, 234), (339, 220)], color="#2E7D4A", dashed=True)
-    f.text(470, 252, "프로필이 바꾸는 단계", 11, color="#2E7D4A", anchor="middle")
-    f.text(24, 528, "주황 상자는 코치 모델을 부르는 단계다. 빨강은 막는 길, 초록 점선은 프로필이 바꾸는 곳", 12, color=MUTED)
+    f.text(470, 252, "프로필 적용", 11, color="#2E7D4A", anchor="middle")
+    f.text(24, 528, "주황: LLM 호출   빨강: 차단 경로   초록 점선: 프로필 적용", 12, color=MUTED)
     f.save()
 
 
 # ---------------------------------------------------------------- 4. 자료와 기록
 def data_flow():
-    f = Fig("04-data", 1100, 620, "문제 자료가 팩이 되는 과정과, 기록이 쓰이는 화면")
+    f = Fig("04-data", 1100, 620, "데이터 흐름: 팩 생성과 SQLite 기록")
     f.box(24, 80, 200, 110, "공부 볼트 (Obsidian)", ["알고리즘 개념 문서", "연습 문제 문서", "모범 풀이 코드 (*_p1.py)"], kind="data", size=11.5)
     f.arrow([(224, 135), (334, 135)], "sync_content.py", lx=279, ly=126, size=10.5)
-    f.box(334, 80, 200, 110, "content/", ["4.연습문제: 문제 90", "  문서 + 모범 풀이 코드", "3.개념집: 개념 문서 35", "(수업 자료 언급·메모는 뺌)"], kind="data", size=11.5)
+    f.box(334, 80, 200, 110, "content/", ["4.연습문제: 문제 90", "  문서 + 모범 풀이 코드", "3.개념집: 개념 문서 35", "(수업 자료 언급·메모 제거)"], kind="data", size=11.5)
     f.arrow([(534, 135), (624, 135)], "capture.py", lx=579, ly=126, size=10.5)
-    f.box(624, 80, 220, 110, "모범 풀이 검사 블록 실행", ["solution 호출을 모두 기록", "random 쓰기 전 호출 → 예시", "그 뒤 호출 → 숨은 검사"], kind="proc", size=11.5)
+    f.box(624, 80, 220, 110, "모범 풀이 __main__ 실행", ["solution 호출을 모두 기록", "random 쓰기 전 호출 → 예시", "그 뒤 호출 → 히든 테스트"], kind="proc", size=11.5)
     f.arrow([(844, 135), (884, 135)])
-    f.box(884, 80, 192, 110, "팩 <문제>.json", ["인자 이름", "예시 입력·답", "숨은 검사: 작은 입력", "300 + 큰 입력 40"], kind="data", size=11.5)
-    f.arrow([(980, 190), (980, 230)], "검사 프로세스가 읽음", lx=980, ly=246, size=11)
-    f.text(24, 290, "SQLite 기록 (앱 데이터 폴더의 koteacher.db)", 15, "700")
-    tables = [("attempts", "문제를 연 한 번 = 시도", "시작·끝, 결과, 연 힌트 수, 풀이 봄"),
-              ("snapshots", "실행 한 번", "그때 코드, 결과 요약, 통과 여부"),
-              ("coach_msgs", "코치가 한 말 한 번", "진단 분류, 걸린 시간, 별점"),
-              ("mistakes", "틀렸다가 고친 순간", "고친 차이, 걸린 시간, 내 메모"),
-              ("doc_notes", "문서에서 고른 부분의 질문", "답, 이어서 물은 질문과 답")]
+    f.box(884, 80, 192, 110, "팩 <문제>.json", ["인자 이름", "예시 입출력", "히든: 작은 입력 300", "+ 큰 입력 40"], kind="data", size=11.5)
+    f.arrow([(980, 190), (980, 230)], "harness가 읽음", lx=980, ly=246, size=11)
+    f.text(24, 290, "SQLite 테이블 (koteacher.db)과 쓰는 화면", 15, "700")
+    tables = [("attempts", "row = 시도 1회", "시작·끝, 결과, 연 힌트 수, 풀이 봄"),
+              ("snapshots", "row = 실행 1회", "그때 코드, 결과 요약, 통과 여부"),
+              ("coach_msgs", "row = 코치 응답 1개", "진단 분류, 걸린 시간, 별점"),
+              ("mistakes", "row = 고친 실수 1건", "고친 차이, 걸린 시간, 내 메모"),
+              ("doc_notes", "row = 문서 질문 1개", "답, 이어서 물은 질문과 답")]
     screens = [("홈 문제 상태 · 추천 · 풀이 기록", (0, 1)), ("프로필 잔디 · 연속 일수", (1,)), ("다시 열 때 이어 쓸 코드", (1,)),
                ("풀이 기록의 코치 말", (2,)), ("오답 노트 · 약한 개념 추천", (3,)), ("문서 하이라이트 · 전체 검색", (4,))]
     for i, (t, a, b) in enumerate(tables):
@@ -248,7 +247,7 @@ def data_flow():
 
 # ---------------------------------------------------------------- 5. 통과 기록
 def attempt_status():
-    f = Fig("05-status", 980, 470, "통과가 기록되는 규칙", "문제 상태는 그 문제의 모든 시도 가운데 가장 좋은 결과다 (통과 > 힌트로 통과 > 시도)")
+    f = Fig("05-status", 980, 470, "문제 상태 판정", "문제 상태는 그 문제의 모든 시도 중 가장 좋은 결과다 (통과 > 힌트로 통과 > 시도)")
     f.box(24, 120, 130, 60, "새 문제", ["아직 실행 안 함"], kind="plain", size=11.5, center=True)
     f.arrow([(154, 150), (214, 150)], "실행", lx=184, ly=142, size=11.5)
     f.box(214, 120, 130, 60, "시도", ["검사를 못 넘김"], kind="warn", size=11.5, center=True)
@@ -271,26 +270,27 @@ def attempt_status():
 
 # ---------------------------------------------------------------- 6. 만들기와 첫 실행
 def build_and_setup():
-    f = Fig("06-build-setup", 1000, 500, "앱을 만드는 과정과 처음 켤 때 코치를 준비하는 과정")
+    f = Fig("06-build-setup", 1000, 556, "빌드·배포와 첫 실행")
     f.text(24, 90, "맥 (tools/build_mac.py)", 14, "700")
-    steps = ["팩 90개 미리 만들기", "PyInstaller로 .app 묶기", "임시 서명 (codesign -s -)", "묶인 앱으로 자가 점검", "DMG 만들기"]
+    steps = ["팩 90개 미리 빌드", "PyInstaller로 .app 번들", "ad-hoc 서명 (codesign -s -)", "번들 앱 자가 점검",
+             "DMG (+ 설치하고 열기 스크립트)", "PKG (+ postinstall)"]
     for i, s in enumerate(steps):
         y = 104 + i * 52
         f.box(24, y, 220, 40, None, [s], kind="py", size=12, center=True)
         if i:
             f.arrow([(134, y - 12), (134, y)])
     f.text(270, 90, "윈도 (GitHub Actions)", 14, "700")
-    wsteps = ["태그 v* 를 올림", "build_win.py: PyInstaller", "Inno Setup → Setup.exe", "zip도 함께", "릴리스에 붙임"]
+    wsteps = ["v* 태그 push", "build_win.py: PyInstaller", "Inno Setup → Setup.exe", "zip도 함께", "릴리스에 업로드"]
     for i, s in enumerate(wsteps):
         y = 104 + i * 52
         f.box(270, y, 220, 40, None, [s], kind="py", size=12, center=True)
         if i:
             f.arrow([(380, y - 12), (380, y)])
-    f.box(24, 384, 466, 96, "한 줄 설치 (install.sh · install.ps1)", ["저장소를 받아 파이썬 가상 환경을 만들고, Ollama와 코치 모델까지", "설치한다. 인텔 맥과 리눅스는 이 길을 쓴다. curl로 받은 파일에는",
-                                                                  "'인터넷에서 받음' 표시가 붙지 않아 맥 경고가 뜨지 않는다."], kind="plain", size=11.5)
+    f.box(24, 436, 466, 96, "한 줄 설치 (install.sh · install.ps1)", ["저장소를 받아 venv를 만들고 Ollama와 코치 모델까지 설치한다.", "인텔 맥과 리눅스용. curl로 받은 파일에는 quarantine 속성이",
+                                                                  "붙지 않아 Gatekeeper 경고가 없다."], kind="plain", size=11.5)
     # 첫 실행
-    f.text(540, 90, "처음 켤 때 (api.prepare_coach)", 14, "700")
-    f.box(540, 104, 200, 40, None, ["앱 켬, 코치 모델 있나?"], kind="ui", size=12, center=True)
+    f.text(540, 90, "첫 실행 (api.prepare_coach)", 14, "700")
+    f.box(540, 104, 200, 40, None, ["앱 시작: 모델 있음?"], kind="ui", size=12, center=True)
     f.arrow([(740, 124), (790, 124)], "있음", lx=765, ly=116, size=11)
     f.box(790, 104, 186, 40, None, ["그대로 씀"], kind="data", size=12, center=True)
     f.arrow([(640, 144), (640, 180)], "없음", lx=665, ly=166, size=11)
@@ -301,14 +301,45 @@ def build_and_setup():
     f.arrow([(883, 256), (883, 290), (740, 290)], color="#D99A1E")
     f.box(540, 270, 200, 60, None, ["팝업을 띄우고", "바로 e4b 받기 시작"], kind="ui", size=12, center=True)
     f.arrow([(640, 330), (640, 360)])
-    f.box(540, 360, 436, 120, "받기 규칙 (api.pull_model)", ["GitHub 패키지(ghcr.io)에서 받는다. 끊기면 받던 데서 이어", "3번까지 다시 받고, 그래도 안 되면 Ollama 서버에서 원래 판을 받는다.",
-                                                         "받는 동안 받은 양·초당 MB·남은 시간·받는 곳을 보인다.", "팝업을 닫아도 받기는 계속되고 위 막대에 몇 %인지 보인다."], kind="plain", size=11.5)
+    f.box(540, 360, 436, 120, "모델 다운로드 (api.pull_model)", ["ghcr.io에서 받고, 끊기면 이어 받기로 3번까지 재시도", "그래도 실패하면 Ollama 레지스트리의 원본으로 폴백",
+                                                             "진행률 · 속도 · 남은 시간 · 출처 표시", "팝업을 닫아도 계속 받고, 상단 바에 % 표시"], kind="plain", size=11.5)
+    f.save()
+
+
+# ---------------------------------------------------------------- 7. 파이프라인과 데이터
+def pipeline():
+    f = Fig("07-pipeline", 1000, 750, "채점·코치 파이프라인과 단계 사이의 데이터",
+            "가운데가 실행 한 번의 단계, 화살표 위의 글자가 단계 사이를 오가는 데이터다")
+    x, w, cx = 250, 400, 450
+    f.box(x, 80, w, 44, None, ["에디터에서 코드 입력"], kind="ui", center=True, size=12.5)
+    f.box(700, 72, 276, 60, "pyflakes 정적 분석", ["타이핑할 때마다, 실행 없이 밑줄"], kind="py", size=11.5)
+    f.arrow([(650, 102), (700, 102)], "코드", lx=675, ly=94, size=11, dashed=True)
+    f.arrow([(cx, 124), (cx, 160)], "실행 ⌘↵ 또는 입력 멈춘 지 2.7초", lx=cx + 10, ly=146, size=11, anchor="start")
+    f.box(x, 160, w, 44, None, ["Api.check(code, trigger)  ·  gen += 1"], kind="py", center=True, size=12.5)
+    f.arrow([(cx, 204), (cx, 244)], "stdin  {code, pack, repair}", color="#D99A1E", lx=cx + 10, ly=228, size=11, anchor="start")
+    f.box(x, 244, w, 150, "harness (서브프로세스)", ["① 문법 검사 → ② solution 로드", "③ 예시 실행 (테스트당 2초)", "④ 히든 테스트: 작은 입력부터, 첫 실패에서 중단",
+                                                  "⑤ 최소 반례로 실행 추적", "⑥ 변이 탐색: 한 곳씩 바꿔 모두 통과하는지"], kind="proc", size=11.5)
+    f.box(700, 270, 276, 84, "팩 pg42748.json", ["예시 2개 (문제의 입출력 예)", "히든 테스트 340개"], kind="data", size=11.5)
+    f.arrow([(700, 312), (654, 312)], "읽기", color="#2E7D4A", lx=677, ly=304, size=11)
+    f.arrow([(cx, 394), (cx, 434)], "stdout  {examples, hidden, trace, repair}", color="#D99A1E", lx=cx + 10, ly=418, size=11, anchor="start")
+    f.box(x, 434, w, 44, None, ["facts: 실패를 모아 예외 > 오답 > 시간 초과 순으로 정렬"], kind="py", center=True, size=12)
+    f.box(700, 434, 276, 44, None, ["테스트 표 · 반례 (즉시 반환)"], kind="ui", center=True, size=12)
+    f.arrow([(650, 456), (700, 456)], color="#2C56C9")
+    f.arrow([(cx, 478), (cx, 508)], "백그라운드 스레드", lx=cx + 10, ly=497, size=11, anchor="start")
+    f.box(x, 508, w, 44, None, ["진단: 규칙 → 변이 탐색 → LLM"], kind="proc", center=True, size=12.5)
+    f.arrow([(cx, 552), (cx, 582)], "diag  {tier, line, category, confidence}", lx=cx + 10, ly=571, size=11, anchor="start")
+    f.box(x, 582, w, 44, None, ["발화 정책: speak · chip · none"], kind="py", center=True, size=12.5)
+    f.arrow([(cx, 626), (cx, 656)], "speak", lx=cx + 10, ly=645, size=11, anchor="start")
+    f.box(x, 656, w, 44, None, ["응답 생성 → 유출 검사 → 걸리면 폴백 템플릿"], kind="proc", center=True, size=12.5)
+    f.box(700, 656, 276, 44, None, ["말풍선"], kind="ui", center=True, size=12.5)
+    f.arrow([(650, 678), (700, 678)], "이벤트", color="#2C56C9", lx=675, ly=670, size=11)
+    f.text(24, 734, "이벤트 순서: thinking → line → stream × n → diag → say (또는 chip)", 12, color=MUTED)
     f.save()
 
 
 if __name__ == "__main__":
-    for fn in (overview, check_flow, coach_pipeline, data_flow, attempt_status, build_and_setup):
+    for fn in (overview, check_flow, coach_pipeline, data_flow, attempt_status, build_and_setup, pipeline):
         fn()
     for w in WARN:
         print("경고:", w)
-    print(f"그림 6장을 {OUT}에 만들었습니다. 경고 {len(WARN)}개")
+    print(f"그림 7장을 {OUT}에 만들었습니다. 경고 {len(WARN)}개")
